@@ -1,0 +1,129 @@
+# ----------------------
+# 🚀 DEPENDENZE & PACCHETTI
+# ----------------------
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.npm/
+.pnp/
+.pnp.js
+
+# ----------------------
+# ⚡ EXPO / REACT NATIVE
+# ----------------------
+.expo/
+.expo-shared/
+dist/
+web-build/
+*.expo/
+*.expo-go/
+
+# ----------------------
+# 📱 NATIVO (Android/iOS)
+# ----------------------
+android/.gradle/
+android/.idea/
+android/app/debug.keystore
+android/app/src/main/assets/
+android/app/src/main/res/raw/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/app/.externalNativeBuild/
+ios/Pods/
+ios/build/
+ios/.generated/
+
+# ----------------------
+# 📦 BUILD / OUTPUT FILES
+# ----------------------
+build/
+out/
+*.log
+*.tsbuildinfo
+*.bak
+*.tmp
+*.swp
+*.swo
+*.orig
+*.rej
+
+# ----------------------
+# ⚙️ METRO BUNDLER / BABEL
+# ----------------------
+.metro-health-check*
+.cache/
+babel.config.js.backup/
+
+# ----------------------
+# 🛠️ DEBUG / ERROR LOGS
+# ----------------------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+debug.log*
+
+# ----------------------
+# 🍏 macOS
+# ----------------------
+.DS_Store
+*.pem
+*.keychain
+
+# ----------------------
+# 🔐 VARIABILI AMBIENTE / CONFIGURATION FILES
+# ----------------------
+.env
+.env*.local
+.env*.development
+.env*.production
+.env*.staging
+.env*.example
+.envrc
+.editorconfig
+
+# ----------------------
+# 🏗️ IDEs / EDITORS / SISTEMI DI VERSIONAMENTO
+# ----------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.log
+*.history/
+
+# ----------------------
+# 📦 FILE TEMPORANEI / SPECIFICI DEL PROGETTO
+# ----------------------
+app-example
+scripts/
+tmp/
+coverage/
+jest/
+
+
+# Ignora build e file temporanei
+node_modules/
+android/.gradle/
+android/.idea/
+android/app/debug.keystore
+android/app/src/main/assets/
+android/app/src/main/res/raw/
+android/build/
+android/app/build/
+ios/Pods/
+ios/build/
+.expo/
+.expo-shared/
+web-build/
+dist/
+.cache/
+.DS_Store
+*.log
+*.tsbuildinfo
+env/
