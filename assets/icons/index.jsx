@@ -64,5 +64,3 @@ const Icon = ({ name, ...props }) => {
 }
 
 export default Icon;
-
-const styles = StyleSheet.create({})
