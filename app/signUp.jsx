@@ -25,7 +25,7 @@ const SignUp = () => {
     }
 
     let first_name = firstNameRef.current.trim();
-    let last_name = lastNameRef.current.trim(); // ← AJOUTÉ
+    let last_name = lastNameRef.current.trim();
     let email = emailRef.current.trim();
     let password = passwordRef.current.trim();
 
@@ -34,7 +34,7 @@ const SignUp = () => {
     const { data: { session }, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { // ← CORRIGÉ (options avec un 's')
+      options: {
         data: {
           first_name,
           last_name
@@ -49,6 +49,10 @@ const SignUp = () => {
 
     if (error) {
       Alert.alert('Sign Up', error.message);
+    } else if (session) {
+      // ✅ AJOUTE CETTE PARTIE
+      Alert.alert('Success', 'Account created successfully!');
+      router.replace('/home'); // On va créer cette page
     }
   }
 
@@ -135,7 +139,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5
   },
-  footerText: { 
+  footerText: {
     textAlign: 'center',
     color: theme.colors.text,
     fontSize: hp(1.6)

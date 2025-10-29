@@ -1,16 +1,29 @@
-import { View, Text, Button } from 'react-native'
-import React from 'react'
+import { View, ActivityIndicator } from 'react-native'
+import React, { useEffect } from 'react'
 import { useRouter } from 'expo-router'
-import ScreenWrapper from '../components/ScreenWrapper'
+import { supabase } from '../lib/supabase'
 
-const index = () => {
+const Index = () => {
   const router = useRouter();
+
+  useEffect(() => {
+    // Vérifie si l'utilisateur est déjà connecté
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Utilisateur connecté → va vers l'app (à créer plus tard)
+        router.replace('/home') // On créera cette page plus tardR
+      } else {
+        // Pas connecté → va vers welcome
+        router.replace('/welcome')
+      }
+    })
+  }, [])
+
   return (
-    <ScreenWrapper>
-      <Text>index</Text>
-      <Button title="welcome" onPress={() => router.push('welcome')} />
-    </ScreenWrapper>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#00C22F" />
+    </View>
   )
 }
 
-export default index
+export default Index
