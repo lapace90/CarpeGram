@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, FlatList } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
@@ -8,11 +8,13 @@ import { useRouter } from 'expo-router'
 import Icon from '../../assets/icons'
 import Button from '../../components/Button'
 import { pickAndUploadAvatar } from '../../services/imageService'
+import { fetchUserPosts } from '../../services/postService'
 
 const Profile = () => {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,6 +37,12 @@ const Profile = () => {
         .single();
 
       setProfile(profileData);
+
+      // Get user posts
+      const postsResult = await fetchUserPosts(user.id);
+      if (postsResult.success) {
+        setPosts(postsResult.data || []);
+      }
     }
 
     setLoading(false);
@@ -46,16 +54,29 @@ const Profile = () => {
   }
 
   const handleAvatarChange = async () => {
-    console.log('🎯 Profile: handleAvatarChange called');
-    console.log('User ID:', user?.id);
-
     setLoading(true);
     await pickAndUploadAvatar(user.id, () => {
-      console.log('✅ Profile: Callback called, refreshing...');
       getUserData();
     });
     setLoading(false);
   }
+
+  const renderPostItem = ({ item }) => (
+    <Pressable
+      style={styles.gridItem}
+      onPress={() => {
+        // Navigate to post details (future feature)
+        console.log('Post clicked:', item.id);
+      }}
+    >
+      <Image source={{ uri: item.image_url }} style={styles.gridImage} />
+      {item.fish_species && (
+        <View style={styles.gridOverlay}>
+          <Text style={styles.gridOverlayText}>🐟 {item.fish_species}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
 
   if (loading) {
     return (
@@ -86,7 +107,7 @@ const Profile = () => {
           <View style={styles.avatarContainer}>
             {profile?.avatar_url ? (
               <Image
-                source={{ uri: `${profile.avatar_url}?t=${Date.now()}` }} 
+                source={{ uri: `${profile.avatar_url}?t=${Date.now()}` }}
                 style={styles.avatar}
               />
             ) : (
@@ -99,19 +120,16 @@ const Profile = () => {
             </Pressable>
           </View>
 
-          {/* Username en premier */}
           <Text style={styles.username}>
             @{profile?.username || 'username'}
           </Text>
 
-          {/* Nom complet si show_full_name est true */}
           {profile?.show_full_name && profile?.first_name && (
             <Text style={styles.fullName}>
               {profile.first_name} {profile.last_name}
             </Text>
           )}
 
-          {/* Badge angler */}
           <Text style={styles.userBadge}>
             🎣 Angler since {profile?.angler_since || '2010'}
           </Text>
@@ -119,7 +137,7 @@ const Profile = () => {
           {/* Stats */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{profile?.posts_count || 0}</Text>
+              <Text style={styles.statNumber}>{posts.length}</Text>
               <Text style={styles.statLabel}>Catches</Text>
             </View>
             <View style={styles.statBox}>
@@ -154,28 +172,54 @@ const Profile = () => {
           </View>
         )}
 
-        {/* Quick actions */}
-        <View style={styles.actionsSection}>
-          <Pressable
-            style={styles.actionButton}
-            onPress={() => router.push('/editProfile')}
-          >
-            <Icon name="edit" size={22} color={theme.colors.primary} />
-            <Text style={styles.actionText}>Edit Profile</Text>
-            <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
-          </Pressable>
+        {/* Posts Grid Header */}
+        <View style={styles.postsHeader}>
+          <Icon name="image" size={22} color={theme.colors.primary} />
+          <Text style={styles.postsTitle}>My Catches</Text>
+        </View>
 
+        {/* Posts Grid */}
+        {posts.length > 0 ? (
+          <View style={styles.grid}>
+            {posts.map((post) => (
+              <Pressable
+                key={post.id}
+                style={styles.gridItem}
+                onPress={() => console.log('Post clicked:', post.id)}
+              >
+                <Image source={{ uri: post.image_url }} style={styles.gridImage} />
+                {post.fish_species && (
+                  <View style={styles.gridOverlay}>
+                    <Text style={styles.gridOverlayText}>🐟 {post.fish_species}</Text>
+                  </View>
+                )}
+              </Pressable>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.noPosts}>
+            <Icon name="image" size={60} strokeWidth={1.5} color={theme.colors.textLight} />
+            <Text style={styles.noPostsText}>No catches yet</Text>
+            <Pressable
+              style={styles.createPostButton}
+              onPress={() => router.push('/newPost')}
+            >
+              <Text style={styles.createPostText}>Share your first catch! 🎣</Text>
+            </Pressable>
+          </View>
+        )}
+        <View style={styles.actionsSection}>
           <Pressable style={styles.actionButton}>
             <Icon name="maps" size={22} color={theme.colors.primary} />
             <Text style={styles.actionText}>Favorite Spots</Text>
             <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
           </Pressable>
 
-          <Pressable style={styles.actionButton}>
+          {/* <Pressable style={styles.actionButton}>
             <Icon name="image" size={22} color={theme.colors.primary} />
             <Text style={styles.actionText}>My Catches Gallery</Text>
             <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
-          </Pressable>
+          </Pressable> */}
         </View>
 
         {/* Logout button */}
@@ -343,6 +387,70 @@ const styles = StyleSheet.create({
     fontSize: hp(1.7),
     color: theme.colors.textLight,
   },
+  postsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: wp(5),
+    marginTop: hp(3),
+    marginBottom: 15,
+  },
+  postsTitle: {
+    fontSize: hp(2.2),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.text,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: wp(5),
+    gap: 2,
+  },
+  gridItem: {
+    width: (wp(100) - wp(10) - 4) / 3,
+    height: (wp(100) - wp(10) - 4) / 3,
+    position: 'relative',
+  },
+  gridImage: {
+    width: '100%',
+    height: '100%',
+  },
+  gridOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 4,
+  },
+  gridOverlayText: {
+    color: 'white',
+    fontSize: hp(1.3),
+    fontWeight: theme.fonts.medium,
+  },
+  noPosts: {
+    alignItems: 'center',
+    paddingVertical: hp(8),
+    paddingHorizontal: wp(5),
+    gap: 12,
+  },
+  noPostsText: {
+    fontSize: hp(2),
+    color: theme.colors.textLight,
+    marginTop: 10,
+  },
+  createPostButton: {
+    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
+  },
+  createPostText: {
+    fontSize: hp(1.8),
+    fontWeight: theme.fonts.semiBold,
+    color: 'white',
+  },
   actionsSection: {
     marginTop: hp(3),
     paddingHorizontal: wp(5),
@@ -356,6 +464,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray,
     borderRadius: theme.radius.lg,
   },
+
   actionText: {
     fontSize: hp(1.9),
     fontWeight: theme.fonts.medium,

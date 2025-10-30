@@ -1,32 +1,109 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native'
-import React from 'react'
+import { View, Text, StyleSheet, FlatList, RefreshControl, Pressable } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
 import { hp, wp } from '../../helpers/common'
 import { supabase } from '../../lib/supabase'
+import { fetchFeedPosts } from '../../services/postService'
+import PostCard from '../../components/post/PostCard'
+import Icon from '../../assets/icons'
 import { useRouter } from 'expo-router'
-import Button from '../../components/Button'
 
 const Home = () => {
   const router = useRouter();
-  
-  const onLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace('/welcome');
-  }
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    getUserAndPosts();
+  }, []);
+
+  const getUserAndPosts = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+    await loadPosts();
+  };
+
+  const loadPosts = async () => {
+    setLoading(true);
+    const result = await fetchFeedPosts(user?.id);
+    
+    if (result.success) {
+      setPosts(result.data || []);
+    }
+    
+    setLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadPosts();
+    setRefreshing(false);
+  };
+
+  const renderPost = ({ item }) => (
+    <PostCard 
+      post={item}
+      onPress={() => {
+        // Navigate to post details (future feature)
+        console.log('Post clicked:', item.id);
+      }}
+    />
+  );
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <Text style={styles.logo}>Carpegram 🎣</Text>
+      <View style={styles.headerActions}>
+        <Pressable style={styles.iconButton}>
+          <Icon name="heart" size={26} strokeWidth={1.8} color={theme.colors.text} />
+        </Pressable>
+        <Pressable style={styles.iconButton}>
+          <Icon name="send" size={26} strokeWidth={1.8} color={theme.colors.text} />
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Icon name="image" size={80} strokeWidth={1.5} color={theme.colors.textLight} />
+      <Text style={styles.emptyTitle}>No posts yet</Text>
+      <Text style={styles.emptyText}>
+        Be the first to share your catch! 🎣
+      </Text>
+      <Pressable 
+        style={styles.createButton}
+        onPress={() => router.push('/newPost')}
+      >
+        <Icon name="plus" size={20} color="white" />
+        <Text style={styles.createButtonText}>Create Post</Text>
+      </Pressable>
+    </View>
+  );
 
   return (
     <ScreenWrapper bg="white">
-      <View style={styles.container}>
-        <Text style={styles.title}>Welcome to Home! 🎉</Text>
-        <Text style={styles.subtitle}>You're successfully logged in!</Text>
-        
-        <Button 
-          title="Logout" 
-          onPress={onLogout}
-          buttonStyle={styles.logoutButton}
-        />
-      </View>
+      {renderHeader()}
+      
+      <FlatList
+        data={posts}
+        renderItem={renderPost}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary}
+          />
+        }
+        ListEmptyComponent={!loading && renderEmpty()}
+        onEndReachedThreshold={0.5}
+      />
     </ScreenWrapper>
   )
 }
@@ -34,24 +111,67 @@ const Home = () => {
 export default Home
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray,
+  },
+  logo: {
+    fontSize: hp(2.8),
+    fontWeight: theme.fonts.bold,
+    color: theme.colors.text,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.gray,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 30,
-    paddingHorizontal: wp(5)
   },
-  title: {
-    fontSize: hp(3.5),
+  listContent: {
+    padding: wp(5),
+    paddingTop: 10,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: hp(15),
+    gap: 12,
+  },
+  emptyTitle: {
+    fontSize: hp(2.5),
     fontWeight: theme.fonts.bold,
-    color: theme.colors.text
+    color: theme.colors.text,
+    marginTop: 10,
   },
-  subtitle: {
-    fontSize: hp(2),
-    color: theme.colors.textLight
+  emptyText: {
+    fontSize: hp(1.8),
+    color: theme.colors.textLight,
+    textAlign: 'center',
+    paddingHorizontal: wp(10),
   },
-  logoutButton: {
-    marginTop: 20,
-    width: wp(50)
-  }
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: theme.radius.lg,
+    marginTop: 10,
+  },
+  createButtonText: {
+    fontSize: hp(1.8),
+    fontWeight: theme.fonts.semiBold,
+    color: 'white',
+  },
 })
