@@ -23,12 +23,12 @@ const Home = () => {
   const getUserAndPosts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
-    await loadPosts();
+    await loadPosts(user?.id);
   };
 
-  const loadPosts = async () => {
+  const loadPosts = async (userId) => {
     setLoading(true);
-    const result = await fetchFeedPosts(user?.id);
+    const result = await fetchFeedPosts(userId);
     
     if (result.success) {
       setPosts(result.data || []);
@@ -39,13 +39,14 @@ const Home = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadPosts();
+    await loadPosts(user?.id);
     setRefreshing(false);
   };
 
   const renderPost = ({ item }) => (
     <PostCard 
       post={item}
+      currentUserId={user?.id}
       onPress={() => {
         // Navigate to post details (future feature)
         console.log('Post clicked:', item.id);

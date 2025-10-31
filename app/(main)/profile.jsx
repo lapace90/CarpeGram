@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Image, FlatList } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
@@ -9,6 +9,8 @@ import Icon from '../../assets/icons'
 import Button from '../../components/Button'
 import { pickAndUploadAvatar } from '../../services/imageService'
 import { fetchUserPosts } from '../../services/postService'
+import PostsGrid from '../../components/post/PostsGrid'
+import PostDetail from '../../components/post/PostDetail'
 
 const Profile = () => {
   const router = useRouter();
@@ -16,6 +18,8 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [showPostDetail, setShowPostDetail] = useState(false);
 
   useEffect(() => {
     getUserData();
@@ -61,22 +65,15 @@ const Profile = () => {
     setLoading(false);
   }
 
-  const renderPostItem = ({ item }) => (
-    <Pressable
-      style={styles.gridItem}
-      onPress={() => {
-        // Navigate to post details (future feature)
-        console.log('Post clicked:', item.id);
-      }}
-    >
-      <Image source={{ uri: item.image_url }} style={styles.gridImage} />
-      {item.fish_species && (
-        <View style={styles.gridOverlay}>
-          <Text style={styles.gridOverlayText}>🐟 {item.fish_species}</Text>
-        </View>
-      )}
-    </Pressable>
-  );
+  const handlePostPress = (post) => {
+    setSelectedPost(post);
+    setShowPostDetail(true);
+  };
+
+  const handleDeletePost = async (postId) => {
+    // Refresh posts after deletion
+    await getUserData();
+  };
 
   if (loading) {
     return (
@@ -178,36 +175,39 @@ const Profile = () => {
           <Text style={styles.postsTitle}>My Catches</Text>
         </View>
 
-        {/* Posts Grid */}
-        {posts.length > 0 ? (
-          <View style={styles.grid}>
-            {posts.map((post) => (
-              <Pressable
-                key={post.id}
-                style={styles.gridItem}
-                onPress={() => console.log('Post clicked:', post.id)}
-              >
-                <Image source={{ uri: post.image_url }} style={styles.gridImage} />
-                {post.fish_species && (
-                  <View style={styles.gridOverlay}>
-                    <Text style={styles.gridOverlayText}>🐟 {post.fish_species}</Text>
-                  </View>
-                )}
-              </Pressable>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.noPosts}>
-            <Icon name="image" size={60} strokeWidth={1.5} color={theme.colors.textLight} />
-            <Text style={styles.noPostsText}>No catches yet</Text>
-            <Pressable
-              style={styles.createPostButton}
-              onPress={() => router.push('/newPost')}
-            >
-              <Text style={styles.createPostText}>Share your first catch! 🎣</Text>
-            </Pressable>
-          </View>
+        {/* Posts Grid (limited to 9) */}
+        <PostsGrid
+          posts={posts}
+          loading={false}
+          limit={9}
+          columns={3}
+          gap={2}
+          showStats={true}
+          showSpecies={true}
+          onPostPress={handlePostPress}
+          emptyTitle="No catches yet"
+          emptyText="Share your first catch! 🎣"
+          onEmptyPress={() => router.push('/newPost')}
+        />
+
+        {/* See All Button (if more than 9 posts) */}
+        {posts.length > 9 && (
+          <Pressable
+            style={styles.seeAllButton}
+            onPress={() => router.push('/postsGallery')}
+          >
+            <Icon name="image" size={20} color={theme.colors.primary} />
+            <Text style={styles.seeAllText}>See all {posts.length} posts</Text>
+            <Icon
+              name="arrowLeft"
+              size={18}
+              color={theme.colors.primary}
+              style={{ transform: [{ rotate: '180deg' }] }}
+            />
+          </Pressable>
         )}
+
+        {/* Actions Section */}
         <View style={styles.actionsSection}>
           <Pressable style={styles.actionButton}>
             <Icon name="maps" size={22} color={theme.colors.primary} />
@@ -215,11 +215,14 @@ const Profile = () => {
             <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
           </Pressable>
 
-          {/* <Pressable style={styles.actionButton}>
+          <Pressable
+            style={styles.actionButton}
+            onPress={() => router.push('/postsGallery')}
+          >
             <Icon name="image" size={22} color={theme.colors.primary} />
             <Text style={styles.actionText}>My Catches Gallery</Text>
             <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
-          </Pressable> */}
+          </Pressable>
         </View>
 
         {/* Logout button */}
@@ -235,6 +238,15 @@ const Profile = () => {
 
         <View style={{ height: 50 }} />
       </ScrollView>
+
+      {/* Post Detail Modal */}
+      <PostDetail
+        visible={showPostDetail}
+        onClose={() => setShowPostDetail(false)}
+        post={selectedPost}
+        currentUserId={user?.id}
+        onDelete={handleDeletePost}
+      />
     </ScreenWrapper>
   )
 }
@@ -400,59 +412,25 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.semiBold,
     color: theme.colors.text,
   },
-  grid: {
+  seeAllButton: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: wp(5),
-    gap: 2,
-  },
-  gridItem: {
-    width: (wp(100) - wp(10) - 4) / 3,
-    height: (wp(100) - wp(10) - 4) / 3,
-    position: 'relative',
-  },
-  gridImage: {
-    width: '100%',
-    height: '100%',
-  },
-  gridOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 4,
-  },
-  gridOverlayText: {
-    color: 'white',
-    fontSize: hp(1.3),
-    fontWeight: theme.fonts.medium,
-  },
-  noPosts: {
     alignItems: 'center',
-    paddingVertical: hp(8),
-    paddingHorizontal: wp(5),
-    gap: 12,
-  },
-  noPostsText: {
-    fontSize: hp(2),
-    color: theme.colors.textLight,
-    marginTop: 10,
-  },
-  createPostButton: {
-    marginTop: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: theme.colors.primary,
+    gap: 10,
+    marginHorizontal: wp(5),
+    marginTop: 15,
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: theme.colors.gray,
     borderRadius: theme.radius.lg,
   },
-  createPostText: {
+  seeAllText: {
+    flex: 1,
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
-    color: 'white',
+    fontWeight: theme.fonts.medium,
+    color: theme.colors.primary,
   },
   actionsSection: {
-    marginTop: hp(3),
+    marginTop: hp(2),
     paddingHorizontal: wp(5),
     gap: 12,
   },
@@ -464,7 +442,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray,
     borderRadius: theme.radius.lg,
   },
-
   actionText: {
     fontSize: hp(1.9),
     fontWeight: theme.fonts.medium,

@@ -1,11 +1,14 @@
-import { View, Text, StyleSheet, Image, Pressable } from 'react-native'
-import React from 'react'
+import { View, Text, StyleSheet, Image, Pressable, Animated } from 'react-native'
+import React, { useRef, useState } from 'react'
 import { theme } from '../../constants/theme'
 import { hp, wp } from '../../helpers/common'
 import Icon from '../../assets/icons'
+import { useLike } from '../../hooks/useLike'
+import CommentsModal from './CommentsModal'
 
-const PostCard = ({ post, onPress }) => {
+const PostCard = ({ post, currentUserId, onPress }) => {
   const {
+    id,
     image_url,
     description,
     fish_species,
@@ -18,6 +21,15 @@ const PostCard = ({ post, onPress }) => {
     created_at,
     profiles,
   } = post;
+
+  // States
+  const [showComments, setShowComments] = useState(false);
+
+  // Animation pour le like
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  // Hook pour le like
+  const { liked, likesCount, toggleLike } = useLike(id, likes_count, currentUserId);
 
   // Formatage de la date
   const formatDate = (dateString) => {
@@ -40,99 +52,141 @@ const PostCard = ({ post, onPress }) => {
     ? `${profiles.first_name} ${profiles.last_name || ''}`
     : `@${profiles?.username || 'unknown'}`;
 
+  // Animation du like
+  const handleLike = () => {
+    // Animation bounce
+    Animated.sequence([
+      Animated.timing(scaleValue, {
+        toValue: 1.3,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleValue, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    toggleLike();
+  };
+
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.userInfo}>
-          {profiles?.avatar_url ? (
-            <Image
-              source={{ uri: profiles.avatar_url }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Icon name="user" size={20} color={theme.colors.textLight} />
+    <>
+      <Pressable style={styles.card} onPress={onPress}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.userInfo}>
+            {profiles?.avatar_url ? (
+              <Image
+                source={{ uri: profiles.avatar_url }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Icon name="user" size={20} color={theme.colors.textLight} />
+              </View>
+            )}
+            <View>
+              <Text style={styles.username}>{displayName}</Text>
+              <Text style={styles.timestamp}>{formatDate(created_at)}</Text>
             </View>
-          )}
-          <View>
-            <Text style={styles.username}>{displayName}</Text>
-            <Text style={styles.timestamp}>{formatDate(created_at)}</Text>
+          </View>
+          
+          {/* Privacy indicator */}
+          <View style={styles.privacyBadge}>
+            <Icon 
+              name={privacy === 'public' ? 'unlock' : privacy === 'followers' ? 'user' : 'heart'} 
+              size={14} 
+              color={theme.colors.textLight} 
+            />
           </View>
         </View>
-        
-        {/* Privacy indicator */}
-        <View style={styles.privacyBadge}>
-          <Icon 
-            name={privacy === 'public' ? 'unlock' : privacy === 'followers' ? 'user' : 'heart'} 
-            size={14} 
-            color={theme.colors.textLight} 
-          />
-        </View>
-      </View>
 
-      {/* Post Image */}
-      <Image
-        source={{ uri: image_url }}
-        style={styles.postImage}
-        resizeMode="cover"
+        {/* Post Image */}
+        <Image
+          source={{ uri: image_url }}
+          style={styles.postImage}
+          resizeMode="cover"
+        />
+
+        {/* Actions */}
+        <View style={styles.actions}>
+          <Pressable style={styles.actionButton} onPress={handleLike}>
+            <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+              <Icon 
+                name="heart" 
+                size={24} 
+                strokeWidth={1.8} 
+                color={liked ? theme.colors.rose : theme.colors.text}
+                fill={liked ? theme.colors.rose : 'transparent'}
+              />
+            </Animated.View>
+            <Text style={[styles.actionText, liked && styles.actionTextLiked]}>
+              {likesCount}
+            </Text>
+          </Pressable>
+          
+          <Pressable 
+            style={styles.actionButton}
+            onPress={() => setShowComments(true)}
+          >
+            <Icon name="comment" size={24} strokeWidth={1.8} color={theme.colors.text} />
+            <Text style={styles.actionText}>{comments_count || 0}</Text>
+          </Pressable>
+          
+          <Pressable style={styles.actionButton}>
+            <Icon name="share" size={24} strokeWidth={1.8} color={theme.colors.text} />
+          </Pressable>
+        </View>
+
+        {/* Description */}
+        <View style={styles.content}>
+          <Text style={styles.description} numberOfLines={3}>
+            <Text style={styles.usernameInline}>@{profiles?.username || 'unknown'}</Text>
+            {' '}{description}
+          </Text>
+        </View>
+
+        {/* Fish Details */}
+        {(fish_species || fish_weight || bait || spot) && (
+          <View style={styles.fishDetails}>
+            {fish_species && (
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>🐟</Text>
+                <Text style={styles.detailText}>{fish_species}</Text>
+              </View>
+            )}
+            {fish_weight && (
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>⚖️</Text>
+                <Text style={styles.detailText}>{fish_weight} kg</Text>
+              </View>
+            )}
+            {bait && (
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>🎣</Text>
+                <Text style={styles.detailText}>{bait}</Text>
+              </View>
+            )}
+            {spot && (
+              <View style={styles.detailItem}>
+                <Icon name="location" size={14} color={theme.colors.primary} />
+                <Text style={styles.detailText}>{spot}</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </Pressable>
+
+      {/* Comments Modal */}
+      <CommentsModal
+        visible={showComments}
+        onClose={() => setShowComments(false)}
+        postId={id}
+        currentUserId={currentUserId}
       />
-
-      {/* Actions */}
-      <View style={styles.actions}>
-        <Pressable style={styles.actionButton}>
-          <Icon name="heart" size={24} strokeWidth={1.8} color={theme.colors.text} />
-          <Text style={styles.actionText}>{likes_count || 0}</Text>
-        </Pressable>
-        
-        <Pressable style={styles.actionButton}>
-          <Icon name="comment" size={24} strokeWidth={1.8} color={theme.colors.text} />
-          <Text style={styles.actionText}>{comments_count || 0}</Text>
-        </Pressable>
-        
-        <Pressable style={styles.actionButton}>
-          <Icon name="share" size={24} strokeWidth={1.8} color={theme.colors.text} />
-        </Pressable>
-      </View>
-
-      {/* Description */}
-      <View style={styles.content}>
-        <Text style={styles.description} numberOfLines={3}>
-          <Text style={styles.usernameInline}>@{profiles?.username || 'unknown'}</Text>
-          {' '}{description}
-        </Text>
-      </View>
-
-      {/* Fish Details */}
-      {(fish_species || fish_weight || bait || spot) && (
-        <View style={styles.fishDetails}>
-          {fish_species && (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>🐟</Text>
-              <Text style={styles.detailText}>{fish_species}</Text>
-            </View>
-          )}
-          {fish_weight && (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>⚖️</Text>
-              <Text style={styles.detailText}>{fish_weight} kg</Text>
-            </View>
-          )}
-          {bait && (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>🎣</Text>
-              <Text style={styles.detailText}>{bait}</Text>
-            </View>
-          )}
-          {spot && (
-            <View style={styles.detailItem}>
-              <Icon name="location" size={14} color={theme.colors.primary} />
-              <Text style={styles.detailText}>{spot}</Text>
-            </View>
-          )}
-        </View>
-      )}
-    </Pressable>
+    </>
   );
 };
 
@@ -208,6 +262,10 @@ const styles = StyleSheet.create({
     fontSize: hp(1.6),
     color: theme.colors.text,
     fontWeight: theme.fonts.medium,
+  },
+  actionTextLiked: {
+    color: theme.colors.rose,
+    fontWeight: theme.fonts.semiBold,
   },
   content: {
     paddingHorizontal: 12,

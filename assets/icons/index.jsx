@@ -34,7 +34,7 @@ const icons = {
   call: Call,
   camera: Camera,
   comment: Comment,
-  delet: Delete,
+  delete: Delete,
   edit: NoteEdit,
   image: ImageIcon,
   location: Location,
