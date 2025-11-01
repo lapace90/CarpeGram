@@ -1,108 +1,82 @@
-import { View, Text, StyleSheet, Pressable, Image, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native'
 import React from 'react'
 import { theme } from '../../constants/theme'
-import { hp, wp } from '../../helpers/common'
+import { commonStyles } from '../../constants/commonStyles'
+import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
+import EmptyState from '../EmptyState'
 
-const PostsGrid = ({
-  posts = [],
-  loading = false,
-  limit = null,
-  columns = 3,
-  gap = 2,
-  showStats = true,
-  showSpecies = true,
-  onPostPress,
-  onEndReached,
-  emptyTitle = "No posts yet",
-  emptyText = "Share your first catch! 🎣",
-  emptyIcon = "image",
-  onEmptyPress,
-  containerStyle,
-}) => {
-  // Limiter les posts si nécessaire
-  const displayPosts = limit ? posts.slice(0, limit) : posts;
-
-  // Calculer la largeur des items
-  const totalGap = gap * (columns - 1);
-  const itemWidth = (wp(100) - wp(10) - totalGap) / columns;
-
-  const renderItem = ({ item }) => (
-    <Pressable
-      style={[styles.gridItem, { width: itemWidth, height: itemWidth, marginRight: gap }]}
-      onPress={() => onPostPress && onPostPress(item)}
-    >
-      <Image source={{ uri: item.image_url }} style={styles.gridImage} />
-      
-      {/* Overlay avec infos */}
-      <View style={styles.overlay}>
-        {/* Espèce de poisson */}
-        {showSpecies && item.fish_species && (
-          <View style={styles.speciesContainer}>
-            <Text style={styles.speciesText}>🐟 {item.fish_species}</Text>
-          </View>
-        )}
-        
-        {/* Stats (likes + comments) */}
-        {showStats && (
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Icon name="heart" size={16} color="white" fill="white" />
-              <Text style={styles.statText}>{item.likes_count || 0}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Icon name="comment" size={16} color="white" fill="white" />
-              <Text style={styles.statText}>{item.comments_count || 0}</Text>
-            </View>
-          </View>
-        )}
-      </View>
-    </Pressable>
-  );
-
-  const renderEmpty = () => {
-    if (loading) return null;
-    
-    return (
-      <View style={styles.emptyContainer}>
-        <Icon name={emptyIcon} size={80} strokeWidth={1.5} color={theme.colors.textLight} />
-        <Text style={styles.emptyTitle}>{emptyTitle}</Text>
-        <Text style={styles.emptyText}>{emptyText}</Text>
-        {onEmptyPress && (
-          <Pressable style={styles.emptyButton} onPress={onEmptyPress}>
-            <Icon name="plus" size={20} color="white" />
-            <Text style={styles.emptyButtonText}>Create Post</Text>
-          </Pressable>
-        )}
-      </View>
-    );
-  };
-
+const PostsGrid = ({ posts, loading, onPostPress, onCreatePress }) => {
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[commonStyles.center, styles.loadingContainer]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
-  if (displayPosts.length === 0) {
-    return renderEmpty();
+  if (!posts || posts.length === 0) {
+    return (
+      <EmptyState 
+        iconName="image"
+        title="No posts yet"
+        message="Share your first catch and start your fishing journey!"
+        buttonText="Create Post"
+        onButtonPress={onCreatePress}
+      />
+    );
   }
 
+  const rows = [];
+  for (let i = 0; i < posts.length; i += 3) {
+    rows.push(posts.slice(i, i + 3));
+  }
+
+  const renderPost = (item) => {
+    if (!item) return <View key={`empty-${Math.random()}`} style={styles.gridItem} />;
+    
+    const { image_url, fish_species, likes_count, comments_count } = item;
+
+    return (
+      <Pressable 
+        key={item.id} 
+        style={styles.gridItem} 
+        onPress={() => onPostPress(item)}
+      >
+        <Image source={{ uri: image_url }} style={styles.gridImage} />
+        
+        <View style={styles.overlay}>
+          {fish_species && (
+            <View style={styles.speciesContainer}>
+              <Text style={styles.speciesText}>{fish_species}</Text>
+            </View>
+          )}
+          
+          <View style={[commonStyles.flexRow, styles.statsContainer]}>
+            <View style={[commonStyles.flexRowCenter, styles.statItem]}>
+              <Icon name="heart" size={16} color="white" fill="white" />
+              <Text style={styles.statText}>{likes_count || 0}</Text>
+            </View>
+            <View style={[commonStyles.flexRowCenter, styles.statItem]}>
+              <Icon name="comment" size={16} color="white" />
+              <Text style={styles.statText}>{comments_count || 0}</Text>
+            </View>
+          </View>
+        </View>
+      </Pressable>
+    );
+  };
+
   return (
-    <View style={[styles.container, containerStyle]}>
-      <FlatList
-        data={displayPosts}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={columns}
-        columnWrapperStyle={styles.row}
-        showsVerticalScrollIndicator={false}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.5}
-        scrollEnabled={false} // Désactivé car dans un ScrollView parent
-      />
+    <View>
+      {rows.map((row, rowIndex) => (
+        <View key={rowIndex} style={styles.row}>
+          {row.map(post => renderPost(post))}
+          {row.length < 3 && Array(3 - row.length).fill(null).map((_, i) => (
+            <View key={`empty-${rowIndex}-${i}`} style={styles.gridItem} />
+          ))}
+        </View>
+      ))}
     </View>
   );
 };
@@ -110,15 +84,16 @@ const PostsGrid = ({
 export default PostsGrid;
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: wp(5),
-  },
   row: {
+    flexDirection: 'row',
+    gap: 2,
     marginBottom: 2,
   },
   gridItem: {
+    flex: 1,
+    aspectRatio: 1,
     position: 'relative',
-    overflow: 'hidden',
+    backgroundColor: theme.colors.gray,
   },
   gridImage: {
     width: '100%',
@@ -126,6 +101,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
     justifyContent: 'space-between',
     padding: 6,
   },
@@ -142,13 +118,10 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.medium,
   },
   statsContainer: {
-    flexDirection: 'row',
     gap: 8,
     alignSelf: 'flex-end',
   },
   statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 4,
     backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 8,
@@ -162,38 +135,5 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     paddingVertical: hp(10),
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: hp(8),
-    paddingHorizontal: wp(5),
-    gap: 12,
-  },
-  emptyTitle: {
-    fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
-    marginTop: 10,
-  },
-  emptyText: {
-    fontSize: hp(1.8),
-    color: theme.colors.textLight,
-    textAlign: 'center',
-  },
-  emptyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: theme.radius.lg,
-    marginTop: 10,
-  },
-  emptyButtonText: {
-    fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
-    color: 'white',
   },
 });

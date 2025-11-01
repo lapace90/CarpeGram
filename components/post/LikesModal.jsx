@@ -1,9 +1,13 @@
-import { View, Text, StyleSheet, Modal, FlatList, Pressable, Image, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, Modal, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { theme } from '../../constants/theme'
-import { hp, wp } from '../../helpers/common'
+import { commonStyles } from '../../constants/commonStyles'
+import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import { getPostLikes } from '../../services/likeService'
+import Avatar from '../Avatar'
+import ModalHeader from '../ModalHeader'
+import EmptyState from '../EmptyState'
 
 const LikesModal = ({ visible, onClose, postId }) => {
   const [likes, setLikes] = useState([]);
@@ -34,31 +38,22 @@ const LikesModal = ({ visible, onClose, postId }) => {
 
     return (
       <Pressable 
-        style={styles.likeItem}
+        style={[commonStyles.flexRow, styles.likeItem]}
         onPress={() => {
-          // TODO: Navigate to user profile (future feature)
           console.log('Navigate to profile:', profile?.id);
         }}
       >
-        {/* Avatar */}
-        {profile?.avatar_url ? (
-          <Image
-            source={{ uri: profile.avatar_url }}
-            style={styles.avatar}
-          />
-        ) : (
-          <View style={styles.avatarPlaceholder}>
-            <Icon name="user" size={20} color={theme.colors.textLight} />
-          </View>
-        )}
+        <Avatar profile={item.profiles} size={48} />
 
-        {/* User info */}
         <View style={styles.userInfo}>
-          <Text style={styles.displayName}>{displayName}</Text>
-          <Text style={styles.username}>@{profile?.username || 'unknown'}</Text>
+          <Text style={[commonStyles.textSemiBold, styles.displayName]}>
+            {displayName}
+          </Text>
+          <Text style={[commonStyles.textLight, styles.username]}>
+            @{profile?.username || 'unknown'}
+          </Text>
         </View>
 
-        {/* Arrow icon */}
         <Icon 
           name="arrowLeft" 
           size={18} 
@@ -69,14 +64,6 @@ const LikesModal = ({ visible, onClose, postId }) => {
     );
   };
 
-  const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Icon name="heart" size={60} strokeWidth={1.5} color={theme.colors.textLight} />
-      <Text style={styles.emptyTitle}>No likes yet</Text>
-      <Text style={styles.emptyText}>Be the first to like this post! ❤️</Text>
-    </View>
-  );
-
   return (
     <Modal
       visible={visible}
@@ -84,18 +71,14 @@ const LikesModal = ({ visible, onClose, postId }) => {
       transparent={false}
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Likes ({likes.length})</Text>
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <Icon name="arrowLeft" size={24} color={theme.colors.text} />
-          </Pressable>
-        </View>
+      <View style={commonStyles.absoluteFill}>
+        <ModalHeader 
+          title={`Likes (${likes.length})`}
+          onClose={onClose}
+        />
 
-        {/* Likes List */}
         {loading ? (
-          <View style={styles.loadingContainer}>
+          <View style={[commonStyles.center, { flex: 1 }]}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         ) : (
@@ -105,7 +88,13 @@ const LikesModal = ({ visible, onClose, postId }) => {
             keyExtractor={(item) => item.user_id}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            ListEmptyComponent={!loading && renderEmpty()}
+            ListEmptyComponent={
+              <EmptyState 
+                iconName="heart"
+                title="No likes yet"
+                message="Be the first to like this post! ❤️"
+              />
+            }
           />
         )}
       </View>
@@ -116,49 +105,13 @@ const LikesModal = ({ visible, onClose, postId }) => {
 export default LikesModal;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
-  },
-  title: {
-    fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
-  },
-  closeButton: {
-    padding: 8,
-  },
   listContent: {
     paddingVertical: 8,
   },
   likeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 12,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.colors.gray,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   userInfo: {
     flex: 1,
@@ -166,33 +119,8 @@ const styles = StyleSheet.create({
   },
   displayName: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   username: {
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: hp(10),
-    gap: 12,
-  },
-  emptyTitle: {
-    fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
-    marginTop: 10,
-  },
-  emptyText: {
-    fontSize: hp(1.8),
-    color: theme.colors.textLight,
   },
 });

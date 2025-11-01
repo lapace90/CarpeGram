@@ -22,6 +22,7 @@ import Send from './Send'
 import Share from './Share'
 import { ThreeDotsCircle, ThreeDotsVertical, ThreeDotsHorizontal } from './ThreeDots'
 import Video from './Video'
+import Globe from './Globe'
 
 const icons = {
   home: Home,
@@ -47,7 +48,8 @@ const icons = {
   threeDotsCircle: ThreeDotsCircle,
   threeDotsVertical: ThreeDotsVertical,
   threeDotsHorizontal: ThreeDotsHorizontal,
-  video: Video
+  video: Video,
+  globe: Globe
 }
 
 const Icon = ({ name, ...props }) => {

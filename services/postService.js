@@ -190,7 +190,17 @@ export const fetchUserPosts = async (userId) => {
   try {
     const { data, error } = await supabase
       .from('posts')
-      .select('*')
+      .select(`
+  *,
+  profiles:user_id (
+    id,
+    username,
+    avatar_url,
+    first_name,
+    last_name,
+    show_full_name
+  )
+`)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 

@@ -1,33 +1,32 @@
-import { View, Text, StyleSheet, Image, Pressable, Alert } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
 import React from 'react'
 import { theme } from '../../constants/theme'
-import { hp, wp } from '../../helpers/common'
+import { commonStyles } from '../../constants/commonStyles'
+import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
+import Avatar from '../Avatar'
 
-const CommentItem = ({ comment, currentUserId, onDelete }) => {
-  const { id, text, created_at, profiles, user_id } = comment;
-
-  const isOwnComment = currentUserId === user_id;
-
-  // Display name logic
+const CommentItem = ({ 
+  id, 
+  text, 
+  created_at, 
+  user_id, 
+  profiles,
+  currentUserId,
+  onDelete 
+}) => {
+  const isOwnComment = user_id === currentUserId;
+  
   const displayName = profiles?.show_full_name && profiles?.first_name
     ? `${profiles.first_name} ${profiles.last_name || ''}`
-    : `@${profiles?.username || 'unknown'}`;
+    : profiles?.username || 'Unknown';
 
-  // Format time ago
-  const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'now';
-    if (diffMins < 60) return `${diffMins}m`;
-    if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}d`;
-    return date.toLocaleDateString();
+  const formatTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+    return `${Math.floor(seconds / 86400)}d`;
   };
 
   const handleDelete = () => {
@@ -46,29 +45,21 @@ const CommentItem = ({ comment, currentUserId, onDelete }) => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Avatar */}
-      {profiles?.avatar_url ? (
-        <Image
-          source={{ uri: profiles.avatar_url }}
-          style={styles.avatar}
-        />
-      ) : (
-        <View style={styles.avatarPlaceholder}>
-          <Icon name="user" size={16} color={theme.colors.textLight} />
-        </View>
-      )}
+    <View style={[commonStyles.flexRow, styles.container]}>
+      <Avatar profile={profiles} size={32} />
 
-      {/* Content */}
       <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.username}>{displayName}</Text>
-          <Text style={styles.timestamp}>{formatTimeAgo(created_at)}</Text>
+        <View style={[commonStyles.flexRow, styles.header]}>
+          <Text style={[commonStyles.textSemiBold, styles.username]}>
+            {displayName}
+          </Text>
+          <Text style={[commonStyles.textLight, styles.timestamp]}>
+            {formatTimeAgo(created_at)}
+          </Text>
         </View>
         <Text style={styles.text}>{text}</Text>
       </View>
 
-      {/* Delete button (only for own comments) */}
       {isOwnComment && (
         <Pressable style={styles.deleteButton} onPress={handleDelete}>
           <Icon name="delete" size={18} color={theme.colors.rose} />
@@ -82,41 +73,22 @@ export default CommentItem;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 10,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  avatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.gray,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   content: {
     flex: 1,
     gap: 4,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
   username: {
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   timestamp: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   text: {
     fontSize: hp(1.7),

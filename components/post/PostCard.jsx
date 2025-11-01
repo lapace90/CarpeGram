@@ -1,12 +1,17 @@
 import { View, Text, StyleSheet, Image, Pressable, Animated } from 'react-native'
 import React, { useRef, useState } from 'react'
 import { theme } from '../../constants/theme'
-import { hp, wp } from '../../helpers/common'
+import { commonStyles } from '../../constants/commonStyles'
+import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import { useLike } from '../../hooks/useLike'
 import CommentsModal from './CommentsModal'
+import Avatar from '../Avatar'
 
 const PostCard = ({ post, currentUserId, onPress }) => {
+  const [showComments, setShowComments] = useState(false);
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
   const {
     id,
     image_url,
@@ -22,39 +27,21 @@ const PostCard = ({ post, currentUserId, onPress }) => {
     profiles,
   } = post;
 
-  // States
-  const [showComments, setShowComments] = useState(false);
-
-  // Animation pour le like
-  const scaleValue = useRef(new Animated.Value(1)).current;
-
-  // Hook pour le like
   const { liked, likesCount, toggleLike } = useLike(id, likes_count, currentUserId);
 
-  // Formatage de la date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+  const formatTimeAgo = (dateString) => {
+    const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+    return `${Math.floor(seconds / 86400)}d`;
   };
 
-  // Display name logic
   const displayName = profiles?.show_full_name && profiles?.first_name
     ? `${profiles.first_name} ${profiles.last_name || ''}`
     : `@${profiles?.username || 'unknown'}`;
 
-  // Animation du like
   const handleLike = () => {
-    // Animation bounce
     Animated.sequence([
       Animated.timing(scaleValue, {
         toValue: 1.3,
@@ -74,83 +61,68 @@ const PostCard = ({ post, currentUserId, onPress }) => {
   return (
     <>
       <Pressable style={styles.card} onPress={onPress}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.userInfo}>
-            {profiles?.avatar_url ? (
-              <Image
-                source={{ uri: profiles.avatar_url }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Icon name="user" size={20} color={theme.colors.textLight} />
-              </View>
-            )}
+        <View style={[commonStyles.flexRowBetween, commonStyles.paddingH12, commonStyles.paddingV12]}>
+          <View style={[commonStyles.flexRowCenter, commonStyles.gap10]}>
+            <Avatar profile={profiles} size={40} />
+            
             <View>
-              <Text style={styles.username}>{displayName}</Text>
-              <Text style={styles.timestamp}>{formatDate(created_at)}</Text>
+              <Text style={[commonStyles.textSemiBold, styles.username]}>
+                {displayName}
+              </Text>
+              <Text style={[commonStyles.textLight, styles.timestamp]}>
+                {formatTimeAgo(created_at)}
+              </Text>
             </View>
           </View>
-          
-          {/* Privacy indicator */}
+
           <View style={styles.privacyBadge}>
-            <Icon 
-              name={privacy === 'public' ? 'unlock' : privacy === 'followers' ? 'user' : 'heart'} 
-              size={14} 
-              color={theme.colors.textLight} 
+            <Icon
+              name={privacy === 'public' ? 'globe' : privacy === 'followers' ? 'user' : 'heart'}
+              size={14}
+              color={theme.colors.primary}
             />
           </View>
         </View>
 
-        {/* Post Image */}
-        <Image
-          source={{ uri: image_url }}
-          style={styles.postImage}
-          resizeMode="cover"
-        />
+        <Image source={{ uri: image_url }} style={styles.postImage} />
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          <Pressable style={styles.actionButton} onPress={handleLike}>
+        <View style={[commonStyles.flexRow, styles.actions]}>
+          <Pressable onPress={handleLike} style={[commonStyles.flexRowCenter, commonStyles.gap6]}>
             <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-              <Icon 
-                name="heart" 
-                size={24} 
-                strokeWidth={1.8} 
-                color={liked ? theme.colors.rose : theme.colors.text}
+              <Icon
+                name="heart"
+                size={24}
                 fill={liked ? theme.colors.rose : 'transparent'}
+                color={liked ? theme.colors.rose : theme.colors.text}
               />
             </Animated.View>
             <Text style={[styles.actionText, liked && styles.actionTextLiked]}>
               {likesCount}
             </Text>
           </Pressable>
-          
+
           <Pressable 
-            style={styles.actionButton}
-            onPress={() => setShowComments(true)}
+            onPress={() => setShowComments(true)} 
+            style={[commonStyles.flexRowCenter, commonStyles.gap6]}
           >
-            <Icon name="comment" size={24} strokeWidth={1.8} color={theme.colors.text} />
+            <Icon name="comment" size={24} color={theme.colors.text} />
             <Text style={styles.actionText}>{comments_count || 0}</Text>
           </Pressable>
-          
-          <Pressable style={styles.actionButton}>
-            <Icon name="share" size={24} strokeWidth={1.8} color={theme.colors.text} />
+
+          <Pressable style={[commonStyles.flexRowCenter, commonStyles.gap6]}>
+            <Icon name="send" size={22} color={theme.colors.text} />
           </Pressable>
         </View>
 
-        {/* Description */}
-        <View style={styles.content}>
-          <Text style={styles.description} numberOfLines={3}>
-            <Text style={styles.usernameInline}>@{profiles?.username || 'unknown'}</Text>
-            {' '}{description}
+        <View style={[commonStyles.paddingH12, styles.contentBottom]}>
+          <Text style={styles.description}>
+            <Text style={styles.usernameInline}>{displayName} </Text>
+            {description}
           </Text>
         </View>
 
-        {/* Fish Details */}
         {(fish_species || fish_weight || bait || spot) && (
-          <View style={styles.fishDetails}>
+          <View style={[commonStyles.flexRow, styles.fishDetails]}>
             {fish_species && (
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>🐟</Text>
@@ -179,7 +151,6 @@ const PostCard = ({ post, currentUserId, onPress }) => {
         )}
       </Pressable>
 
-      {/* Comments Modal */}
       <CommentsModal
         visible={showComments}
         onClose={() => setShowComments(false)}
@@ -201,38 +172,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.gray,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.gray,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   username: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   timestamp: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   privacyBadge: {
     width: 28,
@@ -247,16 +191,9 @@ const styles = StyleSheet.create({
     height: hp(40),
   },
   actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 20,
     paddingHorizontal: 12,
     paddingVertical: 10,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   actionText: {
     fontSize: hp(1.6),
@@ -267,8 +204,7 @@ const styles = StyleSheet.create({
     color: theme.colors.rose,
     fontWeight: theme.fonts.semiBold,
   },
-  content: {
-    paddingHorizontal: 12,
+  contentBottom: {
     paddingBottom: 10,
   },
   description: {
@@ -281,7 +217,6 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   fishDetails: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     paddingHorizontal: 12,
