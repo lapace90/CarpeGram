@@ -29,7 +29,7 @@ const TabLayout = () => {
           backgroundColor: 'white',
           borderTopWidth: 1,
           borderTopColor: theme.colors.gray,
-          height: 70,
+          height: hp(10),
           paddingTop: 10,
         }
       }}
@@ -40,6 +40,14 @@ const TabLayout = () => {
           title: 'Home',
           headerShown: false,
           tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: 'Search',
+          headerShown: false,
+          tabBarIcon: ({ focused }) => <TabIcon name="search" focused={focused} />
         }}
       />
       <Tabs.Screen
@@ -56,6 +64,13 @@ const TabLayout = () => {
           title: 'Profile',
           headerShown: false,
           tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />
+        }}
+      />
+      <Tabs.Screen
+        name="userProfile/[id]"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
     </Tabs>

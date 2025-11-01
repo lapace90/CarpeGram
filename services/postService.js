@@ -53,7 +53,7 @@ export const createPost = async (postData) => {
 
     // 1. Upload image
     const uploadResult = await uploadPostImage(user_id, image_uri);
-    
+
     if (!uploadResult.success) {
       throw new Error(uploadResult.error);
     }
@@ -199,6 +199,32 @@ export const fetchUserPosts = async (userId) => {
     return { success: true, data };
   } catch (error) {
     console.error('Fetch user posts error:', error);
+    return { success: false, error: error.message };
+  }
+};
+/**
+ * Récupère les posts d'un utilisateur avec limit optionnel
+ * Utilisé pour afficher les posts sur le profil d'un user
+ */
+export const getUserPosts = async (userId, limit = null) => {
+  try {
+    let query = supabase
+      .from('posts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Get user posts error:', error);
     return { success: false, error: error.message };
   }
 };
