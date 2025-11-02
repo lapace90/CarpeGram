@@ -3,7 +3,7 @@ import React from 'react'
 import { theme } from '../../constants/theme'
 
 import Home from './Home'
-import {ArrowLeft} from './Arrows'
+import { ArrowLeft } from './Arrows'
 import { Maps, Location } from './Location'
 import { UnlockIcon, LockIcon } from './Lock'
 import User from './User'
@@ -23,6 +23,8 @@ import Share from './Share'
 import { ThreeDotsCircle, ThreeDotsVertical, ThreeDotsHorizontal } from './ThreeDots'
 import Video from './Video'
 import Globe from './Globe'
+import UserMinus from './UserMinus'
+import AlertCircle from './AlertCircle'
 
 const icons = {
   home: Home,
@@ -45,6 +47,8 @@ const icons = {
   search: Search,
   send: Send,
   share: Share,
+  userMinus: UserMinus,
+  alertCircle: AlertCircle,
   threeDotsCircle: ThreeDotsCircle,
   threeDotsVertical: ThreeDotsVertical,
   threeDotsHorizontal: ThreeDotsHorizontal,

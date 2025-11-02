@@ -14,6 +14,7 @@ import FollowButton from '../../../components/FollowButton'
 import { useFollow } from '../../../hooks/useFollow'
 import FollowersModal from '../../../components/FollowersModal'
 import FollowingModal from '../../../components/FollowingModal'
+import UserProfileMenu from '../../../components/UserProfileMenu'
 
 const UserProfile = () => {
   const router = useRouter();
@@ -27,6 +28,7 @@ const UserProfile = () => {
   const [showPostDetail, setShowPostDetail] = useState(false);
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const { isFollowing, followersCount, loading: followLoading, toggleFollow } = useFollow(
     currentUser?.id,
@@ -55,6 +57,13 @@ const UserProfile = () => {
     }
 
     setLoading(false);
+  };
+
+  const handleMenuAction = async (action) => {
+    if (action === 'unfollow' || action === 'block') {
+      // Recharger le profil pour mettre à jour le bouton Follow/Following
+      await loadUserProfile();
+    }
   };
 
   const handlePostPress = (post) => {
@@ -99,7 +108,16 @@ const UserProfile = () => {
             <Icon name="arrowLeft" size={24} color={theme.colors.text} />
           </Pressable>
           <Text style={styles.headerTitle}>@{profile.username}</Text>
-          <View style={{ width: 40 }} />
+          {currentUser && currentUser.id !== profile.id ? (
+            <Pressable
+              style={styles.menuBtn}
+              onPress={() => setShowMenu(true)}
+            >
+              <Icon name="threeDotsHorizontal" size={24} color={theme.colors.text} />
+            </Pressable>
+          ) : (
+            <View style={{ width: 40 }} />
+          )}
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -154,11 +172,11 @@ const UserProfile = () => {
               </Pressable>
             </View>
 
-            {/* Follow Button */}
-            {currentUser && currentUser.id !== profile.id && (
+            {/* Follow Button - Seulement si on ne suit PAS encore */}
+            {currentUser && currentUser.id !== profile.id && !isFollowing && (
               <View style={styles.actionButtons}>
                 <FollowButton
-                  isFollowing={isFollowing}
+                  isFollowing={false}
                   onPress={toggleFollow}
                   loading={followLoading}
                   size="large"
@@ -232,8 +250,21 @@ const UserProfile = () => {
           userId={id}
           currentUserId={currentUser?.id}
         />
+
+        {/* User Profile Menu */}
+        {currentUser && currentUser.id !== profile.id && (
+          <UserProfileMenu
+            visible={showMenu}
+            onClose={() => setShowMenu(false)}
+            userId={currentUser.id}
+            targetUserId={id}
+            targetUsername={profile?.username}
+            isFollowing={isFollowing}
+            onActionComplete={handleMenuAction}
+          />
+        )}
       </View>
-    </ScreenWrapper >
+    </ScreenWrapper>
   );
 };
 
@@ -377,5 +408,8 @@ const styles = StyleSheet.create({
     fontSize: hp(2),
     fontWeight: theme.fonts.semibold,
     color: theme.colors.text,
+  },
+  menuBtn: {
+    padding: 8,
   },
 });

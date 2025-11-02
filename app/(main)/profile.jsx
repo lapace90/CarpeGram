@@ -13,6 +13,7 @@ import PostsGrid from '../../components/post/PostsGrid'
 import PostDetail from '../../components/post/PostDetail'
 import FollowersModal from '../../components/FollowersModal'
 import FollowingModal from '../../components/FollowingModal'
+import ProfileMenu from '../../components/ProfileMenu'
 
 const Profile = () => {
   const router = useRouter();
@@ -24,6 +25,7 @@ const Profile = () => {
   const [showPostDetail, setShowPostDetail] = useState(false);
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     getUserData();
@@ -54,11 +56,6 @@ const Profile = () => {
     }
 
     setLoading(false);
-  }
-
-  const onLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace('/welcome');
   }
 
   const handleAvatarChange = async () => {
@@ -97,8 +94,8 @@ const Profile = () => {
           <View style={styles.headerOverlay} />
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>My Profile</Text>
-            <Pressable style={styles.editButton} onPress={() => router.push('/editProfile')}>
-              <Icon name="edit" size={20} color="white" />
+            <Pressable style={styles.editButton} onPress={() => setShowMenu(true)}>
+              <Icon name="threeDotsHorizontal" size={24} color="white" />
             </Pressable>
           </View>
         </View>
@@ -163,95 +160,84 @@ const Profile = () => {
           </View>
         </View>
 
-          {/* Bio section */}
-          {profile?.bio && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Icon name="edit" size={20} color={theme.colors.primary} />
-                <Text style={styles.sectionTitle}>About</Text>
-              </View>
-              <Text style={styles.bioText}>
-                {profile.bio}
-              </Text>
+        {/* Bio section */}
+        {profile?.bio && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Icon name="edit" size={20} color={theme.colors.primary} />
+              <Text style={styles.sectionTitle}>About</Text>
             </View>
-          )}
-
-          {/* Location */}
-          {profile?.location && (
-            <View style={styles.locationContainer}>
-              <Icon name="location" size={18} color={theme.colors.textLight} />
-              <Text style={styles.locationText}>{profile.location}</Text>
-            </View>
-          )}
-
-          {/* Posts Grid Header */}
-          <View style={styles.postsHeader}>
-            <Icon name="image" size={22} color={theme.colors.primary} />
-            <Text style={styles.postsTitle}>My Catches</Text>
+            <Text style={styles.bioText}>
+              {profile.bio}
+            </Text>
           </View>
+        )}
 
-          {/* Posts Grid (limited to 9) */}
-          <PostsGrid
-            posts={posts}
-            loading={false}
-            limit={9}
-            columns={3}
-            gap={2}
-            showStats={true}
-            showSpecies={true}
-            onPostPress={handlePostPress}
-            emptyTitle="No catches yet"
-            emptyText="Share your first catch! 🎣"
-            onEmptyPress={() => router.push('/newPost')}
-          />
-
-          {/* See All Button (if more than 9 posts) */}
-          {posts.length > 9 && (
-            <Pressable
-              style={styles.seeAllButton}
-              onPress={() => router.push('/postsGallery')}
-            >
-              <Icon name="image" size={20} color={theme.colors.primary} />
-              <Text style={styles.seeAllText}>See all {posts.length} posts</Text>
-              <Icon
-                name="arrowLeft"
-                size={18}
-                color={theme.colors.primary}
-                style={{ transform: [{ rotate: '180deg' }] }}
-              />
-            </Pressable>
-          )}
-
-          {/* Actions Section */}
-          <View style={styles.actionsSection}>
-            <Pressable style={styles.actionButton}>
-              <Icon name="maps" size={22} color={theme.colors.primary} />
-              <Text style={styles.actionText}>Favorite Spots</Text>
-              <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
-            </Pressable>
-
-            <Pressable
-              style={styles.actionButton}
-              onPress={() => router.push('/postsGallery')}
-            >
-              <Icon name="image" size={22} color={theme.colors.primary} />
-              <Text style={styles.actionText}>My Catches Gallery</Text>
-              <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
-            </Pressable>
+        {/* Location */}
+        {profile?.location && (
+          <View style={styles.locationContainer}>
+            <Icon name="location" size={18} color={theme.colors.textLight} />
+            <Text style={styles.locationText}>{profile.location}</Text>
           </View>
+        )}
 
-          {/* Logout button */}
-          <View style={styles.logoutSection}>
-            <Button
-              title="Logout"
-              onPress={onLogout}
-              buttonStyle={styles.logoutButton}
-              textStyle={styles.logoutText}
-              hasShadow={false}
+        {/* Posts Grid Header */}
+        <View style={styles.postsHeader}>
+          <Icon name="image" size={22} color={theme.colors.primary} />
+          <Text style={styles.postsTitle}>My Catches</Text>
+        </View>
+
+        {/* Posts Grid (limited to 9) */}
+        <PostsGrid
+          posts={posts}
+          loading={false}
+          limit={9}
+          columns={3}
+          gap={2}
+          showStats={true}
+          showSpecies={true}
+          onPostPress={handlePostPress}
+          emptyTitle="No catches yet"
+          emptyText="Share your first catch! 🎣"
+          onEmptyPress={() => router.push('/newPost')}
+        />
+
+        {/* See All Button (if more than 9 posts) */}
+        {posts.length > 9 && (
+          <Pressable
+            style={styles.seeAllButton}
+            onPress={() => router.push('/postsGallery')}
+          >
+            <Icon name="image" size={20} color={theme.colors.primary} />
+            <Text style={styles.seeAllText}>See all {posts.length} posts</Text>
+            <Icon
+              name="arrowLeft"
+              size={18}
+              color={theme.colors.primary}
+              style={{ transform: [{ rotate: '180deg' }] }}
             />
-          </View>
+          </Pressable>
+        )}
 
-          <View style={{ height: 50 }} />
+        {/* Actions Section */}
+        <View style={styles.actionsSection}>
+          <Pressable style={styles.actionButton}>
+            <Icon name="maps" size={22} color={theme.colors.primary} />
+            <Text style={styles.actionText}>Favorite Spots</Text>
+            <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
+          </Pressable>
+
+          <Pressable
+            style={styles.actionButton}
+            onPress={() => router.push('/postsGallery')}
+          >
+            <Icon name="image" size={22} color={theme.colors.primary} />
+            <Text style={styles.actionText}>My Catches Gallery</Text>
+            <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
+          </Pressable>
+        </View>
+
+        <View style={{ height: 50 }} />
       </ScrollView>
 
       {/* Post Detail Modal */}
@@ -276,6 +262,15 @@ const Profile = () => {
         onClose={() => setShowFollowing(false)}
         userId={user?.id}
         currentUserId={user?.id}
+      />
+      {/* Profile Menu */}
+      <ProfileMenu
+        visible={showMenu}
+        onClose={() => setShowMenu(false)}
+        onLogout={async () => {
+          await supabase.auth.signOut();
+          router.replace('/welcome');
+        }}
       />
     </ScreenWrapper>
   )
@@ -477,15 +472,5 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.medium,
     color: theme.colors.text,
     flex: 1,
-  },
-  logoutSection: {
-    marginTop: hp(4),
-    paddingHorizontal: wp(5),
-  },
-  logoutButton: {
-    backgroundColor: theme.colors.rose,
-  },
-  logoutText: {
-    color: 'white',
-  },
+  }
 })
