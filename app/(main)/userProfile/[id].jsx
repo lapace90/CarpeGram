@@ -12,17 +12,21 @@ import PostsGrid from '../../../components/post/PostsGrid'
 import PostDetail from '../../../components/post/PostDetail'
 import FollowButton from '../../../components/FollowButton'
 import { useFollow } from '../../../hooks/useFollow'
+import FollowersModal from '../../../components/FollowersModal'
+import FollowingModal from '../../../components/FollowingModal'
 
 const UserProfile = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  
+
   const [currentUser, setCurrentUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showPostDetail, setShowPostDetail] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
 
   const { isFollowing, followersCount, loading: followLoading, toggleFollow } = useFollow(
     currentUser?.id,
@@ -130,14 +134,24 @@ const UserProfile = () => {
                 <Text style={styles.statNumber}>{posts.length}</Text>
                 <Text style={styles.statLabel}>Catches</Text>
               </View>
-              <View style={styles.statBox}>
+
+              {/* Followers - Cliquable */}
+              <Pressable
+                style={styles.statBox}
+                onPress={() => setShowFollowers(true)}
+              >
                 <Text style={styles.statNumber}>{followersCount}</Text>
                 <Text style={styles.statLabel}>Followers</Text>
-              </View>
-              <View style={styles.statBox}>
+              </Pressable>
+
+              {/* Following - Cliquable */}
+              <Pressable
+                style={styles.statBox}
+                onPress={() => setShowFollowing(true)}
+              >
                 <Text style={styles.statNumber}>{profile.following_count || 0}</Text>
                 <Text style={styles.statLabel}>Following</Text>
-              </View>
+              </Pressable>
             </View>
 
             {/* Follow Button */}
@@ -202,8 +216,24 @@ const UserProfile = () => {
           post={selectedPost}
           currentUserId={currentUser?.id}
         />
+
+        {/* Followers Modal */}
+        <FollowersModal
+          visible={showFollowers}
+          onClose={() => setShowFollowers(false)}
+          userId={id}
+          currentUserId={currentUser?.id}
+        />
+
+        {/* Following Modal */}
+        <FollowingModal
+          visible={showFollowing}
+          onClose={() => setShowFollowing(false)}
+          userId={id}
+          currentUserId={currentUser?.id}
+        />
       </View>
-    </ScreenWrapper>
+    </ScreenWrapper >
   );
 };
 

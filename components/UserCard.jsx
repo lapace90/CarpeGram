@@ -22,7 +22,7 @@ const UserCard = ({ user, currentUserId, showFollowButton = true }) => {
     : user.username;
 
   const handlePress = () => {
-    router.push(`/userProfile/${user.id}`);
+    router.push( `/userProfile/${user.id}` );
   };
 
   return (

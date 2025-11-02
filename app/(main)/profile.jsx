@@ -11,6 +11,8 @@ import { pickAndUploadAvatar } from '../../services/imageService'
 import { fetchUserPosts } from '../../services/postService'
 import PostsGrid from '../../components/post/PostsGrid'
 import PostDetail from '../../components/post/PostDetail'
+import FollowersModal from '../../components/FollowersModal'
+import FollowingModal from '../../components/FollowingModal'
 
 const Profile = () => {
   const router = useRouter();
@@ -20,6 +22,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showPostDetail, setShowPostDetail] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
 
   useEffect(() => {
     getUserData();
@@ -133,110 +137,121 @@ const Profile = () => {
 
           {/* Stats */}
           <View style={styles.statsContainer}>
+            {/* Catches - Non cliquable */}
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{posts.length}</Text>
               <Text style={styles.statLabel}>Catches</Text>
             </View>
-            <View style={styles.statBox}>
+
+            {/* Followers - Cliquable */}
+            <Pressable
+              style={styles.statBox}
+              onPress={() => setShowFollowers(true)}
+            >
               <Text style={styles.statNumber}>{profile?.followers_count || 0}</Text>
               <Text style={styles.statLabel}>Followers</Text>
-            </View>
-            <View style={styles.statBox}>
+            </Pressable>
+
+            {/* Following - Cliquable */}
+            <Pressable
+              style={styles.statBox}
+              onPress={() => setShowFollowing(true)}
+            >
               <Text style={styles.statNumber}>{profile?.following_count || 0}</Text>
               <Text style={styles.statLabel}>Following</Text>
-            </View>
+            </Pressable>
           </View>
         </View>
 
-        {/* Bio section */}
-        {profile?.bio && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Icon name="edit" size={20} color={theme.colors.primary} />
-              <Text style={styles.sectionTitle}>About</Text>
+          {/* Bio section */}
+          {profile?.bio && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Icon name="edit" size={20} color={theme.colors.primary} />
+                <Text style={styles.sectionTitle}>About</Text>
+              </View>
+              <Text style={styles.bioText}>
+                {profile.bio}
+              </Text>
             </View>
-            <Text style={styles.bioText}>
-              {profile.bio}
-            </Text>
-          </View>
-        )}
+          )}
 
-        {/* Location */}
-        {profile?.location && (
-          <View style={styles.locationContainer}>
-            <Icon name="location" size={18} color={theme.colors.textLight} />
-            <Text style={styles.locationText}>{profile.location}</Text>
-          </View>
-        )}
+          {/* Location */}
+          {profile?.location && (
+            <View style={styles.locationContainer}>
+              <Icon name="location" size={18} color={theme.colors.textLight} />
+              <Text style={styles.locationText}>{profile.location}</Text>
+            </View>
+          )}
 
-        {/* Posts Grid Header */}
-        <View style={styles.postsHeader}>
-          <Icon name="image" size={22} color={theme.colors.primary} />
-          <Text style={styles.postsTitle}>My Catches</Text>
-        </View>
-
-        {/* Posts Grid (limited to 9) */}
-        <PostsGrid
-          posts={posts}
-          loading={false}
-          limit={9}
-          columns={3}
-          gap={2}
-          showStats={true}
-          showSpecies={true}
-          onPostPress={handlePostPress}
-          emptyTitle="No catches yet"
-          emptyText="Share your first catch! 🎣"
-          onEmptyPress={() => router.push('/newPost')}
-        />
-
-        {/* See All Button (if more than 9 posts) */}
-        {posts.length > 9 && (
-          <Pressable
-            style={styles.seeAllButton}
-            onPress={() => router.push('/postsGallery')}
-          >
-            <Icon name="image" size={20} color={theme.colors.primary} />
-            <Text style={styles.seeAllText}>See all {posts.length} posts</Text>
-            <Icon
-              name="arrowLeft"
-              size={18}
-              color={theme.colors.primary}
-              style={{ transform: [{ rotate: '180deg' }] }}
-            />
-          </Pressable>
-        )}
-
-        {/* Actions Section */}
-        <View style={styles.actionsSection}>
-          <Pressable style={styles.actionButton}>
-            <Icon name="maps" size={22} color={theme.colors.primary} />
-            <Text style={styles.actionText}>Favorite Spots</Text>
-            <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
-          </Pressable>
-
-          <Pressable
-            style={styles.actionButton}
-            onPress={() => router.push('/postsGallery')}
-          >
+          {/* Posts Grid Header */}
+          <View style={styles.postsHeader}>
             <Icon name="image" size={22} color={theme.colors.primary} />
-            <Text style={styles.actionText}>My Catches Gallery</Text>
-            <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
-          </Pressable>
-        </View>
+            <Text style={styles.postsTitle}>My Catches</Text>
+          </View>
 
-        {/* Logout button */}
-        <View style={styles.logoutSection}>
-          <Button
-            title="Logout"
-            onPress={onLogout}
-            buttonStyle={styles.logoutButton}
-            textStyle={styles.logoutText}
-            hasShadow={false}
+          {/* Posts Grid (limited to 9) */}
+          <PostsGrid
+            posts={posts}
+            loading={false}
+            limit={9}
+            columns={3}
+            gap={2}
+            showStats={true}
+            showSpecies={true}
+            onPostPress={handlePostPress}
+            emptyTitle="No catches yet"
+            emptyText="Share your first catch! 🎣"
+            onEmptyPress={() => router.push('/newPost')}
           />
-        </View>
 
-        <View style={{ height: 50 }} />
+          {/* See All Button (if more than 9 posts) */}
+          {posts.length > 9 && (
+            <Pressable
+              style={styles.seeAllButton}
+              onPress={() => router.push('/postsGallery')}
+            >
+              <Icon name="image" size={20} color={theme.colors.primary} />
+              <Text style={styles.seeAllText}>See all {posts.length} posts</Text>
+              <Icon
+                name="arrowLeft"
+                size={18}
+                color={theme.colors.primary}
+                style={{ transform: [{ rotate: '180deg' }] }}
+              />
+            </Pressable>
+          )}
+
+          {/* Actions Section */}
+          <View style={styles.actionsSection}>
+            <Pressable style={styles.actionButton}>
+              <Icon name="maps" size={22} color={theme.colors.primary} />
+              <Text style={styles.actionText}>Favorite Spots</Text>
+              <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
+            </Pressable>
+
+            <Pressable
+              style={styles.actionButton}
+              onPress={() => router.push('/postsGallery')}
+            >
+              <Icon name="image" size={22} color={theme.colors.primary} />
+              <Text style={styles.actionText}>My Catches Gallery</Text>
+              <Icon name="arrowLeft" size={18} color={theme.colors.textLight} style={{ transform: [{ rotate: '180deg' }] }} />
+            </Pressable>
+          </View>
+
+          {/* Logout button */}
+          <View style={styles.logoutSection}>
+            <Button
+              title="Logout"
+              onPress={onLogout}
+              buttonStyle={styles.logoutButton}
+              textStyle={styles.logoutText}
+              hasShadow={false}
+            />
+          </View>
+
+          <View style={{ height: 50 }} />
       </ScrollView>
 
       {/* Post Detail Modal */}
@@ -246,6 +261,21 @@ const Profile = () => {
         post={selectedPost}
         currentUserId={user?.id}
         onDelete={handleDeletePost}
+      />
+      {/* Followers Modal */}
+      <FollowersModal
+        visible={showFollowers}
+        onClose={() => setShowFollowers(false)}
+        userId={user?.id}
+        currentUserId={user?.id}
+      />
+
+      {/* Following Modal */}
+      <FollowingModal
+        visible={showFollowing}
+        onClose={() => setShowFollowing(false)}
+        userId={user?.id}
+        currentUserId={user?.id}
       />
     </ScreenWrapper>
   )

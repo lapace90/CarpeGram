@@ -77,27 +77,40 @@ export const unfollowUser = async (followerId, followingId) => {
  */
 export const getFollowers = async (userId) => {
   try {
-    const { data, error } = await supabase
+    // 1. Récupérer les IDs des followers
+    const { data: relationships, error: relError } = await supabase
       .from('user_relationships')
-      .select(`
-        follower_id,
-        created_at,
-        profiles:follower_id (
-          id,
-          username,
-          avatar_url,
-          first_name,
-          last_name,
-          show_full_name,
-          followers_count
-        )
-      `)
+      .select('follower_id, created_at')
       .eq('following_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (relError) throw relError;
 
-    return { success: true, data };
+    if (!relationships || relationships.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // 2. Récupérer les profiles correspondants
+    const followerIds = relationships.map(r => r.follower_id);
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, first_name, last_name, show_full_name, followers_count')
+      .in('id', followerIds);
+
+    if (profilesError) throw profilesError;
+
+    // 3. Combiner les données (ajouter created_at à chaque profile)
+    const followersWithDate = profiles?.map(profile => {
+      const rel = relationships.find(r => r.follower_id === profile.id);
+      return {
+        follower_id: profile.id,
+        created_at: rel?.created_at,
+        profiles: profile
+      };
+    }) || [];
+
+    return { success: true, data: followersWithDate };
   } catch (error) {
     console.error('Get followers error:', error);
     return { success: false, error: error.message };
@@ -109,27 +122,40 @@ export const getFollowers = async (userId) => {
  */
 export const getFollowing = async (userId) => {
   try {
-    const { data, error } = await supabase
+    // 1. Récupérer les IDs des following
+    const { data: relationships, error: relError } = await supabase
       .from('user_relationships')
-      .select(`
-        following_id,
-        created_at,
-        profiles:following_id (
-          id,
-          username,
-          avatar_url,
-          first_name,
-          last_name,
-          show_full_name,
-          followers_count
-        )
-      `)
+      .select('following_id, created_at')
       .eq('follower_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (relError) throw relError;
 
-    return { success: true, data };
+    if (!relationships || relationships.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // 2. Récupérer les profiles correspondants
+    const followingIds = relationships.map(r => r.following_id);
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, first_name, last_name, show_full_name, followers_count')
+      .in('id', followingIds);
+
+    if (profilesError) throw profilesError;
+
+    // 3. Combiner les données (ajouter created_at à chaque profile)
+    const followingWithDate = profiles?.map(profile => {
+      const rel = relationships.find(r => r.following_id === profile.id);
+      return {
+        following_id: profile.id,
+        created_at: rel?.created_at,
+        profiles: profile
+      };
+    }) || [];
+
+    return { success: true, data: followingWithDate };
   } catch (error) {
     console.error('Get following error:', error);
     return { success: false, error: error.message };
@@ -150,8 +176,8 @@ export const getFollowCounts = async (userId) => {
 
     if (error) throw error;
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       followersCount: data.followers_count || 0,
       followingCount: data.following_count || 0
     };

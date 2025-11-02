@@ -20,20 +20,39 @@ export const pickAndUploadAvatar = async (userId, onSuccess) => {
 
     if (result.canceled) return;
 
-    // Upload
+    // ✅ CORRECTION: Upload avec nom unique (timestamp) pour éviter le cache
     const uri = result.assets[0].uri;
     const fileExt = uri.split('.').pop().toLowerCase();
-    const fileName = `${userId}/avatar.${fileExt}`;
+    const fileName = `${userId}/avatar_${Date.now()}.${fileExt}`;
 
     const response = await fetch(uri);
     const blob = await response.blob();
     const arrayBuffer = await new Response(blob).arrayBuffer();
 
+    // ✅ Supprimer l'ancien avatar d'abord pour économiser du storage
+    const { data: oldProfile } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', userId)
+      .single();
+    
+    if (oldProfile?.avatar_url) {
+      try {
+        const oldFileName = oldProfile.avatar_url.split('/').pop();
+        await supabase.storage
+          .from('avatars')
+          .remove([`${userId}/${oldFileName}`]);
+      } catch (e) {
+        console.log('Old avatar deletion failed (non-critical):', e);
+      }
+    }
+
+    // ✅ Upload le nouvel avatar avec nom unique
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(fileName, arrayBuffer, {
         contentType: `image/${fileExt}`,
-        upsert: true
+        upsert: false
       });
 
     if (uploadError) throw uploadError;

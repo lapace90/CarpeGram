@@ -84,7 +84,7 @@ export const createPost = async (postData) => {
 };
 
 /**
- * Supprime un post (future feature)
+ * Supprime un post
  */
 export const deletePost = async (postId, userId) => {
   try {
@@ -121,42 +121,39 @@ export const deletePost = async (postId, userId) => {
 };
 
 /**
- * Récupère les posts pour le feed (future feature)
- */
-export const fetchPosts = async (userId, limit = 20, offset = 0) => {
-  try {
-    const { data, error } = await supabase
-      .from('posts')
-      .select(`
-        *,
-        profiles:user_id (
-          username,
-          avatar_url,
-          first_name,
-          last_name,
-          show_full_name
-        ),
-        likes:likes(count),
-        comments:comments(count)
-      `)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) throw error;
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Fetch posts error:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-/**
- * Récupère les posts pour le feed (Home)
- * Inclut les posts publics + les posts des gens qu'on suit
+ * VERSION FINALE OPTIMISÉE
+ * Maintenant que les RLS policies sont correctes, on peut filtrer côté serveur
  */
 export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
   try {
+    if (!userId) {
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles:user_id (
+            id,
+            username,
+            avatar_url,
+            first_name,
+            last_name,
+            show_full_name
+          )
+        `)
+        .eq('privacy', 'public')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (error) throw error;
+      return { success: true, data: data || [] };
+    }
+
+    // Grâce aux RLS policies, on peut maintenant simplement récupérer tous les posts
+    // Supabase va automatiquement filtrer selon les règles :
+    // - Posts publics
+    // - Mes propres posts
+    // - Posts "followers" des gens que je suis
+    // - Posts "close_friends" si je suis close friend
     const { data, error } = await supabase
       .from('posts')
       .select(`
@@ -170,13 +167,12 @@ export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
           show_full_name
         )
       `)
-      .eq('privacy', 'public')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
 
-    return { success: true, data };
+    return { success: true, data: data || [] };
   } catch (error) {
     console.error('Fetch feed error:', error);
     return { success: false, error: error.message };
@@ -191,16 +187,16 @@ export const fetchUserPosts = async (userId) => {
     const { data, error } = await supabase
       .from('posts')
       .select(`
-  *,
-  profiles:user_id (
-    id,
-    username,
-    avatar_url,
-    first_name,
-    last_name,
-    show_full_name
-  )
-`)
+        *,
+        profiles:user_id (
+          id,
+          username,
+          avatar_url,
+          first_name,
+          last_name,
+          show_full_name
+        )
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -209,32 +205,6 @@ export const fetchUserPosts = async (userId) => {
     return { success: true, data };
   } catch (error) {
     console.error('Fetch user posts error:', error);
-    return { success: false, error: error.message };
-  }
-};
-/**
- * Récupère les posts d'un utilisateur avec limit optionnel
- * Utilisé pour afficher les posts sur le profil d'un user
- */
-export const getUserPosts = async (userId, limit = null) => {
-  try {
-    let query = supabase
-      .from('posts')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Get user posts error:', error);
     return { success: false, error: error.message };
   }
 };
