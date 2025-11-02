@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
@@ -288,7 +289,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   header: {
-    height: hp(20),
+    height: hp(9),
     backgroundColor: theme.colors.primary,
     position: 'relative',
   },

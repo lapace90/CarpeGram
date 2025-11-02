@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Modal, ScrollView, Image, Pressable, Animated, Alert } from 'react-native'
+import { View, Text, StyleSheet, Modal, ScrollView, Pressable, Animated, Alert } from 'react-native'
+import { Image } from 'expo-image'
 import React, { useRef, useState } from 'react'
 import { theme } from '../../constants/theme'
 import { commonStyles } from '../../constants/commonStyles'

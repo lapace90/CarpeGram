@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, Image, Pressable, Animated } from 'react-native'
-import React, { useRef, useState } from 'react'
+import { View, Text, StyleSheet, Pressable, Animated } from 'react-native'
+import { Image } from 'expo-image'
+import React, { useRef, useState, memo } from 'react'
 import { theme } from '../../constants/theme'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
@@ -41,7 +42,7 @@ const PostCard = ({ post, currentUserId, onPress }) => {
     ? `${profiles.first_name} ${profiles.last_name || ''}`
     : `@${profiles?.username || 'unknown'}`;
 
-  const handleLike = () => {
+  const handleLike = async () => {
     Animated.sequence([
       Animated.timing(scaleValue, {
         toValue: 1.3,
@@ -55,16 +56,16 @@ const PostCard = ({ post, currentUserId, onPress }) => {
       }),
     ]).start();
 
-    toggleLike();
+    await toggleLike();
   };
-
+  
   return (
     <>
       <Pressable style={styles.card} onPress={onPress}>
         <View style={[commonStyles.flexRowBetween, commonStyles.paddingH12, commonStyles.paddingV12]}>
           <View style={[commonStyles.flexRowCenter, commonStyles.gap10]}>
             <Avatar profile={profiles} size={40} />
-            
+
             <View>
               <Text style={[commonStyles.textSemiBold, styles.username]}>
                 {displayName}
@@ -101,8 +102,8 @@ const PostCard = ({ post, currentUserId, onPress }) => {
             </Text>
           </Pressable>
 
-          <Pressable 
-            onPress={() => setShowComments(true)} 
+          <Pressable
+            onPress={() => setShowComments(true)}
             style={[commonStyles.flexRowCenter, commonStyles.gap6]}
           >
             <Icon name="comment" size={24} color={theme.colors.text} />
@@ -161,7 +162,7 @@ const PostCard = ({ post, currentUserId, onPress }) => {
   );
 };
 
-export default PostCard;
+export default memo(PostCard);
 
 const styles = StyleSheet.create({
   card: {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { followUser, unfollowUser, checkIfFollowing } from '../services/followService';
+import handleError from '../lib/errorHandler';
 
 export const useFollow = (currentUserId, targetUserId, initialFollowersCount) => {
   const [isFollowing, setIsFollowing] = useState(false);
@@ -35,7 +36,7 @@ export const useFollow = (currentUserId, targetUserId, initialFollowersCount) =>
 
     setLoading(true);
 
-    const result = isFollowing 
+    const result = isFollowing
       ? await unfollowUser(currentUserId, targetUserId)
       : await followUser(currentUserId, targetUserId);
 
@@ -45,7 +46,7 @@ export const useFollow = (currentUserId, targetUserId, initialFollowersCount) =>
       // Rollback on error
       setIsFollowing(previousFollowing);
       setFollowersCount(previousCount);
-      console.error('Toggle follow failed:', result.error);
+      handleError(result, 'Follow');
     }
   };
 

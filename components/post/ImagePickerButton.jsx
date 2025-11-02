@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Pressable, Image, Alert } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
+import { Image } from 'expo-image'
 import React from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { theme } from '../../constants/theme'

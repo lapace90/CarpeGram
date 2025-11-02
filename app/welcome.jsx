@@ -1,4 +1,5 @@
-import { Image, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native'
+import { Image } from 'expo-image'
 import React from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { wp, hp } from '../helpers/common'

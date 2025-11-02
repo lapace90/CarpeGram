@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
-import React from 'react'
+import { View, Text, StyleSheet, Pressable} from 'react-native'
+import { Image } from 'expo-image'
+import React, {memo} from 'react'
 import { theme } from '../constants/theme'
 import { hp, wp } from '../helpers/common'
 import Icon from '../assets/icons'
@@ -72,7 +73,7 @@ const UserCard = ({ user, currentUserId, showFollowButton = true }) => {
   );
 };
 
-export default UserCard;
+export default memo(UserCard);
 
 const styles = StyleSheet.create({
   container: {

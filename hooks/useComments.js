@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getPostComments, createComment, deleteComment } from '../services/commentService';
 import { Alert } from 'react-native';
+import handleError from '../lib/errorHandler';
 
 export const useComments = (postId, initialCommentsCount) => {
   const [comments, setComments] = useState([]);
@@ -44,7 +45,7 @@ export const useComments = (postId, initialCommentsCount) => {
       setCommentsCount(commentsCount + 1);
       return true;
     } else {
-      Alert.alert('Error', result.error || 'Failed to add comment');
+      handleError(result, 'Add Comment');
       return false;
     }
   };
@@ -63,7 +64,7 @@ export const useComments = (postId, initialCommentsCount) => {
       // Rollback
       setComments(previousComments);
       setCommentsCount(previousCount);
-      Alert.alert('Error', 'Failed to delete comment');
+      handleError(result, 'Delete Comment');
     }
   };
 
