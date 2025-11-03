@@ -24,6 +24,7 @@ import { ThreeDotsCircle, ThreeDotsVertical, ThreeDotsHorizontal } from './Three
 import Video from './Video'
 import Globe from './Globe'
 import UserMinus from './UserMinus'
+import Bookmark from './Bookmark'
 import AlertCircle from './AlertCircle'
 
 const icons = {
@@ -37,6 +38,7 @@ const icons = {
   call: Call,
   camera: Camera,
   comment: Comment,
+  bookmark: Bookmark,
   delete: Delete,
   edit: NoteEdit,
   image: ImageIcon,

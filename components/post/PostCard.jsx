@@ -6,11 +6,15 @@ import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import { useLike } from '../../hooks/useLike'
+import { useRepost } from '../../hooks/useRepost'
+import { useSavedPost } from '../../hooks/useSavedPost'
 import CommentsModal from './CommentsModal'
+import RepostModal from '../RepostModal'
 import Avatar from '../Avatar'
 
 const PostCard = ({ post, currentUserId, onPress }) => {
   const [showComments, setShowComments] = useState(false);
+  const [showRepostModal, setShowRepostModal] = useState(false);
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const {
@@ -29,6 +33,8 @@ const PostCard = ({ post, currentUserId, onPress }) => {
   } = post;
 
   const { liked, likesCount, toggleLike } = useLike(id, likes_count, currentUserId);
+  const { isReposted, toggleRepost } = useRepost(id, currentUserId);
+  const { isSaved, toggleSave } = useSavedPost(id, currentUserId);
 
   const formatTimeAgo = (dateString) => {
     const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
@@ -57,6 +63,10 @@ const PostCard = ({ post, currentUserId, onPress }) => {
     ]).start();
 
     await toggleLike();
+  };
+
+  const handleRepost = async (privacy) => {
+    await toggleRepost(privacy);
   };
   
   return (
@@ -88,6 +98,7 @@ const PostCard = ({ post, currentUserId, onPress }) => {
         <Image source={{ uri: image_url }} style={styles.postImage} />
 
         <View style={[commonStyles.flexRow, styles.actions]}>
+          {/* Like */}
           <Pressable onPress={handleLike} style={[commonStyles.flexRowCenter, commonStyles.gap6]}>
             <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
               <Icon
@@ -102,6 +113,7 @@ const PostCard = ({ post, currentUserId, onPress }) => {
             </Text>
           </Pressable>
 
+          {/* Comment */}
           <Pressable
             onPress={() => setShowComments(true)}
             style={[commonStyles.flexRowCenter, commonStyles.gap6]}
@@ -110,8 +122,27 @@ const PostCard = ({ post, currentUserId, onPress }) => {
             <Text style={styles.actionText}>{comments_count || 0}</Text>
           </Pressable>
 
-          <Pressable style={[commonStyles.flexRowCenter, commonStyles.gap6]}>
-            <Icon name="send" size={22} color={theme.colors.text} />
+          {/* Repost */}
+          <Pressable 
+            onPress={() => setShowRepostModal(true)}
+            style={[commonStyles.flexRowCenter, commonStyles.gap6]}
+          >
+            <Icon 
+              name="share" 
+              size={22} 
+              color={isReposted ? theme.colors.primary : theme.colors.text}
+            />
+          </Pressable>
+
+          {/* Save (Spacer pousse ce bouton à droite) */}
+          <View style={{ flex: 1 }} />
+          <Pressable onPress={toggleSave} style={[commonStyles.flexRowCenter, commonStyles.gap6]}>
+            <Icon 
+              name="bookmark" 
+              size={22} 
+              fill={isSaved ? theme.colors.primary : 'transparent'}
+              color={isSaved ? theme.colors.primary : theme.colors.text}
+            />
           </Pressable>
         </View>
 
@@ -152,11 +183,18 @@ const PostCard = ({ post, currentUserId, onPress }) => {
         )}
       </Pressable>
 
+      {/* Modals */}
       <CommentsModal
         visible={showComments}
         onClose={() => setShowComments(false)}
         postId={id}
         currentUserId={currentUserId}
+      />
+
+      <RepostModal
+        visible={showRepostModal}
+        onClose={() => setShowRepostModal(false)}
+        onRepost={handleRepost}
       />
     </>
   );

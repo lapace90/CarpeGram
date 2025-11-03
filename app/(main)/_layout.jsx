@@ -11,7 +11,7 @@ const TabIcon = ({ name, focused }) => {
       <Icon
         name={name}
         size={26}
-        strokeWidth={1.9}
+        strokeWidth={focused ? 2.2 : 1.9}
         color={focused ? theme.colors.primary : theme.colors.textLight}
       />
     </View>
