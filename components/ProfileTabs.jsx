@@ -9,17 +9,17 @@ const ProfileTabs = ({
   activeTab, 
   onTabPress, 
   showSaved = true,
-  postsCount = 0,
-  sharedCount = 0,
-  savedCount = 0,
+  // postsCount = 0,
+  // sharedCount = 0,
+  // savedCount = 0,
 }) => {
   const indicatorPosition = useRef(new Animated.Value(0)).current;
 
   // Tabs configuration
   const tabs = [
-    { id: 'posts', label: 'Posts', icon: 'image', count: postsCount },
-    { id: 'shared', label: 'Shared', icon: 'share', count: sharedCount },
-    ...(showSaved ? [{ id: 'saved', label: 'Saved', icon: 'bookmark', count: savedCount }] : []),
+    { id: 'posts', label: 'Posts', icon: 'image' },
+    { id: 'shared', label: 'Shared', icon: 'share' },
+    ...(showSaved ? [{ id: 'saved', label: 'Saved', icon: 'bookmark' }] : []),
   ];
 
   const tabWidth = 100 / tabs.length; // Percentage
@@ -57,15 +57,6 @@ const ProfileTabs = ({
                   strokeWidth={isActive ? 2.5 : 2}
                 />
                 
-                {/* Count badge (optionnel) */}
-                {tab.count > 0 && (
-                  <Text style={[
-                    styles.countText,
-                    isActive && styles.countTextActive
-                  ]}>
-                    {tab.count}
-                  </Text>
-                )}
               </View>
             </Pressable>
           );

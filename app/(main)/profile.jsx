@@ -93,7 +93,7 @@ const Profile = () => {
     <ScreenWrapper bg="white">
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Header avec username */}
+          {/* Header avec gradient */}
           <View style={styles.headerGradient}>
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>@{profile?.username}</Text>
@@ -122,7 +122,7 @@ const Profile = () => {
             </View>
           </View>
 
-          {/* Info Section - Plus compact */}
+          {/* Info Section */}
           <View style={styles.infoSection}>
             {profile?.show_full_name && profile?.first_name && (
               <Text style={styles.fullName}>
@@ -139,37 +139,25 @@ const Profile = () => {
             )}
           </View>
 
-          {/* Stats Cards - Plus compactes */}
+          {/* Stats Cards */}
           <View style={styles.statsSection}>
-            {/* Catches */}
-            <View style={[styles.statCard, { backgroundColor: '#f0a14120' }]}>
-              {/* <View style={[styles.statIcon, { backgroundColor: '#FF6B6B' }]}>
-                <Icon name="image" size={18} color="white" />
-              </View> */}
+            <View style={[styles.statCard, { backgroundColor: '#FF6B6B20' }]}>
               <Text style={styles.statNumber}>{postsCount}</Text>
               <Text style={styles.statLabel}>Catches</Text>
             </View>
 
-            {/* Followers */}
             <Pressable 
               style={[styles.statCard, { backgroundColor: '#4ECDC420' }]}
               onPress={() => setShowFollowers(true)}
             >
-              {/* <View style={[styles.statIcon, { backgroundColor: '#4ECDC4' }]}>
-                <Icon name="heart" size={18} color="white" />
-              </View> */}
               <Text style={styles.statNumber}>{profile?.followers_count || 0}</Text>
               <Text style={styles.statLabel}>Followers</Text>
             </Pressable>
 
-            {/* Following */}
             <Pressable 
-              style={[styles.statCard, { backgroundColor: '#29ea2620' }]}
+              style={[styles.statCard, { backgroundColor: '#95E1D320' }]}
               onPress={() => setShowFollowing(true)}
             >
-              {/* <View style={[styles.statIcon, { backgroundColor: '#95E1D3' }]}>
-                <Icon name="user" size={18} color="white" />
-              </View> */}
               <Text style={styles.statNumber}>{profile?.following_count || 0}</Text>
               <Text style={styles.statLabel}>Following</Text>
             </Pressable>
@@ -202,19 +190,17 @@ const Profile = () => {
             activeTab={activeTab}
             onTabPress={switchTab}
             showSaved={true}
-            // postsCount={postsCount}
-            // sharedCount={sharedCount}
-            // savedCount={savedCount}
           />
 
-          {/* Posts Grid */}
+          {/* Grille pour TOUS les tabs */}
           <PostsGrid
             posts={currentData}
             loading={tabsLoading}
             columns={3}
             gap={2}
             showStats={true}
-            showSpecies={true}
+            showSpecies={activeTab !== 'shared'}
+            showRepostBadge={activeTab === 'shared'}
             onPostPress={handlePostPress}
             emptyTitle={
               activeTab === 'posts' 
@@ -286,10 +272,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   
-  // Header - Plus compact
+  // Header
   headerGradient: {
     backgroundColor: theme.colors.primary,
-    // paddingBottom: hp(1),
+    // paddingBottom: hp(6),
   },
   headerContent: {
     flexDirection: 'row',
@@ -310,7 +296,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   
-  // Avatar - Plus petit
+  // Avatar
   avatarSection: {
     alignItems: 'center',
     marginTop: hp(0.5),
@@ -347,7 +333,7 @@ const styles = StyleSheet.create({
     borderColor: 'white',
   },
   
-  // Info - Plus compact
+  // Info
   infoSection: {
     alignItems: 'center',
     paddingHorizontal: wp(5),
@@ -372,7 +358,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.semiBold,
   },
   
-  // Stats Cards - Plus compactes
+  // Stats Cards
   statsSection: {
     flexDirection: 'row',
     paddingHorizontal: wp(4),
@@ -386,14 +372,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: hp(0.3),
   },
-  statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: hp(0.3),
-  },
   statNumber: {
     fontSize: hp(2.2),
     fontWeight: theme.fonts.bold,
@@ -404,7 +382,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textLight,
   },
   
-  // Details Card - Plus compacte
+  // Details Card
   detailsCard: {
     marginHorizontal: wp(4),
     marginBottom: hp(1.5),
@@ -412,9 +390,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.lg,
     padding: hp(1.5),
   },
-  bioSection: {
-    // marginBottom appliqué conditionnellement
-  },
+  bioSection: {},
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',

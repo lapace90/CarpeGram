@@ -121,8 +121,7 @@ export const deletePost = async (postId, userId) => {
 };
 
 /**
- * VERSION FINALE OPTIMISÉE
- * Maintenant que les RLS policies sont correctes, on peut filtrer côté serveur
+ * Récupère les posts ET les reposts pour le feed
  */
 export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
   try {
@@ -148,13 +147,8 @@ export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
       return { success: true, data: data || [] };
     }
 
-    // Grâce aux RLS policies, on peut maintenant simplement récupérer tous les posts
-    // Supabase va automatiquement filtrer selon les règles :
-    // - Posts publics
-    // - Mes propres posts
-    // - Posts "followers" des gens que je suis
-    // - Posts "close_friends" si je suis close friend
-    const { data, error } = await supabase
+    // 1. Récupérer les posts normaux (les RLS policies gèrent les permissions)
+    const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select(`
         *,
@@ -170,11 +164,91 @@ export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (error) throw error;
+    if (postsError) throw postsError;
 
-    return { success: true, data: data || [] };
+    // 2. Récupérer les reposts (aussi filtrés par RLS)
+    const { data: reposts, error: repostsError } = await supabase
+      .from('reposts')
+      .select(`
+        id,
+        user_id,
+        post_id,
+        privacy,
+        comment,
+        created_at,
+        profiles:user_id (
+          id,
+          username,
+          avatar_url,
+          first_name,
+          last_name,
+          show_full_name
+        ),
+        posts:post_id (
+          *,
+          profiles:user_id (
+            id,
+            username,
+            avatar_url,
+            first_name,
+            last_name,
+            show_full_name
+          )
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (repostsError) throw repostsError;
+
+    // 3. Transformer les reposts 
+    const transformedReposts = (reposts || []).map(repost => ({
+      ...repost.posts,
+      is_repost: true,
+      repost_id: repost.id,
+      repost_user_id: repost.user_id,     
+      repost_comment: repost.comment,
+      repost_privacy: repost.privacy,     
+      reposted_at: repost.created_at,
+      repost_profiles: repost.profiles,    // Profil de celui qui a reposté
+      original_profiles: repost.posts.profiles, // Profil de l'auteur original
+    }));
+
+    // 4. Merger et trier par date
+    const allPosts = [
+      ...(posts || []).map(p => ({ ...p, sort_date: p.created_at })),
+      ...transformedReposts.map(r => ({ ...r, sort_date: r.reposted_at }))
+    ].sort((a, b) => new Date(b.sort_date) - new Date(a.sort_date));
+
+    return { success: true, data: allPosts };
   } catch (error) {
     console.error('Fetch feed error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Met à jour un post existant
+ */
+export const updatePost = async (postId, userId, updates) => {
+  try {
+    const { error } = await supabase
+      .from('posts')
+      .update({
+        description: updates.description,
+        fish_species: updates.fish_species || null,
+        fish_weight: updates.fish_weight ? parseFloat(updates.fish_weight) : null,
+        bait: updates.bait || null,
+        spot: updates.spot || null,
+        privacy: updates.privacy,
+      })
+      .eq('id', postId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Update post error:', error);
     return { success: false, error: error.message };
   }
 };

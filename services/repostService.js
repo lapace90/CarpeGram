@@ -7,7 +7,7 @@ export const checkIfReposted = async (userId, postId) => {
   try {
     const { data, error } = await supabase
       .from('reposts')
-      .select('id, privacy')
+      .select('id, privacy, comment')
       .eq('user_id', userId)
       .eq('post_id', postId)
       .single();
@@ -16,10 +16,11 @@ export const checkIfReposted = async (userId, postId) => {
       throw error;
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       isReposted: !!data,
-      privacy: data?.privacy 
+      privacy: data?.privacy,
+      comment: data?.comment
     };
   } catch (error) {
     console.error('Check if reposted error:', error);
@@ -28,9 +29,9 @@ export const checkIfReposted = async (userId, postId) => {
 };
 
 /**
- * Create a repost with privacy setting
+ * Create a repost with privacy setting and optional comment
  */
-export const createRepost = async (userId, postId, privacy = 'public') => {
+export const createRepost = async (userId, postId, privacy = 'public', comment = null) => {
   try {
     // Check if already reposted
     const checkResult = await checkIfReposted(userId, postId);
@@ -45,6 +46,7 @@ export const createRepost = async (userId, postId, privacy = 'public') => {
         user_id: userId,
         post_id: postId,
         privacy: privacy,
+        comment: comment ? comment.trim() : null,
       })
       .select()
       .single();
@@ -79,13 +81,13 @@ export const deleteRepost = async (userId, postId) => {
 };
 
 /**
- * Update repost privacy
+ * Update repost privacy or comment
  */
-export const updateRepostPrivacy = async (userId, postId, newPrivacy) => {
+export const updateRepost = async (userId, postId, updates) => {
   try {
     const { error } = await supabase
       .from('reposts')
-      .update({ privacy: newPrivacy })
+      .update(updates)
       .eq('user_id', userId)
       .eq('post_id', postId);
 
@@ -93,7 +95,7 @@ export const updateRepostPrivacy = async (userId, postId, newPrivacy) => {
 
     return { success: true };
   } catch (error) {
-    console.error('Update repost privacy error:', error);
+    console.error('Update repost error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -107,8 +109,18 @@ export const getUserReposts = async (userId) => {
       .from('reposts')
       .select(`
         id,
+        user_id,
         privacy,
+        comment,
         created_at,
+        profiles:user_id (
+          id,
+          username,
+          avatar_url,
+          first_name,
+          last_name,
+          show_full_name
+        ),
         posts:post_id (
           id,
           user_id,
@@ -140,9 +152,14 @@ export const getUserReposts = async (userId) => {
     // Flatten data: add repost info to posts
     const repostsWithPosts = (data || []).map(repost => ({
       ...repost.posts,
+      is_repost: true,
       repost_id: repost.id,
+      repost_user_id: repost.user_id,
+      repost_comment: repost.comment,
       repost_privacy: repost.privacy,
       reposted_at: repost.created_at,
+      repost_profiles: repost.profiles,        // ✅ TON profil (celui qui reposte)
+      original_profiles: repost.posts.profiles, // ✅ Profil de l'auteur original
     }));
 
     return { success: true, data: repostsWithPosts };

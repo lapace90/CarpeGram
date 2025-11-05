@@ -10,6 +10,7 @@ import PostCard from '../../components/post/PostCard'
 import Icon from '../../assets/icons'
 import { useRouter } from 'expo-router'
 import EmptyState from '../../components/EmptyState'
+import BubblesLoader from '../../components/animations/BubblesLoader'
 
 const Home = () => {
   const router = useRouter();
@@ -52,29 +53,50 @@ const Home = () => {
       onPress={() => {
         console.log('Post clicked:', item.id);
       }}
+      onUpdate={onRefresh}
     />
   );
 
   const renderHeader = () => (
-    <View style={[commonStyles.flexRowBetween, styles.header]}>
-      <Text style={styles.logo}>Carpegram 🎣</Text>
-      <View style={[commonStyles.flexRow, styles.headerActions]}>
-        <Pressable style={styles.iconButton}>
-          <Icon name="heart" size={26} strokeWidth={1.8} color={theme.colors.text} />
-        </Pressable>
-        <Pressable style={styles.iconButton}>
-          <Icon name="send" size={26} strokeWidth={1.8} color={theme.colors.text} />
-        </Pressable>
+    <View style={styles.headerContainer}>
+      <View style={styles.headerGradient}>
+        <View style={[commonStyles.flexRowBetween, styles.header]}>
+          <View style={styles.logoSection}>
+            <Text style={styles.logo}>Carpegram</Text>
+            <Text style={styles.logoEmoji}>🎣</Text>
+          </View>
+          <View style={[commonStyles.flexRow, styles.headerActions]}>
+            <Pressable style={styles.iconButton}>
+              <Icon name="heart" size={26} strokeWidth={2} color="white" />
+            </Pressable>
+            <Pressable style={styles.iconButton}>
+              <Icon name="send" size={26} strokeWidth={2} color="white" />
+            </Pressable>
+          </View>
+        </View>
       </View>
     </View>
   );
 
+  // ✅ AJOUTE CE LOADING SCREEN ICI
+  if (loading) {
+    return (
+      <ScreenWrapper bg={theme.colors.gray + '10'}>
+        {renderHeader()}
+        <View style={styles.loadingContainer}>
+          <BubblesLoader size={80} color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Loading your feed...</Text>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.gray + '10'}>
       <FlatList
         data={posts}
         renderItem={renderPost}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => `${item.is_repost ? 'repost' : 'post'}-${item.id}`}
         ListHeaderComponent={renderHeader}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
@@ -86,15 +108,11 @@ const Home = () => {
           />
         }
         ListEmptyComponent={
-          !loading && (
-            <EmptyState 
-              iconName="image"
-              title="No posts yet"
-              message="Be the first to share your catch!"
-              buttonText="Create Post"
-              onButtonPress={() => router.push('/newPost')}
-            />
-          )
+          <EmptyState 
+            iconName="image"
+            title="No catches yet"
+            message="Follow other anglers to see their catches!"
+          />
         }
       />
     </ScreenWrapper>
@@ -104,22 +122,62 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
-  listContainer: {
-    paddingHorizontal: wp(4),
+  headerContainer: {
+    marginBottom: hp(1),
+  },
+  headerGradient: {
+    backgroundColor: theme.colors.primary,
+    paddingTop: hp(1),
+    paddingBottom: hp(2),
+    borderBottomLeftRadius: theme.radius.xl,
+    borderBottomRightRadius: theme.radius.xl,
+    shadowColor: theme.colors.dark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
   header: {
-    paddingVertical: hp(2),
-    marginBottom: 10,
+    paddingHorizontal: wp(5),
+  },
+  logoSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   logo: {
-    fontSize: hp(3.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
+    fontSize: hp(2.8),
+    fontWeight: theme.fonts.extraBold,
+    color: 'white',
+    letterSpacing: 0.5,
+  },
+  logoEmoji: {
+    fontSize: hp(2.8),
   },
   headerActions: {
-    gap: 15,
+    gap: 12,
   },
   iconButton: {
-    padding: 6,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  listContainer: {
+    paddingTop: 0,
+    paddingHorizontal: wp(4),
+    paddingBottom: 20,
+  },
+  // ✅ AJOUTE CES STYLES
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: hp(10),
+  },
+  loadingText: {
+    fontSize: hp(1.8),
+    color: theme.colors.textLight,
+    marginTop: hp(2),
+    fontWeight: theme.fonts.medium,
   },
 });
