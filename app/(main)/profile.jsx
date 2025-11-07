@@ -36,6 +36,7 @@ const Profile = () => {
     savedCount,
     switchTab,
     refreshAllTabs,
+    refreshSavedTab,
   } = useProfileTabs(user?.id, true);
 
   useEffect(() => {

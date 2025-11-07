@@ -10,12 +10,12 @@ import handleError from '../lib/errorHandler';
 export const useProfileTabs = (userId, isOwnProfile = false) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [loading, setLoading] = useState(false);
-  
+
   // Cache des données par tab
   const [postsData, setPostsData] = useState([]);
   const [sharedData, setSharedData] = useState([]);
   const [savedData, setSavedData] = useState([]);
-  
+
   // Track si les données ont été chargées au moins une fois
   const [postsLoaded, setPostsLoaded] = useState(false);
   const [sharedLoaded, setSharedLoaded] = useState(false);
@@ -88,10 +88,29 @@ export const useProfileTabs = (userId, isOwnProfile = false) => {
   };
 
   /**
+   * Refresh juste la tab Saved (quand on save/unsave un post)
+   */
+  const refreshSavedTab = async () => {
+    setSavedLoaded(false);
+    // Recharge les données saved
+    const result = await getUserSavedPosts(userId);
+    if (result.success) {
+      setSavedData(result.data || []);
+      setSavedLoaded(true);
+    }
+  };
+
+  /**
    * Switch vers une nouvelle tab
    */
   const switchTab = async (tab) => {
     setActiveTab(tab);
+
+    // Force refresh pour saved tab
+    if (tab === 'saved') {
+      setSavedLoaded(false);
+    }
+
     await loadTabData(tab);
   };
 
@@ -122,7 +141,7 @@ export const useProfileTabs = (userId, isOwnProfile = false) => {
     setPostsLoaded(false);
     setSharedLoaded(false);
     setSavedLoaded(false);
-    
+
     await loadTabData(activeTab);
   };
 
@@ -156,16 +175,17 @@ export const useProfileTabs = (userId, isOwnProfile = false) => {
     activeTab,
     loading,
     currentData: getCurrentTabData(),
-    
+
     // Counts
     postsCount: postsData.length,
     sharedCount: sharedData.length,
     savedCount: savedData.length,
-    
+
     // Actions
     switchTab,
     refreshCurrentTab,
     refreshAllTabs,
+    refreshSavedTab,
     loadTabData,
   };
 };

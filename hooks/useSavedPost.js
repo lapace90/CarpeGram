@@ -1,68 +1,50 @@
 import { useState, useEffect } from 'react';
-import { savePost, unsavePost, checkIfSaved } from '../services/savedPostsService';
-import handleError from '../lib/errorHandler';
+import { checkIfPostSaved, savePost, unsavePost } from '../services/savedPostsService';
 
 export const useSavedPost = (postId, userId) => {
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
 
-  // Vérifier le statut saved au montage
   useEffect(() => {
-    let isMounted = true;
-
-    const checkUserSaved = async () => {
-      if (!userId || !postId) {
-        setChecking(false);
-        return;
-      }
-
-      setChecking(true);
-      const result = await checkIfSaved(userId, postId);
-      
-      if (isMounted && result.success) {
-        setIsSaved(result.isSaved);
-      }
-      
-      if (isMounted) {
-        setChecking(false);
-      }
-    };
-
-    checkUserSaved();
-
-    return () => {
-      isMounted = false;
-    };
+    if (postId && userId) {
+      checkSavedStatus();
+    }
   }, [postId, userId]);
 
-  const toggleSave = async () => {
-    if (!userId || loading || checking) return;
+  const checkSavedStatus = async () => {
+    const result = await checkIfPostSaved(userId, postId);
+    if (result.success) {
+      setIsSaved(result.data);
+    }
+  };
 
-    const previousSaved = isSaved;
+  const toggleSave = async () => {
+    if (loading || !userId || !postId) return;
+
+    setLoading(true);
+    const previousState = isSaved;
 
     // Optimistic update
-    setIsSaved(!isSaved);
-    setLoading(true);
+    setIsSaved(!previousState);
 
-    const result = isSaved 
-      ? await unsavePost(userId, postId)
-      : await savePost(userId, postId);
+    try {
+      let result;
+      if (previousState) {
+        result = await unsavePost(userId, postId);
+      } else {
+        result = await savePost(userId, postId);
+      }
 
-    setLoading(false);
-
-    if (!result.success) {
-      // Rollback on error
-      setIsSaved(previousSaved);
-      handleError(result, 'Save');
+      if (!result.success) {
+        setIsSaved(previousState);
+      }
+    } catch (error) {
+      console.error('Toggle save error:', error);
+      setIsSaved(previousState);
+    } finally {
+      setLoading(false);
     }
-
-    return result.success;
   };
 
-  return {
-    isSaved,
-    loading: loading || checking,
-    toggleSave,
-  };
+  return { isSaved, toggleSave, loading };
 };

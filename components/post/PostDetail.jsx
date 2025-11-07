@@ -24,7 +24,6 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const scaleValue = useRef(new Animated.Value(1)).current;
 
-  // ✅ TOUJOURS appeler les hooks AVANT tout return conditionnel
   const { liked, likesCount, toggleLike } = useLike(
     post?.id, 
     post?.likes_count, 
@@ -33,7 +32,6 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
   const { isReposted, toggleRepost } = useRepost(post?.id, currentUserId);
   const { isSaved, toggleSave } = useSavedPost(post?.id, currentUserId);
 
-  // ✅ Maintenant on peut faire le check conditionnel
   if (!post) return null;
 
   const {

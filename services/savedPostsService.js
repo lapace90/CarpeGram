@@ -1,24 +1,22 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
 
 /**
- * Check if user has saved a post
+ * Check if a post is saved by the user
  */
-export const checkIfSaved = async (userId, postId) => {
+export const checkIfPostSaved = async (userId, postId) => {
   try {
     const { data, error } = await supabase
       .from('saved_posts')
       .select('id')
       .eq('user_id', userId)
       .eq('post_id', postId)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      throw error;
-    }
+    if (error) throw error;
 
-    return { success: true, isSaved: !!data };
+    return { success: true, data: !!data };
   } catch (error) {
-    console.error('Check if saved error:', error);
+    console.error('Check saved post error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -28,13 +26,6 @@ export const checkIfSaved = async (userId, postId) => {
  */
 export const savePost = async (userId, postId) => {
   try {
-    // Check if already saved
-    const checkResult = await checkIfSaved(userId, postId);
-    if (checkResult.isSaved) {
-      return { success: true, message: 'Already saved' };
-    }
-
-    // Save post
     const { error } = await supabase
       .from('saved_posts')
       .insert({
@@ -42,7 +33,10 @@ export const savePost = async (userId, postId) => {
         post_id: postId,
       });
 
-    if (error) throw error;
+    // Ignore duplicate errors (already saved)
+    if (error && error.code !== '23505') {
+      throw error;
+    }
 
     return { success: true };
   } catch (error) {
@@ -72,7 +66,7 @@ export const unsavePost = async (userId, postId) => {
 };
 
 /**
- * Get user's saved posts with full post data
+ * Get user's saved posts
  */
 export const getUserSavedPosts = async (userId) => {
   try {
@@ -109,16 +103,13 @@ export const getUserSavedPosts = async (userId) => {
 
     if (error) throw error;
 
-    // Flatten data: add saved info to posts
-    const savedPostsWithData = (data || []).map(saved => ({
-      ...saved.posts,
-      saved_id: saved.id,
-      saved_at: saved.created_at,
-    }));
+    const savedPosts = (data || [])
+      .filter(item => item.posts)
+      .map(item => item.posts);
 
-    return { success: true, data: savedPostsWithData };
+    return { success: true, data: savedPosts };
   } catch (error) {
-    console.error('Get user saved posts error:', error);
+    console.error('Get saved posts error:', error);
     return { success: false, error: error.message };
   }
 };
