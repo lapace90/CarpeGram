@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, FlatList, RefreshControl, Pressable } from 'react-native'
+import { View, Text, StyleSheet, FlatList, RefreshControl, Pressable, BackHandler, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
+import { useIsFocused } from '@react-navigation/native'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
 import { commonStyles } from '../../constants/commonStyles'
@@ -11,17 +12,51 @@ import Icon from '../../assets/icons'
 import { useRouter } from 'expo-router'
 import EmptyState from '../../components/EmptyState'
 import BubblesLoader from '../../components/animations/BubblesLoader'
+import { useNotifications } from '../../hooks/useNotifications'
 
 const Home = () => {
   const router = useRouter();
+  const isFocused = useIsFocused();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState(null);
+  const { unreadCount } = useNotifications(user?.id);
 
   useEffect(() => {
     getUserAndPosts();
   }, []);
+
+  useEffect(() => {
+    // Ne s'active QUE quand on est sur l'écran home
+    if (!isFocused) return;
+
+    const backAction = () => {
+      Alert.alert(
+        'Exit Carpegram',
+        'Are you sure you want to quit?',
+        [
+          {
+            text: 'Cancel',
+            onPress: () => null,
+            style: 'cancel'
+          },
+          {
+            text: 'Exit',
+            onPress: () => BackHandler.exitApp()
+          }
+        ]
+      );
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [isFocused]);
 
   const getUserAndPosts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -32,11 +67,11 @@ const Home = () => {
   const loadPosts = async (userId) => {
     setLoading(true);
     const result = await fetchFeedPosts(userId);
-    
+
     if (result.success) {
       setPosts(result.data || []);
     }
-    
+
     setLoading(false);
   };
 
@@ -47,7 +82,7 @@ const Home = () => {
   };
 
   const renderPost = ({ item }) => (
-    <PostCard 
+    <PostCard
       post={item}
       currentUserId={user?.id}
       onPress={() => {
@@ -66,11 +101,25 @@ const Home = () => {
             <Text style={styles.logoEmoji}>🎣</Text>
           </View>
           <View style={[commonStyles.flexRow, styles.headerActions]}>
-            <Pressable style={styles.iconButton}>
+            <Pressable
+              style={styles.iconButton}
+              onPress={() => router.push('/notifications')}
+            >
               <Icon name="heart" size={26} strokeWidth={2} color="white" />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
             </Pressable>
-            <Pressable style={styles.iconButton}>
+            <Pressable
+              style={styles.iconButton}
+              onPress={() => router.push('/messages')}
+            >
               <Icon name="send" size={26} strokeWidth={2} color="white" />
+              {/* On ajoutera le badge messages non lus après */}
             </Pressable>
           </View>
         </View>
@@ -108,7 +157,7 @@ const Home = () => {
           />
         }
         ListEmptyComponent={
-          <EmptyState 
+          <EmptyState
             iconName="image"
             title="No catches yet"
             message="Follow other anglers to see their catches!"
@@ -161,6 +210,26 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: theme.colors.rose,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: hp(1.2),
+    fontWeight: theme.fonts.bold,
   },
   listContainer: {
     paddingTop: 0,

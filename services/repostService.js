@@ -158,8 +158,8 @@ export const getUserReposts = async (userId) => {
       repost_comment: repost.comment,
       repost_privacy: repost.privacy,
       reposted_at: repost.created_at,
-      repost_profiles: repost.profiles,        // ✅ TON profil (celui qui reposte)
-      original_profiles: repost.posts.profiles, // ✅ Profil de l'auteur original
+      repost_profiles: repost.profiles,        // TON profil (celui qui reposte)
+      original_profiles: repost.posts.profiles, // Profil de l'auteur original
     }));
 
     return { success: true, data: repostsWithPosts };

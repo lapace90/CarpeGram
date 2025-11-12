@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { theme } from '../../constants/theme'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
-import MentionInput from '../MentionInput'
+import SmartInput from '../SmartInput'
 
 const CommentInput = ({ onSubmit, loading, currentUserId }) => {
   const [text, setText] = useState('');
@@ -12,7 +12,7 @@ const CommentInput = ({ onSubmit, loading, currentUserId }) => {
     if (text.trim().length === 0) return;
 
     const success = await onSubmit(text);
-    
+
     if (success) {
       setText('');
     }
@@ -20,17 +20,18 @@ const CommentInput = ({ onSubmit, loading, currentUserId }) => {
 
   return (
     <View style={styles.container}>
-      <MentionInput
+      <SmartInput
         value={text}
         onChangeText={setText}
         placeholder="Add a comment..."
         currentUserId={currentUserId}
+        containerStyle={{ flex: 1 }}
         style={styles.input}
         multiline
         maxLength={500}
         editable={!loading}
       />
-      
+
       <Pressable
         style={[
           styles.sendButton,
@@ -42,9 +43,9 @@ const CommentInput = ({ onSubmit, loading, currentUserId }) => {
         {loading ? (
           <ActivityIndicator size="small" color="white" />
         ) : (
-          <Icon 
-            name="send" 
-            size={20} 
+          <Icon
+            name="send"
+            size={20}
             color={text.trim() ? 'white' : theme.colors.textLight}
           />
         )}

@@ -11,6 +11,7 @@ import ImagePickerButton from '../../components/post/ImagePickerButton'
 import PrivacySelector from '../../components/post/PrivacySelector'
 import FishInfoForm from '../../components/post/FishInfoForm'
 import { useCreatePost } from '../../hooks/useCreatePost'
+import SmartInput from '../../components/SmartInput';
 
 const NewPost = () => {
   const router = useRouter();
@@ -73,13 +74,15 @@ const NewPost = () => {
         {/* Description */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description *</Text>
-          <Input
+          <SmartInput
             placeholder="Tell your fishing story... 🐟"
             value={description}
             onChangeText={setDescription}
+            currentUserId={user?.id}
             multiline
             numberOfLines={4}
-            containerStyles={styles.descriptionInput}
+            maxLength={1000}
+            style={styles.descriptionTextInput}
           />
         </View>
 
@@ -152,6 +155,17 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     backgroundColor: 'white',
   },
+  descriptionTextInput: {  
+  height: hp(12),
+  borderWidth: 0.4,
+  borderColor: theme.colors.text,
+  borderRadius: theme.radius.xxl,
+  paddingHorizontal: 18,
+  paddingTop: 15,
+  fontSize: hp(1.7),
+  color: theme.colors.text,
+  backgroundColor: 'white',
+},
   submitButton: {
     marginTop: 10,
   },

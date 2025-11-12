@@ -3,16 +3,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { theme } from '../constants/theme';
 import { hp } from '../helpers/common';
 import { searchUsers } from '../services/userService';
+import { searchHashtags } from '../services/hashtagService';
 import Avatar from './Avatar';
 
 /**
- * TextInput avec autocomplétion des mentions @username
+ * TextInput avec autocomplétion des mentions @username et hashtags #tag
  */
 const MentionInput = ({ 
   value, 
   onChangeText, 
   placeholder,
   style,
+  containerStyle,
   currentUserId,
   multiline = false,
   numberOfLines,
@@ -21,7 +23,8 @@ const MentionInput = ({
 }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [mentionStart, setMentionStart] = useState(-1);
+  const [suggestionType, setSuggestionType] = useState(null); // 'mention' ou 'hashtag'
+  const [suggestionStart, setSuggestionStart] = useState(-1);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -31,16 +34,17 @@ const MentionInput = ({
   const handleTextChange = async (text) => {
     onChangeText(text);
 
-    // Trouver la position du dernier @
     const cursorPosition = text.length;
-    let lastAtPosition = -1;
+    let lastTriggerPosition = -1;
+    let triggerChar = null;
     
+    // Chercher le dernier @ ou #
     for (let i = cursorPosition - 1; i >= 0; i--) {
-      if (text[i] === '@') {
-        // Vérifier qu'il n'y a pas d'espace entre @ et le curseur
-        const textAfterAt = text.substring(i + 1, cursorPosition);
-        if (!textAfterAt.includes(' ')) {
-          lastAtPosition = i;
+      if (text[i] === '@' || text[i] === '#') {
+        const textAfterTrigger = text.substring(i + 1, cursorPosition);
+        if (!textAfterTrigger.includes(' ')) {
+          lastTriggerPosition = i;
+          triggerChar = text[i];
           break;
         }
       }
@@ -49,19 +53,34 @@ const MentionInput = ({
       }
     }
 
-    if (lastAtPosition !== -1) {
-      const query = text.substring(lastAtPosition + 1, cursorPosition);
+    if (lastTriggerPosition !== -1 && triggerChar) {
+      const query = text.substring(lastTriggerPosition + 1, cursorPosition);
       
       if (query.length >= 1) {
-        // Rechercher les utilisateurs
-        const result = await searchUsers(query, currentUserId, 5);
-        
-        if (result.success && result.data.length > 0) {
-          setSuggestions(result.data);
-          setShowSuggestions(true);
-          setMentionStart(lastAtPosition);
-        } else {
-          setShowSuggestions(false);
+        if (triggerChar === '@') {
+          // Rechercher des utilisateurs
+          const result = await searchUsers(query, currentUserId, 5);
+          
+          if (result.success && result.data.length > 0) {
+            setSuggestions(result.data);
+            setShowSuggestions(true);
+            setSuggestionType('mention');
+            setSuggestionStart(lastTriggerPosition);
+          } else {
+            setShowSuggestions(false);
+          }
+        } else if (triggerChar === '#') {
+          // Rechercher des hashtags
+          const result = await searchHashtags(query, 5);
+          
+          if (result.success && result.data.length > 0) {
+            setSuggestions(result.data);
+            setShowSuggestions(true);
+            setSuggestionType('hashtag');
+            setSuggestionStart(lastTriggerPosition);
+          } else {
+            setShowSuggestions(false);
+          }
         }
       } else {
         setShowSuggestions(false);
@@ -72,10 +91,9 @@ const MentionInput = ({
   };
 
   const selectUser = (user) => {
-    if (mentionStart === -1) return;
+    if (suggestionStart === -1) return;
 
-    // Remplacer le texte depuis @ jusqu'au curseur par @username
-    const beforeMention = value.substring(0, mentionStart);
+    const beforeMention = value.substring(0, suggestionStart);
     const afterMention = value.substring(value.length);
     const newText = `${beforeMention}@${user.username} ${afterMention}`;
     
@@ -83,13 +101,28 @@ const MentionInput = ({
     setShowSuggestions(false);
     setSuggestions([]);
     
-    // Refocus sur l'input
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
   };
 
-  const renderSuggestion = ({ item }) => {
+  const selectHashtag = (hashtag) => {
+    if (suggestionStart === -1) return;
+
+    const beforeHashtag = value.substring(0, suggestionStart);
+    const afterHashtag = value.substring(value.length);
+    const newText = `${beforeHashtag}#${hashtag.tag} ${afterHashtag}`;
+    
+    onChangeText(newText);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
+
+  const renderUserSuggestion = ({ item }) => {
     const displayName = item.show_full_name && item.first_name
       ? `${item.first_name} ${item.last_name || ''}`
       : `@${item.username}`;
@@ -108,8 +141,25 @@ const MentionInput = ({
     );
   };
 
+  const renderHashtagSuggestion = ({ item }) => {
+    return (
+      <Pressable 
+        style={styles.suggestionItem}
+        onPress={() => selectHashtag(item)}
+      >
+        <View style={styles.hashtagIcon}>
+          <Text style={styles.hashtagIconText}>#</Text>
+        </View>
+        <View style={styles.suggestionInfo}>
+          <Text style={styles.suggestionName}>#{item.tag}</Text>
+          <Text style={styles.suggestionUsername}>{item.usage_count} posts</Text>
+        </View>
+      </Pressable>
+    );
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <TextInput
         ref={inputRef}
         style={[styles.input, style]}
@@ -127,8 +177,8 @@ const MentionInput = ({
         <View style={styles.suggestionsContainer}>
           <FlatList
             data={suggestions}
-            renderItem={renderSuggestion}
-            keyExtractor={item => item.id}
+            renderItem={suggestionType === 'mention' ? renderUserSuggestion : renderHashtagSuggestion}
+            keyExtractor={item => item.id || item.tag}
             keyboardShouldPersistTaps="handled"
             style={styles.suggestionsList}
           />
@@ -143,7 +193,10 @@ export default MentionInput;
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    flex: 1
+    flex: 1,
+  },
+  input: {
+    // Styles seront passés via la prop style
   },
   suggestionsContainer: {
     position: 'absolute',
@@ -184,5 +237,18 @@ const styles = StyleSheet.create({
   suggestionUsername: {
     fontSize: hp(1.5),
     color: theme.colors.textLight,
+  },
+  hashtagIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hashtagIconText: {
+    fontSize: hp(2.2),
+    fontWeight: theme.fonts.bold,
+    color: theme.colors.primary,
   },
 });
