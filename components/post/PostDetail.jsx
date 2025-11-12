@@ -15,6 +15,7 @@ import RepostModal from '../RepostModal'
 import RippleContainer from '../animations/RippleEffect'
 import PostMenu from './PostMenu'
 import EditPostModal from './EditPostModal'
+import RichText from '../RichText';
 
 const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
   const [showComments, setShowComments] = useState(false);
@@ -25,8 +26,8 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const { liked, likesCount, toggleLike } = useLike(
-    post?.id, 
-    post?.likes_count, 
+    post?.id,
+    post?.likes_count,
     currentUserId
   );
   const { isReposted, toggleRepost } = useRepost(post?.id, currentUserId);
@@ -177,9 +178,9 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
                 </Pressable>
 
                 <Pressable onPress={() => setShowRepostModal(true)}>
-                  <Icon 
-                    name="share" 
-                    size={26} 
+                  <Icon
+                    name="share"
+                    size={26}
                     color={isReposted ? theme.colors.primary : theme.colors.text}
                   />
                 </Pressable>
@@ -187,17 +188,17 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
                 <View style={{ flex: 1 }} />
 
                 <Pressable onPress={toggleSave}>
-                  <Icon 
-                    name="bookmark" 
-                    size={26} 
+                  <Icon
+                    name="bookmark"
+                    size={26}
                     fill={isSaved ? theme.colors.primary : 'transparent'}
                     color={isSaved ? theme.colors.primary : theme.colors.text}
                   />
                 </Pressable>
               </View>
 
-              <Pressable 
-                style={[commonStyles.flexRow, styles.stats]} 
+              <Pressable
+                style={[commonStyles.flexRow, styles.stats]}
                 onPress={() => setShowLikes(true)}
               >
                 <Text style={[commonStyles.textLight, styles.statsText]}>
@@ -214,8 +215,11 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
             <View style={styles.descriptionSection}>
               <Text style={styles.description}>
                 <Text style={styles.username}>{displayName} </Text>
-                {description}
               </Text>
+              <RichText
+                text={description}
+                style={styles.description}
+              />
             </View>
 
             {/* Fish Details */}
@@ -227,7 +231,7 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
                   </View>
                   <Text style={styles.sectionTitle}>Catch Details</Text>
                 </View>
-                
+
                 <View style={styles.fishDetails}>
                   {fish_species && (
                     <View style={styles.detailCard}>
@@ -290,11 +294,11 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
                 <Text style={styles.viewCommentsText}>
                   View all {comments_count} comments
                 </Text>
-                <Icon 
-                  name="arrowLeft" 
-                  size={16} 
-                  color={theme.colors.primary} 
-                  style={{ transform: [{ rotate: '180deg' }] }} 
+                <Icon
+                  name="arrowLeft"
+                  size={16}
+                  color={theme.colors.primary}
+                  style={{ transform: [{ rotate: '180deg' }] }}
                 />
               </Pressable>
             )}

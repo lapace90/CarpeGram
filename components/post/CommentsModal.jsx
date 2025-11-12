@@ -99,6 +99,7 @@ const handleAddComment = async (text) => {
         <CommentInput
           onSubmit={handleAddComment}
           loading={submitting}
+          currentUserId={currentUserId}
         />
       </View>
     </Modal>

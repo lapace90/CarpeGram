@@ -1,10 +1,11 @@
-import { View, TextInput, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
+import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { theme } from '../../constants/theme'
-import { hp, wp } from '../../helpers/common'
+import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
+import MentionInput from '../MentionInput'
 
-const CommentInput = ({ onSubmit, loading }) => {
+const CommentInput = ({ onSubmit, loading, currentUserId }) => {
   const [text, setText] = useState('');
 
   const handleSubmit = async () => {
@@ -19,12 +20,12 @@ const CommentInput = ({ onSubmit, loading }) => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Add a comment..."
-        placeholderTextColor={theme.colors.textLight}
+      <MentionInput
         value={text}
         onChangeText={setText}
+        placeholder="Add a comment..."
+        currentUserId={currentUserId}
+        style={styles.input}
         multiline
         maxLength={500}
         editable={!loading}

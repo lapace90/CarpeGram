@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { savePostHashtags } from './hashtagService'
+import { savePostMentions } from './mentionService'
 
 /**
  * Upload une image vers le storage Supabase
@@ -75,6 +77,12 @@ export const createPost = async (postData) => {
       .single();
 
     if (error) throw error;
+
+    // 3. Sauvegarder les hashtags et mentions
+    if (description) {
+      await savePostHashtags(data.id, description);
+      await savePostMentions(data.id, user_id, description);
+    }
 
     return { success: true, data };
   } catch (error) {

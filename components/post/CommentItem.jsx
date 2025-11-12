@@ -4,6 +4,7 @@ import { theme } from '../../constants/theme'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
+import RichText from '../RichText';
 import Avatar from '../Avatar'
 
 const CommentItem = ({ 
@@ -57,7 +58,7 @@ const CommentItem = ({
             {formatTimeAgo(created_at)}
           </Text>
         </View>
-        <Text style={styles.text}>{text}</Text>
+        <RichText text={text} style={styles.text} />
       </View>
 
       {isOwnComment && (

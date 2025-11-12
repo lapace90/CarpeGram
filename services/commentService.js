@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { saveCommentMentions } from './mentionService'
 
 /**
  * Récupère tous les commentaires d'un post
@@ -60,6 +61,9 @@ export const createComment = async (postId, userId, text) => {
       .single();
 
     if (error) throw error;
+
+     // Sauvegarder les mentions
+    await saveCommentMentions(data.id, userId, text);
 
     return { success: true, data };
   } catch (error) {

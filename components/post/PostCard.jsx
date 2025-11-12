@@ -16,6 +16,7 @@ import EditPostModal from './EditPostModal'
 import RepostMenu from './RepostMenu'
 import EditRepostModal from '../EditRepostModal'
 import Avatar from '../Avatar'
+import RichText from '../RichText';
 
 const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false }) => {
   const [showComments, setShowComments] = useState(false);
@@ -123,53 +124,53 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
   return (
     <>
       <View style={styles.card}>
-{/* Repost Header - Menu ICI si c'est ton repost */}
-{is_repost && (
-  <RepostHeader 
-    repostProfile={repost_profiles} 
-    comment={repost_comment}
-    isOwnRepost={isOwnRepost}
-    onMenuPress={isOwnRepost ? () => setShowRepostMenu(true) : null}
-  />
-)}
+        {/* Repost Header - Menu ICI si c'est ton repost */}
+        {is_repost && (
+          <RepostHeader
+            repostProfile={repost_profiles}
+            comment={repost_comment}
+            isOwnRepost={isOwnRepost}
+            onMenuPress={isOwnRepost ? () => setShowRepostMenu(true) : null}
+          />
+        )}
 
-<Pressable onPress={onPress}>
-  {/* Original Post Header - Menu ICI si c'est ton post ORIGINAL (pas repost) */}
-  <View style={[commonStyles.flexRowBetween, commonStyles.paddingH12, commonStyles.paddingV12]}>
-    <View style={[commonStyles.flexRowCenter, commonStyles.gap10]}>
-      <Avatar profile={postAuthor} size={40} />
+        <Pressable onPress={onPress}>
+          {/* Original Post Header - Menu ICI si c'est ton post ORIGINAL (pas repost) */}
+          <View style={[commonStyles.flexRowBetween, commonStyles.paddingH12, commonStyles.paddingV12]}>
+            <View style={[commonStyles.flexRowCenter, commonStyles.gap10]}>
+              <Avatar profile={postAuthor} size={40} />
 
-      <View>
-        <Text style={[commonStyles.textSemiBold, styles.username]}>
-          {displayName}
-        </Text>
-        <Text style={[commonStyles.textLight, styles.timestamp]}>
-          {formatTimeAgo(is_repost ? reposted_at : created_at)}
-        </Text>
-      </View>
-    </View>
+              <View>
+                <Text style={[commonStyles.textSemiBold, styles.username]}>
+                  {displayName}
+                </Text>
+                <Text style={[commonStyles.textLight, styles.timestamp]}>
+                  {formatTimeAgo(is_repost ? reposted_at : created_at)}
+                </Text>
+              </View>
+            </View>
 
-    <View style={[commonStyles.flexRowCenter, commonStyles.gap8]}>
-      <View style={styles.privacyBadge}>
-        <Icon
-          name={privacy === 'public' ? 'globe' : privacy === 'followers' ? 'user' : 'heart'}
-          size={14}
-          color={theme.colors.primary}
-        />
-      </View>
+            <View style={[commonStyles.flexRowCenter, commonStyles.gap8]}>
+              <View style={styles.privacyBadge}>
+                <Icon
+                  name={privacy === 'public' ? 'globe' : privacy === 'followers' ? 'user' : 'heart'}
+                  size={14}
+                  color={theme.colors.primary}
+                />
+              </View>
 
-      {/* Menu UNIQUEMENT si c'est ton post original ET que ce n'est PAS un repost */}
-      {isOwnPost && !is_repost && (
-        <Pressable 
-          onPress={() => setShowMenu(true)} 
-          style={styles.menuButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Icon name="threeDotsHorizontal" size={18} color={theme.colors.text} />
-        </Pressable>
-      )}
-    </View>
-  </View>
+              {/* Menu UNIQUEMENT si c'est ton post original ET que ce n'est PAS un repost */}
+              {isOwnPost && !is_repost && (
+                <Pressable
+                  onPress={() => setShowMenu(true)}
+                  style={styles.menuButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Icon name="threeDotsHorizontal" size={18} color={theme.colors.text} />
+                </Pressable>
+              )}
+            </View>
+          </View>
 
           <Image source={{ uri: image_url }} style={styles.postImage} />
 
@@ -225,8 +226,11 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
           <View style={[commonStyles.paddingH12, styles.contentBottom]}>
             <Text style={styles.description}>
               <Text style={styles.usernameInline}>{displayName} </Text>
-              {description}
             </Text>
+            <RichText
+              text={description}
+              style={styles.description}
+            />
           </View>
 
           {(fish_species || fish_weight || bait || spot) && (
