@@ -14,12 +14,12 @@ export const useMessages = (conversationId, userId) => {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && userId) {
       loadMessages();
       markAsRead();
       subscribeToNewMessages();
     }
-  }, [conversationId]);
+  }, [conversationId, userId]);
 
   const loadMessages = async () => {
     const result = await getConversationMessages(conversationId);
@@ -30,6 +30,7 @@ export const useMessages = (conversationId, userId) => {
   };
 
   const markAsRead = async () => {
+    if (!userId) return;
     await markMessagesAsRead(conversationId, userId);
   };
 
@@ -68,6 +69,8 @@ export const useMessages = (conversationId, userId) => {
    * S'abonner aux nouveaux messages en temps réel
    */
   const subscribeToNewMessages = () => {
+    if (!conversationId || !userId) return null;
+    
     const channel = supabase
       .channel(`messages-${conversationId}`)
       .on(

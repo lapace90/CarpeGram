@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -12,32 +12,28 @@ import Avatar from '../../../components/Avatar';
 import Icon from '../../../assets/icons';
 
 const Chat = () => {
-  const { id } = useLocalSearchParams(); // conversation_id
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const flatListRef = useRef(null);
   const [user, setUser] = useState(null);
   const [otherUser, setOtherUser] = useState(null);
 
   useEffect(() => {
-    getUserData();
-    loadConversationDetails();
+    loadData();
   }, [id]);
 
-  const getUserData = async () => {
+  const loadData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
-  };
 
-  const loadConversationDetails = async () => {
-    // Récupérer les infos de la conversation pour avoir l'autre user
     const { data } = await supabase
       .from('conversations')
       .select('user1_id, user2_id')
       .eq('id', id)
       .single();
 
-    if (data) {
-      const otherUserId = data.user1_id === user?.id ? data.user2_id : data.user1_id;
+    if (data && user) {
+      const otherUserId = data.user1_id === user.id ? data.user2_id : data.user1_id;
       
       const { data: profile } = await supabase
         .from('profiles')
@@ -51,7 +47,6 @@ const Chat = () => {
 
   const { messages, loading, sending, sendText, sendImage } = useMessages(id, user?.id);
 
-  // Auto-scroll vers le bas quand nouveaux messages
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
@@ -81,12 +76,7 @@ const Chat = () => {
 
   return (
     <ScreenWrapper bg="white">
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        {/* Header */}
+      <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Icon name="arrowLeft" size={24} color={theme.colors.text} />
@@ -103,7 +93,6 @@ const Chat = () => {
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Messages */}
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -114,13 +103,12 @@ const Chat = () => {
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
 
-        {/* Input */}
         <ChatInput
           onSendText={handleSendText}
           onSendImage={handleSendImage}
           loading={sending}
         />
-      </KeyboardAvoidingView>
+      </View>
     </ScreenWrapper>
   );
 };
@@ -128,6 +116,9 @@ const Chat = () => {
 export default Chat;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -17,6 +17,7 @@ import FollowingModal from '../../../components/FollowingModal'
 import UserProfileMenu from '../../../components/UserProfileMenu'
 import ProfileTabs from '../../../components/ProfileTabs'
 import { useProfileTabs } from '../../../hooks/useProfileTabs'
+import MessageButton from '../../../components/MessageButton';
 
 const UserProfile = () => {
   const router = useRouter();
@@ -144,14 +145,23 @@ const UserProfile = () => {
               </Text>
             )}
 
-            {/* Follow Button SEULEMENT si pas encore follow */}
-            {currentUser && currentUser.id !== profile.id && !isFollowing && (
-              <View style={styles.followButtonContainer}>
-                <FollowButton
-                  isFollowing={false}
-                  onPress={toggleFollow}
-                  loading={followLoading}
-                  size="medium"
+            {/* Actions (Follow + Message) - Si ce n'est pas son propre profil */}
+            {currentUser && currentUser.id !== profile.id && (
+              <View style={styles.actionsRow}>
+                {/* ← AJOUTE CETTE CONDITION */}
+                {!isFollowing && (
+                  <FollowButton
+                    isFollowing={isFollowing}
+                    onPress={toggleFollow}
+                    loading={followLoading}
+                    size="medium"
+                  />
+                )}
+
+                <MessageButton
+                  currentUserId={currentUser?.id}
+                  otherUserId={profile.id}
+                  variant="full"
                 />
               </View>
             )}
@@ -175,7 +185,7 @@ const UserProfile = () => {
             </View>
 
             {/* Followers */}
-            <Pressable 
+            <Pressable
               style={[styles.statCard, { backgroundColor: '#4ECDC420' }]}
               onPress={() => setShowFollowers(true)}
             >
@@ -184,7 +194,7 @@ const UserProfile = () => {
             </Pressable>
 
             {/* Following */}
-            <Pressable 
+            <Pressable
               style={[styles.statCard, { backgroundColor: '#95E1D320' }]}
               onPress={() => setShowFollowing(true)}
             >
@@ -207,7 +217,7 @@ const UserProfile = () => {
                   <Text style={styles.bioText}>{profile.bio}</Text>
                 </View>
               )}
-              
+
               {profile?.location && (
                 <View style={[styles.locationSection, profile?.bio && { marginTop: hp(1.5) }]}>
                   <View style={styles.locationIconBadge}>
@@ -224,8 +234,8 @@ const UserProfile = () => {
             activeTab={activeTab}
             onTabPress={switchTab}
             showSaved={false}
-            // postsCount={postsCount}
-            // sharedCount={sharedCount}
+          // postsCount={postsCount}
+          // sharedCount={sharedCount}
           />
 
           {/* Posts Grid */}
@@ -238,8 +248,8 @@ const UserProfile = () => {
             showSpecies={true}
             onPostPress={handlePostPress}
             emptyTitle={
-              activeTab === 'posts' 
-                ? "No catches yet" 
+              activeTab === 'posts'
+                ? "No catches yet"
                 : "No shared catches"
             }
             emptyText={
@@ -315,7 +325,7 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     marginTop: 10,
   },
-  
+
   // Header
   headerGradient: {
     backgroundColor: theme.colors.primary,
@@ -343,7 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  
+
   // Avatar
   avatarSection: {
     alignItems: 'center',
@@ -367,7 +377,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
   },
-  
+
   // Info
   infoSection: {
     alignItems: 'center',
@@ -380,9 +390,13 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.bold,
     color: theme.colors.text,
   },
-  followButtonContainer: {
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
     marginTop: hp(1),
-    width: wp(40),
+    width: '100%',
+    justifyContent: 'center',
+    paddingHorizontal: wp(5),
   },
   anglerBadge: {
     backgroundColor: theme.colors.primary + '15',
@@ -396,7 +410,7 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: theme.fonts.semiBold,
   },
-  
+
   // Stats Cards - Sans icônes
   statsSection: {
     flexDirection: 'row',
@@ -420,7 +434,7 @@ const styles = StyleSheet.create({
     fontSize: hp(1.3),
     color: theme.colors.textLight,
   },
-  
+
   // Details Card - Mieux encadrée
   detailsCard: {
     marginHorizontal: wp(4),

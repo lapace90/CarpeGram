@@ -36,6 +36,7 @@ const ProfileMenu = ({ visible, onClose, onLogout }) => {
           onPress: async () => {
             await supabase.auth.signOut();
             onClose();
+            router.replace('/welcome');  // ← AJOUTE CETTE LIGNE
             if (onLogout) onLogout();
           }
         }
