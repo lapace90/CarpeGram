@@ -95,6 +95,17 @@ export const getUserSavedPosts = async (userId) => {
             first_name,
             last_name,
             show_full_name
+          ),
+          event:event_id (
+            *,
+            creator:creator_id (
+              id,
+              username,
+              avatar_url,
+              first_name,
+              last_name,
+              show_full_name
+            )
           )
         )
       `)

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -34,7 +34,7 @@ const Chat = () => {
 
     if (data && user) {
       const otherUserId = data.user1_id === user.id ? data.user2_id : data.user1_id;
-      
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('id, username, avatar_url, first_name, last_name, show_full_name')
@@ -77,12 +77,13 @@ const Chat = () => {
   return (
     <ScreenWrapper bg="white">
       <View style={styles.container}>
+        {/* Header - EN DEHORS du KeyboardAvoidingView */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Icon name="arrowLeft" size={24} color={theme.colors.text} />
           </Pressable>
 
-          <Pressable 
+          <Pressable
             style={styles.userInfo}
             onPress={() => router.push(`/userProfile/${otherUser?.id}`)}
           >
@@ -93,21 +94,28 @@ const Chat = () => {
           <View style={{ width: 40 }} />
         </View>
 
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-        />
+        {/* Messages + Input - DANS le KeyboardAvoidingView */}
+        <KeyboardAvoidingView
+          style={styles.chatContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 40}
+        >
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.messagesList}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          />
 
-        <ChatInput
-          onSendText={handleSendText}
-          onSendImage={handleSendImage}
-          loading={sending}
-        />
+          <ChatInput
+            onSendText={handleSendText}
+            onSendImage={handleSendImage}
+            loading={sending}
+          />
+        </KeyboardAvoidingView>
       </View>
     </ScreenWrapper>
   );
@@ -142,6 +150,9 @@ const styles = StyleSheet.create({
     fontSize: hp(1.8),
     fontWeight: theme.fonts.semiBold,
     color: theme.colors.text,
+  },
+  chatContainer: {
+    flex: 1,
   },
   messagesList: {
     paddingVertical: 12,

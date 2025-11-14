@@ -26,6 +26,28 @@ export const getConversationMessages = async (conversationId, limit = 50) => {
           profiles:user_id (
             username,
             avatar_url
+          ),
+          event:event_id (
+            *,
+            creator:creator_id (
+              id,
+              username,
+              avatar_url,
+              first_name,
+              last_name,
+              show_full_name
+            )
+          )
+        ),
+        event:event_id (
+          *,
+          creator:creator_id (
+            id,
+            username,
+            avatar_url,
+            first_name,
+            last_name,
+            show_full_name
           )
         )
       `)
@@ -38,6 +60,31 @@ export const getConversationMessages = async (conversationId, limit = 50) => {
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Get conversation messages error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Partager un event dans une conversation
+ */
+export const sendEventMessage = async (conversationId, senderId, eventId) => {
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationId,
+        sender_id: senderId,
+        type: 'event_share',
+        event_id: eventId
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Send event message error:', error);
     return { success: false, error: error.message };
   }
 };

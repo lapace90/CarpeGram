@@ -15,6 +15,7 @@ import PostMenu from './PostMenu'
 import EditPostModal from './EditPostModal'
 import RepostMenu from './RepostMenu'
 import EditRepostModal from '../EditRepostModal'
+import EventCard from '../event/EventCard';
 import Avatar from '../Avatar'
 import RichText from '../RichText';
 
@@ -121,6 +122,26 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
     }
   };
 
+  const handleEventJoin = async (eventId) => {
+    // On peut importer et utiliser directement le service
+    const { joinEvent } = require('../../services/eventService');
+    const result = await joinEvent(eventId, currentUserId);
+
+    if (result.success && onUpdate) {
+      // Rafraîchir pour mettre à jour le statut
+      onUpdate();
+    }
+  };
+
+  const handleEventLeave = async (eventId) => {
+    const { leaveEvent } = require('../../services/eventService');
+    const result = await leaveEvent(eventId, currentUserId);
+
+    if (result.success && onUpdate) {
+      onUpdate();
+    }
+  };
+
   return (
     <>
       <View style={styles.card}>
@@ -173,6 +194,20 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
           </View>
 
           <Image source={{ uri: image_url }} style={styles.postImage} />
+
+          {/** Event Card */}
+          {post.event && (
+            <View style={styles.eventContainer}>
+              <EventCard
+                event={post.event}
+                currentUserId={currentUserId}
+                compact={true}
+                onJoin={() => handleEventJoin(post.event.id)}
+                onLeave={() => handleEventLeave(post.event.id)}
+                isParticipant={post.event.is_participant}
+              />
+            </View>
+          )}
 
           <View style={[commonStyles.flexRow, styles.actions]}>
             {/* Like */}
@@ -411,4 +446,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontWeight: theme.fonts.medium,
   },
+  eventContainer: {
+  padding: 12,
+},
 });

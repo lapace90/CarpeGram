@@ -51,13 +51,17 @@ export const createPost = async (postData) => {
       bait,
       spot,
       privacy,
+      event_id, // ← AJOUTÉ
     } = postData;
 
-    // 1. Upload image
-    const uploadResult = await uploadPostImage(user_id, image_uri);
-
-    if (!uploadResult.success) {
-      throw new Error(uploadResult.error);
+    // 1. Upload image (optionnel si event)
+    let imageUrl = null;
+    if (image_uri) {
+      const uploadResult = await uploadPostImage(user_id, image_uri);
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error);
+      }
+      imageUrl = uploadResult.url;
     }
 
     // 2. Insert post dans la database
@@ -65,13 +69,14 @@ export const createPost = async (postData) => {
       .from('posts')
       .insert({
         user_id,
-        image_url: uploadResult.url,
+        image_url: imageUrl,
         description,
         fish_species,
         fish_weight,
         bait,
         spot,
         privacy,
+        event_id, // ← AJOUTÉ
       })
       .select()
       .single();
@@ -106,11 +111,13 @@ export const deletePost = async (postId, userId) => {
 
     if (!post) throw new Error('Post not found');
 
-    // 2. Supprimer l'image du storage
-    const fileName = post.image_url.split('/').pop();
-    await supabase.storage
-      .from('posts')
-      .remove([`${userId}/${fileName}`]);
+    // 2. Supprimer l'image du storage (si elle existe)
+    if (post.image_url) {
+      const fileName = post.image_url.split('/').pop();
+      await supabase.storage
+        .from('posts')
+        .remove([`${userId}/${fileName}`]);
+    }
 
     // 3. Supprimer le post de la database
     const { error } = await supabase
@@ -145,6 +152,17 @@ export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
             first_name,
             last_name,
             show_full_name
+          ),
+          event:event_id (
+            *,
+            creator:creator_id (
+              id,
+              username,
+              avatar_url,
+              first_name,
+              last_name,
+              show_full_name
+            )
           )
         `)
         .eq('privacy', 'public')
@@ -167,6 +185,17 @@ export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
           first_name,
           last_name,
           show_full_name
+        ),
+        event:event_id (
+          *,
+          creator:creator_id (
+            id,
+            username,
+            avatar_url,
+            first_name,
+            last_name,
+            show_full_name
+          )
         )
       `)
       .order('created_at', { ascending: false })
@@ -201,6 +230,17 @@ export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
             first_name,
             last_name,
             show_full_name
+          ),
+          event:event_id (
+            *,
+            creator:creator_id (
+              id,
+              username,
+              avatar_url,
+              first_name,
+              last_name,
+              show_full_name
+            )
           )
         )
       `)
@@ -217,8 +257,8 @@ export const fetchFeedPosts = async (userId, limit = 20, offset = 0) => {
       repost_comment: repost.comment,
       repost_privacy: repost.privacy,     
       reposted_at: repost.created_at,
-      repost_profiles: repost.profiles,    // Profil de celui qui a reposté
-      original_profiles: repost.posts.profiles, // Profil de l'auteur original
+      repost_profiles: repost.profiles,
+      original_profiles: repost.posts.profiles,
     }));
 
     // 4. Merger et trier par date
@@ -277,6 +317,17 @@ export const fetchUserPosts = async (userId) => {
           first_name,
           last_name,
           show_full_name
+        ),
+        event:event_id (
+          *,
+          creator:creator_id (
+            id,
+            username,
+            avatar_url,
+            first_name,
+            last_name,
+            show_full_name
+          )
         )
       `)
       .eq('user_id', userId)
