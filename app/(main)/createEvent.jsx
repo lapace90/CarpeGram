@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth'
 import { useRouter } from 'expo-router';
 import Input from '../../components/Input';
-import SmartInput from '../../components/SmartInput'; // ← AJOUTE
+import SmartInput from '../../components/SmartInput'; 
 import Button from '../../components/Button';
 import Icon from '../../assets/icons';
 import DateTimePicker from '@react-native-community/datetimepicker';

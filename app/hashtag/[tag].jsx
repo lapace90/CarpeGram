@@ -7,7 +7,7 @@ import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import { searchPostsByHashtag } from '../../services/hashtagService';
 import PostCard from '../../components/post/PostCard';
-import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../../hooks/useAuth'
 import BubblesLoader from '../../components/animations/BubblesLoader';
 import EmptyState from '../../components/EmptyState';
 

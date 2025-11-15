@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { Image } from 'expo-image'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
 import { hp, wp } from '../../helpers/common'
-import { supabase } from '../../lib/supabase'
 import { useRouter } from 'expo-router'
 import Icon from '../../assets/icons'
 import { pickAndUploadAvatar } from '../../services/imageService'
@@ -15,17 +14,19 @@ import FollowingModal from '../../components/FollowingModal'
 import ProfileMenu from '../../components/ProfileMenu'
 import ProfileTabs from '../../components/ProfileTabs'
 import { useProfileTabs } from '../../hooks/useProfileTabs'
+import { useAuth } from '../../hooks/useAuth'
+import { useProfile } from '../../hooks/useProfile'
 
 const Profile = () => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { profile, loading, refresh } = useProfile(user?.id);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showPostDetail, setShowPostDetail] = useState(false);
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const {
     activeTab,
@@ -39,223 +40,146 @@ const Profile = () => {
     refreshSavedTab,
   } = useProfileTabs(user?.id, true);
 
-  useEffect(() => {
-    getUserData();
-  }, []);
-
-  const getUserData = async () => {
-    setLoading(true);
-
-    const { user } = useAuth();
-    setUser(user);
-
-    if (user) {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      setProfile(profileData);
-    }
-
-    setLoading(false);
-  }
-
   const handleAvatarChange = async () => {
-    setLoading(true);
-    await pickAndUploadAvatar(user.id, () => {
-      getUserData();
-    });
-    setLoading(false);
+    setUploadingAvatar(true);
+    await pickAndUploadAvatar(user.id, refresh);
+    setUploadingAvatar(false);
   }
 
   const handlePostPress = (post) => {
     setSelectedPost(post);
     setShowPostDetail(true);
-  };
+  }
 
-  const handleDeletePost = async () => {
-    await refreshAllTabs();
-    await getUserData();
-  };
+  const handlePostUpdate = () => {
+    refreshAllTabs();
+    setShowPostDetail(false);
+  }
+
+  const handlePostDelete = () => {
+    refreshAllTabs();
+    setShowPostDetail(false);
+  }
 
   if (loading) {
     return (
       <ScreenWrapper bg="white">
-        <View style={styles.center}>
+        <View style={styles.loading}>
           <Text>Loading...</Text>
         </View>
       </ScreenWrapper>
-    )
+    );
   }
+
+  const displayName = profile?.show_full_name && profile?.first_name
+    ? `${profile.first_name} ${profile.last_name || ''}`
+    : `@${profile?.username || 'unknown'}`;
 
   return (
     <ScreenWrapper bg="white">
-      <View style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Header avec gradient */}
-          <View style={styles.headerGradient}>
-            <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>@{profile?.username}</Text>
-              <Pressable style={styles.menuButton} onPress={() => setShowMenu(true)}>
-                <Icon name="threeDotsHorizontal" size={20} color="white" />
-              </Pressable>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header avec menu */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Profile</Text>
+          <Pressable onPress={() => setShowMenu(true)}>
+            <Icon name="threeDotsHorizontal" size={hp(3.4)} strokeWidth={2} color={theme.colors.text} />
+          </Pressable>
+        </View>
+
+        {/* Avatar et infos */}
+        <View style={styles.profileSection}>
+          <Pressable onPress={handleAvatarChange} style={styles.avatarContainer}>
+            <Image
+              source={{ uri: profile?.avatar_url || 'https://via.placeholder.com/150' }}
+              style={styles.avatar}
+            />
+            <View style={styles.cameraIcon}>
+              <Icon name="camera" size={20} strokeWidth={2.5} color="white" />
             </View>
+          </Pressable>
 
-            {/* Avatar qui chevauche */}
-            <View style={styles.avatarSection}>
-              <View style={styles.avatarContainer}>
-                {profile?.avatar_url ? (
-                  <Image
-                    source={{ uri: `${profile.avatar_url}?t=${Date.now()}` }}
-                    style={styles.avatar}
-                  />
-                ) : (
-                  <View style={styles.avatar}>
-                    <Icon name="user" size={50} color={theme.colors.primary} />
-                  </View>
-                )}
-                <Pressable style={styles.cameraButton} onPress={handleAvatarChange}>
-                  <Icon name="camera" size={14} color="white" />
-                </Pressable>
-              </View>
+          <Text style={styles.name}>{displayName}</Text>
+          {profile?.show_full_name && profile?.username && (
+            <Text style={styles.username}>@{profile.username}</Text>
+          )}
+
+          {profile?.bio && (
+            <Text style={styles.bio}>{profile.bio}</Text>
+          )}
+
+          {/* Stats */}
+          <View style={styles.stats}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{postsCount || 0}</Text>
+              <Text style={styles.statLabel}>Posts</Text>
             </View>
-          </View>
-
-          {/* Info Section */}
-          <View style={styles.infoSection}>
-            {profile?.show_full_name && profile?.first_name && (
-              <Text style={styles.fullName}>
-                {profile.first_name} {profile.last_name || ''}
-              </Text>
-            )}
-
-            {profile?.angler_since && (
-              <View style={styles.anglerBadge}>
-                <Text style={styles.anglerBadgeText}>
-                  🎣 Angler since {profile.angler_since}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Stats Cards */}
-          <View style={styles.statsSection}>
-            <View style={[styles.statCard, { backgroundColor: '#FF6B6B20' }]}>
-              <Text style={styles.statNumber}>{postsCount}</Text>
-              <Text style={styles.statLabel}>Catches</Text>
-            </View>
-
-            <Pressable 
-              style={[styles.statCard, { backgroundColor: '#4ECDC420' }]}
-              onPress={() => setShowFollowers(true)}
-            >
+            <Pressable style={styles.statItem} onPress={() => setShowFollowers(true)}>
               <Text style={styles.statNumber}>{profile?.followers_count || 0}</Text>
               <Text style={styles.statLabel}>Followers</Text>
             </Pressable>
-
-            <Pressable 
-              style={[styles.statCard, { backgroundColor: '#95E1D320' }]}
-              onPress={() => setShowFollowing(true)}
-            >
+            <Pressable style={styles.statItem} onPress={() => setShowFollowing(true)}>
               <Text style={styles.statNumber}>{profile?.following_count || 0}</Text>
               <Text style={styles.statLabel}>Following</Text>
             </Pressable>
           </View>
 
-          {/* Bio & Location */}
-          {(profile?.bio || profile?.location) && (
-            <View style={styles.detailsCard}>
-              {profile?.bio && (
-                <View style={[styles.bioSection, profile?.location && { marginBottom: hp(1) }]}>
-                  <View style={styles.sectionHeader}>
-                    <Icon name="edit" size={16} color={theme.colors.primary} />
-                    <Text style={styles.sectionHeaderText}>Bio</Text>
-                  </View>
-                  <Text style={styles.bioText}>{profile.bio}</Text>
-                </View>
-              )}
-              
-              {profile?.location && (
-                <View style={[styles.locationSection, profile?.bio && { paddingTop: hp(0.5) }]}>
-                  <Icon name="location" size={16} color={theme.colors.primary} />
-                  <Text style={styles.locationText}>{profile.location}</Text>
-                </View>
-              )}
-            </View>
-          )}
+          {/* Edit Profile Button */}
+          <Pressable
+            style={styles.editButton}
+            onPress={() => router.push('/editProfile')}
+          >
+            <Text style={styles.editButtonText}>Edit Profile</Text>
+          </Pressable>
+        </View>
 
-          {/* Tabs */}
-          <ProfileTabs
-            activeTab={activeTab}
-            onTabPress={switchTab}
-            showSaved={true}
-          />
+        {/* Tabs */}
+        <ProfileTabs
+          activeTab={activeTab}
+          onTabChange={switchTab}
+          postsCount={postsCount}
+          sharedCount={sharedCount}
+          savedCount={savedCount}
+        />
 
-          {/* Grille pour TOUS les tabs */}
-          <PostsGrid
-            posts={currentData}
-            loading={tabsLoading}
-            columns={3}
-            gap={2}
-            showStats={true}
-            showSpecies={activeTab !== 'shared'}
-            showRepostBadge={activeTab === 'shared'}
-            onPostPress={handlePostPress}
-            emptyTitle={
-              activeTab === 'posts' 
-                ? "No catches yet" 
-                : activeTab === 'shared'
-                ? "No shared catches"
-                : "No saved catches"
-            }
-            emptyText={
-              activeTab === 'posts'
-                ? "Share your first catch!"
-                : activeTab === 'shared'
-                ? "Share catches from other anglers"
-                : "Save catches to view them later"
-            }
-            emptyIcon="image"
-            showButton={activeTab === 'posts'}
-            buttonText="Share First Catch"
-            onButtonPress={() => router.push('/newPost')}
-          />
+        {/* Content Grid */}
+        <PostsGrid
+          posts={currentData}
+          loading={tabsLoading}
+          onPostPress={handlePostPress}
+        />
+      </ScrollView>
 
-          <View style={{ height: 30 }} />
-        </ScrollView>
-
-        {/* Modals */}
+      {/* Modals */}
+      {selectedPost && (
         <PostDetail
           visible={showPostDetail}
           onClose={() => setShowPostDetail(false)}
           post={selectedPost}
           currentUserId={user?.id}
-          onDelete={handleDeletePost}
+          onUpdate={handlePostUpdate}
+          onDelete={handlePostDelete}
         />
+      )}
 
-        <FollowersModal
-          visible={showFollowers}
-          onClose={() => setShowFollowers(false)}
-          userId={user?.id}
-          currentUserId={user?.id}
-        />
+      <FollowersModal
+        visible={showFollowers}
+        onClose={() => setShowFollowers(false)}
+        userId={user?.id}
+        currentUserId={user?.id}
+      />
 
-        <FollowingModal
-          visible={showFollowing}
-          onClose={() => setShowFollowing(false)}
-          userId={user?.id}
-          currentUserId={user?.id}
-        />
+      <FollowingModal
+        visible={showFollowing}
+        onClose={() => setShowFollowing(false)}
+        userId={user?.id}
+        currentUserId={user?.id}
+      />
 
-        <ProfileMenu
-          visible={showMenu}
-          onClose={() => setShowMenu(false)}
-          profile={profile}
-          onUpdate={getUserData}
-        />
-      </View>
+      <ProfileMenu
+        visible={showMenu}
+        onClose={() => setShowMenu(false)}
+        onUpdate={refresh}
+      />
     </ScreenWrapper>
   )
 }
@@ -265,113 +189,76 @@ export default Profile
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
-  center: {
+  loading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
-  // Header
-  headerGradient: {
-    backgroundColor: theme.colors.primary,
-    // paddingBottom: hp(6),
-  },
-  headerContent: {
+  header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: wp(5),
-    paddingTop: hp(1.5),
-    paddingBottom: hp(1),
+    paddingVertical: hp(2),
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray,
   },
-  headerTitle: {
-    fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: 'white',
-  },
-  menuButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  
-  // Avatar
-  avatarSection: {
-    alignItems: 'center',
-    marginTop: hp(0.5),
-  },
-  avatarContainer: {
-    position: 'relative',
-  },
-  avatar: {
-    width: hp(16),
-    height: hp(16),
-    borderRadius: hp(12),
-    backgroundColor: 'white',
-    borderWidth: 4,
-    borderColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.colors.dark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'white',
-  },
-  
-  // Info
-  infoSection: {
-    alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingTop: hp(1),
-    paddingBottom: hp(1.5),
-  },
-  fullName: {
-    fontSize: hp(2),
+  title: {
+    fontSize: hp(2.5),
     fontWeight: theme.fonts.bold,
     color: theme.colors.text,
   },
-  anglerBadge: {
-    backgroundColor: theme.colors.primary + '15',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(0.6),
-    borderRadius: theme.radius.xxl,
-    marginTop: hp(0.5),
-  },
-  anglerBadgeText: {
-    fontSize: hp(1.4),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semiBold,
-  },
-  
-  // Stats Cards
-  statsSection: {
-    flexDirection: 'row',
-    paddingHorizontal: wp(4),
-    gap: wp(2.5),
-    marginBottom: hp(1.5),
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: theme.radius.lg,
-    padding: hp(1.5),
+  profileSection: {
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(3),
     alignItems: 'center',
-    gap: hp(0.3),
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: hp(2),
+  },
+  avatar: {
+    height: hp(14),
+    width: hp(14),
+    borderRadius: theme.radius.xxl * 1.8,
+    borderWidth: 1,
+    borderColor: theme.colors.darkLight,
+  },
+  cameraIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: -10,
+    padding: 8,
+    borderRadius: 50,
+    backgroundColor: theme.colors.primary,
+  },
+  name: {
+    fontSize: hp(2.5),
+    fontWeight: theme.fonts.bold,
+    color: theme.colors.text,
+  },
+  username: {
+    fontSize: hp(1.7),
+    color: theme.colors.textLight,
+    marginTop: 4,
+  },
+  bio: {
+    fontSize: hp(1.7),
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginTop: hp(1.5),
+    paddingHorizontal: wp(5),
+  },
+  stats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: hp(2),
+    paddingHorizontal: wp(10),
+  },
+  statItem: {
+    alignItems: 'center',
   },
   statNumber: {
     fontSize: hp(2.2),
@@ -379,42 +266,21 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   statLabel: {
-    fontSize: hp(1.3),
+    fontSize: hp(1.5),
     color: theme.colors.textLight,
+    marginTop: 4,
   },
-  
-  // Details Card
-  detailsCard: {
-    marginHorizontal: wp(4),
-    marginBottom: hp(1.5),
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.lg,
-    padding: hp(1.5),
+  editButton: {
+    marginTop: hp(2),
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(10),
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.gray,
   },
-  bioSection: {},
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: hp(0.5),
-  },
-  sectionHeaderText: {
-    fontSize: hp(1.5),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.primary,
-  },
-  bioText: {
-    fontSize: hp(1.5),
-    color: theme.colors.text,
-    lineHeight: hp(2),
-  },
-  locationSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  locationText: {
-    fontSize: hp(1.5),
+  editButtonText: {
+    fontSize: hp(1.7),
+    fontWeight: theme.fonts.semibold,
     color: theme.colors.text,
   },
-});
+})

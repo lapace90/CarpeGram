@@ -341,3 +341,41 @@ export const fetchUserPosts = async (userId) => {
     return { success: false, error: error.message };
   }
 };
+
+export const getPostById = async (postId) => {
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        profiles:user_id (
+          id,
+          username,
+          avatar_url,
+          first_name,
+          last_name,
+          show_full_name
+        ),
+        event:event_id (
+          *,
+          creator:creator_id (
+            id,
+            username,
+            avatar_url,
+            first_name,
+            last_name,
+            show_full_name
+          )
+        )
+      `)
+      .eq('id', postId)
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Get post by ID error:', error);
+    return { success: false, error: error.message };
+  }
+};

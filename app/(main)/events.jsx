@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth'
 import { useRouter } from 'expo-router';
 import { useEvents } from '../../hooks/useEvents';
 import EventCard from '../../components/event/EventCard';

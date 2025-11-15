@@ -5,7 +5,7 @@ import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp, wp } from '../../helpers/common'
-import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
 import { fetchFeedPosts } from '../../services/postService'
 import PostCard from '../../components/post/PostCard'
 import Icon from '../../assets/icons'
@@ -17,15 +17,18 @@ import { useNotifications } from '../../hooks/useNotifications'
 const Home = () => {
   const router = useRouter();
   const isFocused = useIsFocused();
+  const { user } = useAuth(); // ← Hooks en haut du composant
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [user, setUser] = useState(null);
   const { unreadCount } = useNotifications(user?.id);
 
+  // ← Charger les posts quand user est disponible
   useEffect(() => {
-    getUserAndPosts();
-  }, []);
+    if (user) {
+      loadPosts();
+    }
+  }, [user]);
 
   useEffect(() => {
     // Ne s'active QUE quand on est sur l'écran home
@@ -58,15 +61,9 @@ const Home = () => {
     return () => backHandler.remove();
   }, [isFocused]);
 
-  const getUserAndPosts = async () => {
-    const { user } = useAuth();
-    setUser(user);
-    await loadPosts(user?.id);
-  };
-
-  const loadPosts = async (userId) => {
+  const loadPosts = async () => {
     setLoading(true);
-    const result = await fetchFeedPosts(userId);
+    const result = await fetchFeedPosts(user?.id);
 
     if (result.success) {
       setPosts(result.data || []);
@@ -77,7 +74,7 @@ const Home = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadPosts(user?.id);
+    await loadPosts();
     setRefreshing(false);
   };
 
@@ -127,7 +124,6 @@ const Home = () => {
               onPress={() => router.push('/messages')}
             >
               <Icon name="send" size={26} strokeWidth={2} color="white" />
-              {/* On ajoutera le badge messages non lus après */}
             </Pressable>
           </View>
         </View>
@@ -135,7 +131,6 @@ const Home = () => {
     </View>
   );
 
-  // ✅ AJOUTE CE LOADING SCREEN ICI
   if (loading) {
     return (
       <ScreenWrapper bg={theme.colors.gray + '10'}>
@@ -244,7 +239,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     paddingBottom: 20,
   },
-  // ✅ AJOUTE CES STYLES
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

@@ -1,51 +1,35 @@
-import { View, StyleSheet } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import React from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../hooks/useAuth';
+import { usePost } from '../../../hooks/usePost';
 import PostDetail from '../../../components/post/PostDetail';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const PostDetailPage = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const [post, setPost] = useState(null);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { post, loading, refresh } = usePost(id);
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
+  if (loading) {
+    return (
+      <ScreenWrapper bg="white">
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      </ScreenWrapper>
+    );
+  }
 
-  const loadData = async () => {
-    // Get current user
-    const { user } = useAuth();
-    setUser(user);
-
-    // Fetch post
-    const { data, error } = await supabase
-      .from('posts')
-      .select(`
-        *,
-        profiles:user_id (
-          id,
-          username,
-          avatar_url,
-          first_name,
-          last_name,
-          show_full_name
-        )
-      `)
-      .eq('id', id)
-      .single();
-
-    if (!error && data) {
-      setPost(data);
-    }
-    
-    setLoading(false);
-  };
-
-  if (loading || !post) {
-    return <View style={styles.loading} />;
+  if (!post) {
+    return (
+      <ScreenWrapper bg="white">
+        <View style={styles.loading}>
+          <Text>Post not found</Text>
+        </View>
+      </ScreenWrapper>
+    );
   }
 
   return (
@@ -54,6 +38,7 @@ const PostDetailPage = () => {
       onClose={() => router.back()}
       post={post}
       currentUserId={user?.id}
+      onUpdate={refresh}
       onDelete={() => router.back()}
     />
   );
@@ -64,6 +49,7 @@ export default PostDetailPage;
 const styles = StyleSheet.create({
   loading: {
     flex: 1,
-    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

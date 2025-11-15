@@ -1,11 +1,12 @@
 import { View, Text, StyleSheet, FlatList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import { theme } from '../../../constants/theme';
 import { hp, wp } from '../../../helpers/common';
-import { supabase } from '../../../lib/supabase';
 import { useMessages } from '../../../hooks/useMessages';
+import { useConversation } from '../../../hooks/useConversation';
+import { useAuth } from '../../../hooks/useAuth';
 import MessageBubble from '../../../components/MessageBubble';
 import ChatInput from '../../../components/ChatInput';
 import Avatar from '../../../components/Avatar';
@@ -15,36 +16,8 @@ const Chat = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const flatListRef = useRef(null);
-  const [user, setUser] = useState(null);
-  const [otherUser, setOtherUser] = useState(null);
-
-  useEffect(() => {
-    loadData();
-  }, [id]);
-
-  const loadData = async () => {
-    const { user } = useAuth();
-    setUser(user);
-
-    const { data } = await supabase
-      .from('conversations')
-      .select('user1_id, user2_id')
-      .eq('id', id)
-      .single();
-
-    if (data && user) {
-      const otherUserId = data.user1_id === user.id ? data.user2_id : data.user1_id;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url, first_name, last_name, show_full_name')
-        .eq('id', otherUserId)
-        .single();
-
-      setOtherUser(profile);
-    }
-  };
-
+  const { user } = useAuth();
+  const { conversation, otherUser, loading: conversationLoading } = useConversation(id, user?.id);
   const { messages, loading, sending, sendText, sendImage } = useMessages(id, user?.id);
 
   useEffect(() => {
@@ -63,60 +36,66 @@ const Chat = () => {
     await sendImage(uri);
   };
 
+  if (conversationLoading) {
+    return (
+      <ScreenWrapper bg="white">
+        <View style={styles.loading}>
+          <Text>Loading...</Text>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
   const displayName = otherUser?.show_full_name && otherUser?.first_name
     ? `${otherUser.first_name} ${otherUser.last_name || ''}`
-    : `@${otherUser?.username || 'User'}`;
-
-  const renderMessage = ({ item }) => (
-    <MessageBubble
-      message={item}
-      isOwn={item.sender_id === user?.id}
-    />
-  );
+    : `@${otherUser?.username || 'unknown'}`;
 
   return (
     <ScreenWrapper bg="white">
-      <View style={styles.container}>
-        {/* Header - EN DEHORS du KeyboardAvoidingView */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Icon name="arrowLeft" size={24} color={theme.colors.text} />
           </Pressable>
-
-          <Pressable
-            style={styles.userInfo}
+          
+          <Pressable 
+            style={styles.headerCenter}
             onPress={() => router.push(`/userProfile/${otherUser?.id}`)}
           >
             <Avatar profile={otherUser} size={36} />
-            <Text style={styles.userName}>{displayName}</Text>
+            <Text style={styles.headerTitle}>{displayName}</Text>
           </Pressable>
 
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Messages + Input - DANS le KeyboardAvoidingView */}
-        <KeyboardAvoidingView
-          style={styles.chatContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 40}
-        >
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            renderItem={renderMessage}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.messagesList}
-            showsVerticalScrollIndicator={false}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-          />
+        {/* Messages List */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <MessageBubble
+              message={item}
+              isOwn={item.sender_id === user?.id}
+            />
+          )}
+          contentContainerStyle={styles.messagesList}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+        />
 
-          <ChatInput
-            onSendText={handleSendText}
-            onSendImage={handleSendImage}
-            loading={sending}
-          />
-        </KeyboardAvoidingView>
-      </View>
+        {/* Input */}
+        <ChatInput
+          onSendText={handleSendText}
+          onSendImage={handleSendImage}
+          loading={sending}
+        />
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   );
 };
@@ -124,13 +103,15 @@ const Chat = () => {
 export default Chat;
 
 const styles = StyleSheet.create({
-  container: {
+  loading: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
     borderBottomWidth: 1,
@@ -140,21 +121,20 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
   },
-  userInfo: {
+  headerCenter: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    flex: 1,
+    gap: wp(3),
+    marginLeft: wp(2),
   },
-  userName: {
-    fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
+  headerTitle: {
+    fontSize: hp(2),
+    fontWeight: theme.fonts.semibold,
     color: theme.colors.text,
   },
-  chatContainer: {
-    flex: 1,
-  },
   messagesList: {
-    paddingVertical: 12,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(2),
   },
 });

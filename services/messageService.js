@@ -192,3 +192,32 @@ export const markMessagesAsRead = async (conversationId, userId) => {
     return { success: false, error: error.message };
   }
 };
+
+export const getConversationById = async (conversationId, currentUserId) => {
+  try {
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .select('user1_id, user2_id')
+      .eq('id', conversationId)
+      .single();
+
+    if (convError) throw convError;
+
+    const otherUserId = conversation.user1_id === currentUserId 
+      ? conversation.user2_id 
+      : conversation.user1_id;
+
+    const { data: otherUser, error: userError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, first_name, last_name, show_full_name')
+      .eq('id', otherUserId)
+      .single();
+
+    if (userError) throw userError;
+
+    return { success: true, data: { conversation, otherUser } };
+  } catch (error) {
+    console.error('Get conversation error:', error);
+    return { success: false, error: error.message };
+  }
+};
