@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Alert, KeyboardAvoidingView } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'expo-router';
 import Input from '../../components/Input';
 import SmartInput from '../../components/SmartInput'; 
@@ -14,7 +14,7 @@ import { createEvent } from '../../services/eventService';
 
 const CreateEvent = () => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Form state
@@ -30,15 +30,6 @@ const CreateEvent = () => {
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-
-  useEffect(() => {
-    getUserData();
-  }, []);
-
-  const getUserData = async () => {
-    const { user } = useAuth();
-    setUser(user);
-  };
 
   const formatDateTime = (date) => {
     return date.toLocaleDateString('fr-FR', { 
@@ -89,253 +80,247 @@ const CreateEvent = () => {
     setLoading(false);
 
     if (result.success) {
-      Alert.alert('Success', 'Event created successfully! 🎣', [
-        {
-          text: 'OK',
-          onPress: () => router.push('/home')
-        }
+      Alert.alert('Success', 'Event created successfully!', [
+        { text: 'OK', onPress: () => router.back() }
       ]);
     } else {
-      Alert.alert('Error', result.error || 'Failed to create event');
+      Alert.alert('Error', result.msg || 'Failed to create event');
+    }
+  };
+
+  const onStartDateChange = (event, selectedDate) => {
+    setShowStartDatePicker(false);
+    if (selectedDate) {
+      setStartDate(selectedDate);
+    }
+  };
+
+  const onStartTimeChange = (event, selectedDate) => {
+    setShowStartTimePicker(false);
+    if (selectedDate) {
+      setStartDate(selectedDate);
+    }
+  };
+
+  const onEndDateChange = (event, selectedDate) => {
+    setShowEndDatePicker(false);
+    if (selectedDate) {
+      setEndDate(selectedDate);
+    }
+  };
+
+  const onEndTimeChange = (event, selectedDate) => {
+    setShowEndTimePicker(false);
+    if (selectedDate) {
+      setEndDate(selectedDate);
     }
   };
 
   return (
     <ScreenWrapper bg="white">
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <ScrollView
+        <ScrollView 
           style={styles.container}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Create Fishing Event 🎣</Text>
-            <Text style={styles.subtitle}>Organize a fishing session with the community</Text>
-          </View>
-
-          {/* Title */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Event Title *</Text>
-            <Input
-              placeholder="e.g., Carp Session at Lake Geneva"
-              value={title}
-              onChangeText={setTitle}
-              maxLength={100}
-              containerStyles={styles.input}
-            />
-          </View>
-
-          {/* Location */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Location *</Text>
-            <Input
-              icon={<Icon name="location" size={22} strokeWidth={1.6} />}
-              placeholder="e.g., Lake Geneva, France"
-              value={location}
-              onChangeText={setLocation}
-              maxLength={200}
-              containerStyles={styles.input}
-            />
-          </View>
-
-          {/* Start Date & Time */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Start Date & Time *</Text>
-            <Pressable 
-              style={styles.dateTimeButton}
-              onPress={() => setShowStartDatePicker(true)}
-            >
-              <Icon name="calendar" size={20} color={theme.colors.primary} />
-              <Text style={styles.dateTimeText}>{formatDateTime(startDate)}</Text>
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <Icon name="arrowLeft" size={26} color={theme.colors.text} />
             </Pressable>
-
-            {showStartDatePicker && (
-              <DateTimePicker
-                value={startDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={(event, selectedDate) => {
-                  setShowStartDatePicker(Platform.OS === 'ios');
-                  if (selectedDate) {
-                    setStartDate(selectedDate);
-                    if (Platform.OS === 'android') {
-                      setShowStartTimePicker(true);
-                    }
-                  }
-                }}
-              />
-            )}
-
-            {showStartTimePicker && (
-              <DateTimePicker
-                value={startDate}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={(event, selectedTime) => {
-                  setShowStartTimePicker(Platform.OS === 'ios');
-                  if (selectedTime) {
-                    setStartDate(selectedTime);
-                  }
-                }}
-              />
-            )}
+            <Text style={styles.title}>Create Event</Text>
+            <View style={{ width: 40 }} />
           </View>
 
-          {/* End Date & Time */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>End Date & Time *</Text>
-            <Pressable 
-              style={styles.dateTimeButton}
-              onPress={() => setShowEndDatePicker(true)}
-            >
-              <Icon name="calendar" size={20} color={theme.colors.primary} />
-              <Text style={styles.dateTimeText}>{formatDateTime(endDate)}</Text>
-            </Pressable>
-
-            {showEndDatePicker && (
-              <DateTimePicker
-                value={endDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                minimumDate={startDate}
-                onChange={(event, selectedDate) => {
-                  setShowEndDatePicker(Platform.OS === 'ios');
-                  if (selectedDate) {
-                    setEndDate(selectedDate);
-                    if (Platform.OS === 'android') {
-                      setShowEndTimePicker(true);
-                    }
-                  }
-                }}
+          {/* Form */}
+          <View style={styles.form}>
+            {/* Title */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Event Title *</Text>
+              <Input
+                placeholder="e.g. Weekend Carp Fishing"
+                value={title}
+                onChangeText={setTitle}
+                icon={<Icon name="calendar" size={24} strokeWidth={1.6} />}
               />
-            )}
+            </View>
 
-            {showEndTimePicker && (
-              <DateTimePicker
-                value={endDate}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={(event, selectedTime) => {
-                  setShowEndTimePicker(Platform.OS === 'ios');
-                  if (selectedTime) {
-                    setEndDate(selectedTime);
-                  }
-                }}
+            {/* Description */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Description</Text>
+              <SmartInput
+                placeholder="Tell us about your event..."
+                value={description}
+                onChangeText={setDescription}
+                currentUserId={user?.id}
+                multiline
+                numberOfLines={4}
+                containerStyle={styles.textArea}
               />
-            )}
-          </View>
+            </View>
 
-          {/* Description avec SmartInput */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description (Optional)</Text>
-            <SmartInput
-              placeholder="Tell people about this fishing event... 🐟"
-              value={description}
-              onChangeText={setDescription}
-              currentUserId={user?.id}
-              multiline
-              numberOfLines={4}
-              maxLength={500}
-              style={styles.descriptionInput}
+            {/* Location */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Location *</Text>
+              <Input
+                placeholder="e.g. Lake Geneva"
+                value={location}
+                onChangeText={setLocation}
+                icon={<Icon name="location" size={24} strokeWidth={1.6} />}
+              />
+            </View>
+
+            {/* Start Date & Time */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Start Date & Time *</Text>
+              <Pressable 
+                style={styles.dateButton}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Icon name="calendar" size={20} color={theme.colors.text} />
+                <Text style={styles.dateButtonText}>
+                  {formatDateTime(startDate)}
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* End Date & Time */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>End Date & Time *</Text>
+              <Pressable 
+                style={styles.dateButton}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Icon name="calendar" size={20} color={theme.colors.text} />
+                <Text style={styles.dateButtonText}>
+                  {formatDateTime(endDate)}
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* Max Participants */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Max Participants (optional)</Text>
+              <Input
+                placeholder="Leave empty for unlimited"
+                value={maxParticipants}
+                onChangeText={setMaxParticipants}
+                keyboardType="number-pad"
+                icon={<Icon name="user" size={24} strokeWidth={1.6} />}
+              />
+            </View>
+
+            {/* Submit Button */}
+            <Button
+              title="Create Event"
+              loading={loading}
+              onPress={handleCreate}
+              buttonStyle={styles.submitButton}
             />
           </View>
-
-          {/* Max Participants */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Max Participants (Optional)</Text>
-            <Input
-              placeholder="Leave empty for unlimited"
-              value={maxParticipants}
-              onChangeText={setMaxParticipants}
-              keyboardType="number-pad"
-              maxLength={4}
-              containerStyles={styles.input}
-            />
-          </View>
-
-          {/* Submit Button */}
-          <Button
-            title={loading ? "Creating..." : "Create Event"}
-            onPress={handleCreate}
-            loading={loading}
-            buttonStyle={styles.submitButton}
-          />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Date/Time Pickers */}
+      {showStartDatePicker && (
+        <DateTimePicker
+          value={startDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onStartDateChange}
+          minimumDate={new Date()}
+        />
+      )}
+      
+      {showStartTimePicker && (
+        <DateTimePicker
+          value={startDate}
+          mode="time"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onStartTimeChange}
+        />
+      )}
+
+      {showEndDatePicker && (
+        <DateTimePicker
+          value={endDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onEndDateChange}
+          minimumDate={startDate}
+        />
+      )}
+
+      {showEndTimePicker && (
+        <DateTimePicker
+          value={endDate}
+          mode="time"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onEndTimeChange}
+        />
+      )}
     </ScreenWrapper>
   );
 };
 
+export default CreateEvent;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: hp(2),
-  },
-  scrollContent: {
-    paddingHorizontal: wp(5),
-    paddingBottom: hp(10),
   },
   header: {
-    marginBottom: hp(3),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray,
+  },
+  backButton: {
+    padding: 8,
   },
   title: {
-    fontSize: hp(3),
+    fontSize: hp(2.5),
     fontWeight: theme.fonts.bold,
     color: theme.colors.text,
   },
-  subtitle: {
-    fontSize: hp(1.7),
-    color: theme.colors.textLight,
-    marginTop: hp(0.5),
+  form: {
+    padding: wp(5),
+    gap: 20,
   },
-  section: {
-    marginBottom: hp(2.5),
+  inputGroup: {
+    gap: 8,
   },
-  sectionTitle: {
-    fontSize: hp(1.9),
-    fontWeight: theme.fonts.semibold,
+  label: {
+    fontSize: hp(1.8),
+    fontWeight: theme.fonts.semiBold,
     color: theme.colors.text,
-    marginBottom: hp(1),
   },
-  input: {
-    backgroundColor: 'white',
+  textArea: {
+    height: hp(12),
   },
-  descriptionInput: {
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.xl,
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-    fontSize: hp(1.7),
-    color: theme.colors.text,
-    minHeight: hp(12),
-    textAlignVertical: 'top',
-  },
-  dateTimeButton: {
+  dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(2),
-    backgroundColor: theme.colors.primary + '10',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.primary + '30',
+    gap: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    backgroundColor: 'white',
+    borderWidth: 0.4,
+    borderColor: theme.colors.text,
+    borderRadius: theme.radius.xxl,
   },
-  dateTimeText: {
-    fontSize: hp(1.7),
+  dateButtonText: {
+    fontSize: hp(1.8),
     color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
   },
   submitButton: {
-    marginTop: hp(3),
-    height: hp(6.5),
+    marginTop: 10,
   },
 });
-
-export default CreateEvent;

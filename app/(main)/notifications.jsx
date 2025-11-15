@@ -1,24 +1,15 @@
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from '../../components/NotificationItem';
 import EmptyState from '../../components/EmptyState';
 
 const Notifications = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    getUserData();
-  }, []);
-
-  const getUserData = async () => {
-    const { user } = useAuth();
-    setUser(user);
-  };
+  const { user } = useAuth();
 
   const {
     notifications,
@@ -67,8 +58,8 @@ const Notifications = () => {
           ListEmptyComponent={
             <EmptyState
               iconName="alertCircle"
-              title="No notifications yet"
-              message="You'll see notifications here when someone interacts with your posts"
+              title="No notifications"
+              message="You're all caught up! 🎣"
             />
           }
         />
@@ -105,12 +96,10 @@ const styles = StyleSheet.create({
   markAllButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.primary + '15',
   },
   markAllText: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semiBold,
     color: theme.colors.primary,
+    fontWeight: theme.fonts.semiBold,
   },
 });

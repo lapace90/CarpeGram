@@ -7,7 +7,7 @@ import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import { searchPostsByHashtag } from '../../services/hashtagService';
 import PostCard from '../../components/post/PostCard';
-import { useAuth } from '../../../hooks/useAuth'
+import { supabase } from '../../lib/supabase';
 import BubblesLoader from '../../components/animations/BubblesLoader';
 import EmptyState from '../../components/EmptyState';
 
@@ -27,7 +27,7 @@ const HashtagScreen = () => {
     setLoading(true);
     
     // Get current user
-    const { user } = useAuth();
+    const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
     
     // Load posts for this hashtag

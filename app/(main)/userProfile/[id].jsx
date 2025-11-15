@@ -22,8 +22,8 @@ import MessageButton from '../../../components/MessageButton';
 const UserProfile = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const { user: currentUser } = useAuth();
 
-  const [currentUser, setCurrentUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -48,14 +48,13 @@ const UserProfile = () => {
   } = useProfileTabs(id, false);
 
   useEffect(() => {
-    loadUserProfile();
-  }, [id]);
+    if (currentUser) {
+      loadUserProfile();
+    }
+  }, [id, currentUser]);
 
   const loadUserProfile = async () => {
     setLoading(true);
-
-    const { user } = useAuth();
-    setCurrentUser(user);
 
     const profileResult = await getUserProfile(id);
     if (profileResult.success) {

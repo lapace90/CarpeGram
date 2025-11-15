@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'expo-router';
 import { useEvents } from '../../hooks/useEvents';
 import EventCard from '../../components/event/EventCard';
@@ -12,23 +12,12 @@ import EmptyState from '../../components/EmptyState';
 
 const Events = () => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    getUserData();
-  }, []);
-
-  const getUserData = async () => {
-    const { user } = useAuth();
-    setUser(user);
-  };
+  const { user } = useAuth();
 
   const { events, loading, hasMore, loadMore, refresh } = useEvents('upcoming', user?.id);
 
   const handleEventPress = (event) => {
-    // Pour l'instant, on peut juste afficher l'event
-    // Plus tard tu pourras créer un écran détail d'event
-    console.log('Event pressed:', event.id);
+    router.push(`/event/${event.id}`);
   };
 
   const renderEvent = ({ item }) => (
@@ -66,11 +55,11 @@ const Events = () => {
   };
 
   const renderFooter = () => {
-    if (!hasMore || loading) return null;
+    if (!hasMore) return null;
     
     return (
       <View style={styles.footer}>
-        <ActivityIndicator color={theme.colors.primary} />
+        <ActivityIndicator size="small" color={theme.colors.primary} />
       </View>
     );
   };
@@ -80,29 +69,33 @@ const Events = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton router={router} />
-          <Text style={styles.title}>Upcoming Events</Text>
-          <View style={{ width: 40 }} />
+          <BackButton />
+          <Text style={styles.title}>Fishing Events</Text>
+          <Pressable onPress={() => router.push('/createEvent')} style={styles.createButton}>
+            <Text style={styles.createButtonText}>+ Create</Text>
+          </Pressable>
         </View>
 
-        {/* List */}
+        {/* Events List */}
         <FlatList
           data={events}
           renderItem={renderEvent}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
-          ListEmptyComponent={renderEmpty}
-          ListFooterComponent={renderFooter}
+          showsVerticalScrollIndicator={false}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           refreshing={loading}
           onRefresh={refresh}
-          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
         />
       </View>
     </ScreenWrapper>
   );
 };
+
+export default Events;
 
 const styles = StyleSheet.create({
   container: {
@@ -110,9 +103,9 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(4),
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.gray,
@@ -122,18 +115,25 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.bold,
     color: theme.colors.text,
   },
+  createButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.md,
+  },
+  createButtonText: {
+    color: 'white',
+    fontSize: hp(1.6),
+    fontWeight: theme.fonts.semiBold,
+  },
   listContent: {
-    paddingVertical: hp(2),
-    flexGrow: 1,
+    padding: wp(5),
   },
   eventItem: {
-    paddingHorizontal: wp(4),
-    marginBottom: hp(2),
+    marginBottom: 16,
   },
   footer: {
-    paddingVertical: hp(2),
+    paddingVertical: 20,
     alignItems: 'center',
   },
 });
-
-export default Events;

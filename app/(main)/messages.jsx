@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth';
 import { useConversations } from '../../hooks/useConversations';
 import ConversationItem from '../../components/ConversationItem';
 import EmptyState from '../../components/EmptyState';
@@ -12,16 +12,7 @@ import { useRouter } from 'expo-router';
 
 const Messages = () => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    getUserData();
-  }, []);
-
-  const getUserData = async () => {
-    const { user } = useAuth();
-    setUser(user);
-  };
+  const { user } = useAuth();
 
   const { conversations, loading, refreshing, refresh } = useConversations(user?.id);
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { theme } from '../constants/theme'
 import { hp, wp } from '../helpers/common'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { useRouter } from 'expo-router'
 import Icon from '../assets/icons'
 import { fetchUserPosts } from '../services/postService'
@@ -12,7 +12,7 @@ import PostDetail from '../components/post/PostDetail'
 
 const postsGallery = () => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +24,10 @@ const postsGallery = () => {
   const [sortBy, setSortBy] = useState('recent'); // recent, oldest, most_liked
 
   useEffect(() => {
-    loadUserPosts();
-  }, []);
+    if (user) {
+      loadUserPosts();
+    }
+  }, [user]);
 
   useEffect(() => {
     applyFilters();
@@ -33,10 +35,6 @@ const postsGallery = () => {
 
   const loadUserPosts = async () => {
     setLoading(true);
-
-    // Get auth user
-    const { user } = useAuth();
-    setUser(user);
 
     if (user) {
       const result = await fetchUserPosts(user.id);
@@ -212,27 +210,27 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.gray,
   },
   filterLabel: {
-    fontSize: hp(1.7),
+    fontSize: hp(1.6),
     fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
+    color: theme.colors.textLight,
     paddingHorizontal: wp(5),
     marginBottom: 10,
   },
   filtersRow: {
     flexDirection: 'row',
-    gap: 10,
     paddingHorizontal: wp(5),
+    gap: 8,
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: theme.colors.gray,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: theme.colors.gray,
+    backgroundColor: 'white',
   },
   filterButtonActive: {
     backgroundColor: theme.colors.primary,
@@ -240,8 +238,8 @@ const styles = StyleSheet.create({
   },
   filterButtonText: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.medium,
     color: theme.colors.text,
+    fontWeight: theme.fonts.medium,
   },
   filterButtonTextActive: {
     color: 'white',
@@ -253,32 +251,32 @@ const styles = StyleSheet.create({
   },
   sortRow: {
     flexDirection: 'row',
-    gap: 10,
     paddingHorizontal: wp(5),
+    gap: 8,
   },
   sortButton: {
     flex: 1,
     paddingVertical: 10,
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.lg,
-    alignItems: 'center',
+    paddingHorizontal: 12,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: theme.colors.gray,
+    backgroundColor: 'white',
+    alignItems: 'center',
   },
   sortButtonActive: {
-    backgroundColor: theme.colors.primaryLight,
+    backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
   sortButtonText: {
-    fontSize: hp(1.6),
-    fontWeight: theme.fonts.medium,
+    fontSize: hp(1.5),
     color: theme.colors.text,
+    fontWeight: theme.fonts.medium,
   },
   sortButtonTextActive: {
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semiBold,
+    color: 'white',
   },
   gridSection: {
-    marginTop: 15,
+    paddingTop: 15,
   },
 });
