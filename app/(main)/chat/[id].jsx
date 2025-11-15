@@ -23,7 +23,7 @@ const Chat = () => {
   }, [id]);
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = useAuth();
     setUser(user);
 
     const { data } = await supabase

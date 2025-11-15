@@ -59,7 +59,7 @@ const Home = () => {
   }, [isFocused]);
 
   const getUserAndPosts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = useAuth();
     setUser(user);
     await loadPosts(user?.id);
   };
@@ -114,6 +114,14 @@ const Home = () => {
                 </View>
               )}
             </Pressable>
+
+            <Pressable
+              style={styles.iconButton}
+              onPress={() => router.push('/events')}
+            >
+              <Icon name="calendar" size={26} strokeWidth={2} color="white" />
+            </Pressable>
+
             <Pressable
               style={styles.iconButton}
               onPress={() => router.push('/messages')}

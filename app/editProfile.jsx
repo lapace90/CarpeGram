@@ -11,6 +11,7 @@ import Input from '../components/Input'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
 import { pickAndUploadAvatar } from '../services/imageService'
+import { useAuth } from '../../hooks/useAuth'
 
 const EditProfile = () => {
     const router = useRouter();
@@ -33,7 +34,7 @@ const EditProfile = () => {
     const loadProfile = async () => {
         setLoading(true);
 
-        const { data: { user } } = await supabase.auth.getUser();
+        const { user } = useAuth();
         setUser(user);
 
         if (user) {

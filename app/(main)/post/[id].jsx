@@ -17,7 +17,7 @@ const PostDetailPage = () => {
 
   const loadData = async () => {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = useAuth();
     setUser(user);
 
     // Fetch post

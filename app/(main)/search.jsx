@@ -23,7 +23,7 @@ const Search = () => {
 
   const getUserAndSuggestions = async () => {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = useAuth();
     setUser(user);
 
     // Load suggestions

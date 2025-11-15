@@ -1,30 +1,20 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React from 'react' // ← ENLEVE useState et useEffect inutiles
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { theme } from '../../constants/theme'
 import { hp, wp } from '../../helpers/common'
-import { supabase } from '../../lib/supabase'
 import { useRouter } from 'expo-router'
-import Input from '../../components/Input'
 import Button from '../../components/Button'
 import ImagePickerButton from '../../components/post/ImagePickerButton'
 import PrivacySelector from '../../components/post/PrivacySelector'
 import FishInfoForm from '../../components/post/FishInfoForm'
 import { useCreatePost } from '../../hooks/useCreatePost'
-import SmartInput from '../../components/SmartInput';
+import SmartInput from '../../components/SmartInput'
+import { useAuth } from '../../hooks/useAuth' 
 
 const NewPost = () => {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    getUserData();
-  }, []);
-
-  const getUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
+  const router = useRouter()
+  const { user } = useAuth() 
 
   const {
     loading,
@@ -43,14 +33,14 @@ const NewPost = () => {
     setSpot,
     setPrivacy,
     submitPost,
-  } = useCreatePost(user?.id);
+  } = useCreatePost(user?.id)
 
   const handleSubmit = async () => {
-    const success = await submitPost();
+    const success = await submitPost()
     if (success) {
-      router.push('/home');
+      router.push('/home')
     }
-  };
+  }
 
   return (
     <ScreenWrapper bg="white">
@@ -155,17 +145,17 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     backgroundColor: 'white',
   },
-  descriptionTextInput: {  
-  height: hp(12),
-  borderWidth: 0.4,
-  borderColor: theme.colors.text,
-  borderRadius: theme.radius.xxl,
-  paddingHorizontal: 18,
-  paddingTop: 15,
-  fontSize: hp(1.7),
-  color: theme.colors.text,
-  backgroundColor: 'white',
-},
+  descriptionTextInput: {
+    height: hp(12),
+    borderWidth: 0.4,
+    borderColor: theme.colors.text,
+    borderRadius: theme.radius.xxl,
+    paddingHorizontal: 18,
+    paddingTop: 15,
+    fontSize: hp(1.7),
+    color: theme.colors.text,
+    backgroundColor: 'white',
+  },
   submitButton: {
     marginTop: 10,
   },

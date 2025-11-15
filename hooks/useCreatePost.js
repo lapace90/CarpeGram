@@ -11,10 +11,12 @@ export const useCreatePost = (userId) => {
   const [bait, setBait] = useState('');
   const [spot, setSpot] = useState('');
   const [privacy, setPrivacy] = useState('public');
+  const [eventId, setEventId] = useState(null); 
 
   const validate = () => {
-    if (!imageUri) {
-      Alert.alert('Error', 'Please select an image');
+    // Si on a un event, l'image n'est pas obligatoire
+    if (!eventId && !imageUri) {
+      Alert.alert('Error', 'Please select an image or create an event');
       return false;
     }
     if (!description.trim()) {
@@ -36,6 +38,7 @@ export const useCreatePost = (userId) => {
     setBait('');
     setSpot('');
     setPrivacy('public');
+    setEventId(null); 
   };
 
   const submitPost = async () => {
@@ -52,6 +55,7 @@ export const useCreatePost = (userId) => {
       bait: bait.trim() || null,
       spot: spot.trim() || null,
       privacy,
+      event_id: eventId, 
     };
 
     const result = await createPost(postData);
@@ -78,6 +82,7 @@ export const useCreatePost = (userId) => {
     bait,
     spot,
     privacy,
+    eventId, 
     
     // Setters
     setImageUri,
@@ -87,6 +92,7 @@ export const useCreatePost = (userId) => {
     setBait,
     setSpot,
     setPrivacy,
+    setEventId, 
     
     // Actions
     submitPost,

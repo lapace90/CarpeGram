@@ -27,7 +27,7 @@ const HashtagScreen = () => {
     setLoading(true);
     
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = useAuth();
     setUser(user);
     
     // Load posts for this hashtag

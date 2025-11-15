@@ -19,7 +19,7 @@ const Messages = () => {
   }, []);
 
   const getUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = useAuth();
     setUser(user);
   };
 

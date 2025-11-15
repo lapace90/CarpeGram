@@ -54,7 +54,7 @@ const UserProfile = () => {
   const loadUserProfile = async () => {
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = useAuth();
     setCurrentUser(user);
 
     const profileResult = await getUserProfile(id);

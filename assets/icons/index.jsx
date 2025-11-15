@@ -26,6 +26,10 @@ import Globe from './Globe'
 import UserMinus from './UserMinus'
 import Bookmark from './Bookmark'
 import AlertCircle from './AlertCircle'
+import Calendar from './Calendar'
+import Clock from './Clock'
+import Check from './Check'
+import UserPlus from './UserPlus'
 
 const icons = {
   home: Home,
@@ -55,11 +59,23 @@ const icons = {
   threeDotsVertical: ThreeDotsVertical,
   threeDotsHorizontal: ThreeDotsHorizontal,
   video: Video,
-  globe: Globe
+  globe: Globe,
+  calendar: Calendar,
+  clock: Clock,
+  check: Check,
+  addUser: UserPlus,
 }
 
 const Icon = ({ name, ...props }) => {
   const IconComponent = icons[name];
+
+  // console.log('Icon requested:', name, 'Found:', !!IconComponent);
+
+  // if (!IconComponent) {
+  //   console.warn(`Icon "${name}" not found`);
+  //   return null;
+  // }
+
   return (
     <IconComponent
       height={props.size || 24}
