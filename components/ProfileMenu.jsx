@@ -17,7 +17,7 @@ const ProfileMenu = ({ visible, onClose, onUpdate }) => {
 
   const handleSettings = () => {
     onClose();
-    // Navigate to settings when you create that screen
+    router.push('/settings');
   };
 
   const handleLogout = () => {

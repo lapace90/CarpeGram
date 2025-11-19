@@ -3,9 +3,11 @@ import React from 'react'
 import { theme } from '../../constants/theme'
 
 import Home from './Home'
-import { ArrowLeft } from './Arrows'
+import { ArrowLeft, ArrowRight } from './Arrows'
 import { Maps, Location } from './Location'
 import { UnlockIcon, LockIcon } from './Lock'
+import Bell from './Bell'
+import Info from './Info'
 import User from './User'
 import Heart from './Heart'
 import Mail from './Mail'
@@ -64,6 +66,10 @@ const icons = {
   clock: Clock,
   check: Check,
   addUser: UserPlus,
+  addUser: UserPlus,
+  arrowRight: ArrowRight,
+  bell: Bell,
+  info: Info,
 }
 
 const Icon = ({ name, ...props }) => {
