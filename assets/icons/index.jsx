@@ -8,6 +8,8 @@ import { Maps, Location } from './Location'
 import { UnlockIcon, LockIcon } from './Lock'
 import Bell from './Bell'
 import Info from './Info'
+import Users from './Users'
+import Close from './Close'
 import User from './User'
 import Heart from './Heart'
 import Mail from './Mail'
@@ -32,6 +34,9 @@ import Calendar from './Calendar'
 import Clock from './Clock'
 import Check from './Check'
 import UserPlus from './UserPlus'
+import Message from './Message'
+import Repeat from './Repeat'
+import AtSign from './AtSign'
 
 const icons = {
   home: Home,
@@ -66,10 +71,14 @@ const icons = {
   clock: Clock,
   check: Check,
   addUser: UserPlus,
-  addUser: UserPlus,
   arrowRight: ArrowRight,
   bell: Bell,
   info: Info,
+  users: Users,
+  close: Close,
+  message: Message,
+  repeat: Repeat,
+  atSign: AtSign, 
 }
 
 const Icon = ({ name, ...props }) => {

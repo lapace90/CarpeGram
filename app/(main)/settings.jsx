@@ -6,7 +6,7 @@ import { hp, wp } from '../../helpers/common';
 import { useRouter } from 'expo-router';
 import Icon from '../../assets/icons';
 import BackButton from '../../components/BackButton';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Settings = () => {
   const router = useRouter();

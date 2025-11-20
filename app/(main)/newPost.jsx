@@ -10,7 +10,7 @@ import PrivacySelector from '../../components/post/PrivacySelector'
 import FishInfoForm from '../../components/post/FishInfoForm'
 import { useCreatePost } from '../../hooks/useCreatePost'
 import SmartInput from '../../components/SmartInput'
-import { useAuth } from '../../hooks/useAuth' 
+import { useAuth } from '../../contexts/AuthContext' 
 
 const NewPost = () => {
   const router = useRouter()

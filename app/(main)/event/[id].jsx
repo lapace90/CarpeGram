@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import { theme } from '../../../constants/theme';
 import { hp, wp } from '../../../helpers/common';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEvent } from '../../../hooks/useEvent';
 import BackButton from '../../../components/BackButton';

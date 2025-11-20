@@ -11,7 +11,7 @@ const TermsOfService = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton />
+          <BackButton router={router} to="/settings" />
           <Text style={styles.title}>Terms of Service</Text>
           <View style={{ width: 40 }} />
         </View>

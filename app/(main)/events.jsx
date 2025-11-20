@@ -3,7 +3,7 @@ import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { useEvents } from '../../hooks/useEvents';
 import EventCard from '../../components/event/EventCard';
@@ -69,7 +69,7 @@ const Events = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton />
+          <BackButton router={router}/>
           <Text style={styles.title}>Fishing Events</Text>
           <Pressable onPress={() => router.push('/createEvent')} style={styles.createButton}>
             <Text style={styles.createButtonText}>+ Create</Text>

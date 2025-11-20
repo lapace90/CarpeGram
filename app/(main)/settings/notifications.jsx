@@ -5,7 +5,7 @@ import { theme } from '../../../constants/theme';
 import { hp, wp } from '../../../helpers/common';
 import Icon from '../../../assets/icons';
 import BackButton from '../../../components/BackButton';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 
 const NotificationsSettings = () => {
@@ -132,7 +132,7 @@ const NotificationsSettings = () => {
       <ScreenWrapper bg="white">
         <View style={styles.container}>
           <View style={styles.header}>
-            <BackButton />
+            <BackButton router={router} to="/settings" />
             <Text style={styles.title}>Notifications</Text>
             <View style={{ width: 40 }} />
           </View>
@@ -149,7 +149,7 @@ const NotificationsSettings = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton />
+          <BackButton router={router} to="/settings" />
           <Text style={styles.title}>Notifications</Text>
           <View style={{ width: 40 }} />
         </View>
@@ -227,7 +227,7 @@ const NotificationsSettings = () => {
             <Text style={styles.sectionTitle}>Social</Text>
             <View style={styles.togglesGroup}>
               {renderNotificationToggle(
-                'userPlus',
+                'addUser',
                 'New Followers',
                 'When someone starts following you',
                 followsNotif,

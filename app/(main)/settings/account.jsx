@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import Icon from '../../../assets/icons';
 import BackButton from '../../../components/BackButton';
 import Button from '../../../components/Button';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 
 const AccountSettings = () => {
@@ -163,7 +163,7 @@ const AccountSettings = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton />
+          <BackButton router={router} to="/settings" />
           <Text style={styles.title}>Account Settings</Text>
           <View style={{ width: 40 }} />
         </View>

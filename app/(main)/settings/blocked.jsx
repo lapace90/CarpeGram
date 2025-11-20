@@ -8,7 +8,7 @@ import Icon from '../../../assets/icons';
 import BackButton from '../../../components/BackButton';
 import Avatar from '../../../components/Avatar';
 import EmptyState from '../../../components/EmptyState';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { getBlockedUsers, unblockUser } from '../../../services/relationshipService';
 
 const BlockedUsers = () => {
@@ -97,7 +97,7 @@ const BlockedUsers = () => {
       <ScreenWrapper bg="white">
         <View style={styles.container}>
           <View style={styles.header}>
-            <BackButton />
+            <BackButton router={router} to="/settings" />
             <Text style={styles.title}>Blocked Users</Text>
             <View style={{ width: 40 }} />
           </View>
@@ -114,7 +114,7 @@ const BlockedUsers = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton />
+          <BackButton router={router} to="/settings" />
           <Text style={styles.title}>Blocked Users</Text>
           <View style={{ width: 40 }} />
         </View>

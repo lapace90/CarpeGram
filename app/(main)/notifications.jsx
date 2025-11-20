@@ -3,7 +3,7 @@ import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from '../../components/NotificationItem';
 import EmptyState from '../../components/EmptyState';

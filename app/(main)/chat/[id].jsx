@@ -6,7 +6,7 @@ import { theme } from '../../../constants/theme';
 import { hp, wp } from '../../../helpers/common';
 import { useMessages } from '../../../hooks/useMessages';
 import { useConversation } from '../../../hooks/useConversation';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import MessageBubble from '../../../components/MessageBubble';
 import ChatInput from '../../../components/ChatInput';
 import Avatar from '../../../components/Avatar';

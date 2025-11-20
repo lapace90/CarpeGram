@@ -1,7 +1,7 @@
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { usePost } from '../../../hooks/usePost';
 import PostDetail from '../../../components/post/PostDetail';
 import ScreenWrapper from '../../../components/ScreenWrapper';

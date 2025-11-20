@@ -6,7 +6,7 @@ import { hp, wp } from '../../../helpers/common';
 import { useRouter } from 'expo-router';
 import Icon from '../../../assets/icons';
 import BackButton from '../../../components/BackButton';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 
 const PrivacySettings = () => {
@@ -22,8 +22,10 @@ const PrivacySettings = () => {
   const [showFullName, setShowFullName] = useState(false);
 
   useEffect(() => {
-    loadPrivacySettings();
-  }, []);
+    if (user) {
+      loadPrivacySettings();
+    }
+  }, [user]);
 
   const loadPrivacySettings = async () => {
     setLoading(true);
@@ -72,7 +74,7 @@ const PrivacySettings = () => {
   const handlePrivateAccountToggle = async (value) => {
     setIsPrivateAccount(value);
     await updatePrivacySetting('is_private', value);
-    
+
     if (value) {
       Alert.alert(
         'Private Account Enabled',
@@ -101,7 +103,7 @@ const PrivacySettings = () => {
       <ScreenWrapper bg="white">
         <View style={styles.container}>
           <View style={styles.header}>
-            <BackButton />
+            <BackButton router={router} to="/settings" />
             <Text style={styles.title}>Privacy</Text>
             <View style={{ width: 40 }} />
           </View>
@@ -118,7 +120,7 @@ const PrivacySettings = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton />
+          <BackButton router={router} to="/settings" />
           <Text style={styles.title}>Privacy</Text>
           <View style={{ width: 40 }} />
         </View>
@@ -130,7 +132,7 @@ const PrivacySettings = () => {
           {/* Account Privacy */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Account Privacy</Text>
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingContent}>
                 <View style={styles.settingHeader}>
@@ -154,7 +156,7 @@ const PrivacySettings = () => {
           {/* Profile Visibility */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Profile Visibility</Text>
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingContent}>
                 <View style={styles.settingHeader}>
@@ -238,7 +240,7 @@ const PrivacySettings = () => {
                     style={[
                       styles.optionLabel,
                       (whoCanSeeMyPosts === 'followers' || isPrivateAccount) &&
-                        styles.optionLabelSelected,
+                      styles.optionLabelSelected,
                     ]}
                   >
                     Followers Only

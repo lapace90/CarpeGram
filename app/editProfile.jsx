@@ -10,7 +10,7 @@ import Input from '../components/Input'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
 import { pickAndUploadAvatar } from '../services/imageService'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../contexts/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 
 const EditProfile = () => {

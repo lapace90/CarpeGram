@@ -8,7 +8,7 @@ import Icon from '../../../assets/icons';
 import BackButton from '../../../components/BackButton';
 import Avatar from '../../../components/Avatar';
 import EmptyState from '../../../components/EmptyState';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import { removeFromCloseFriends } from '../../../services/relationshipService';
 
@@ -25,29 +25,40 @@ const CloseFriends = () => {
 
   const loadCloseFriends = async () => {
     try {
-      const { data, error } = await supabase
+      // 1. Récupérer les IDs des close friends
+      const { data: relationships, error: relError } = await supabase
         .from('user_relationships')
-        .select(`
-          following_id,
-          created_at,
-          profiles:following_id (
-            id,
-            username,
-            avatar_url,
-            first_name,
-            last_name,
-            show_full_name,
-            posts_count,
-            followers_count
-          )
-        `)
+        .select('following_id, created_at')
         .eq('follower_id', user.id)
         .eq('is_close_friend', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (relError) throw relError;
 
-      setCloseFriends(data || []);
+      if (!relationships || relationships.length === 0) {
+        setCloseFriends([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Récupérer les profiles correspondants
+      const friendIds = relationships.map(r => r.following_id);
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, first_name, last_name, show_full_name, posts_count, followers_count')
+        .in('id', friendIds);
+
+      if (profilesError) throw profilesError;
+
+      // 3. Combiner les données
+      const friendsWithProfiles = relationships.map(rel => ({
+        following_id: rel.following_id,
+        created_at: rel.created_at,
+        profiles: profiles?.find(p => p.id === rel.following_id)
+      }));
+
+      setCloseFriends(friendsWithProfiles);
     } catch (error) {
       console.error('Load close friends error:', error);
       Alert.alert('Error', 'Failed to load close friends');
@@ -64,7 +75,7 @@ const CloseFriends = () => {
 
   const handleRemoveFromCloseFriends = (friend) => {
     const profile = friend.profiles;
-    
+
     Alert.alert(
       'Remove from Close Friends',
       `Remove @${profile?.username} from your close friends list?`,
@@ -75,9 +86,9 @@ const CloseFriends = () => {
           style: 'destructive',
           onPress: async () => {
             const result = await removeFromCloseFriends(user.id, friend.following_id);
-            
+
             if (result.success) {
-              setCloseFriends(prev => 
+              setCloseFriends(prev =>
                 prev.filter(f => f.following_id !== friend.following_id)
               );
               Alert.alert('Success', 'Removed from close friends');
@@ -138,7 +149,7 @@ const CloseFriends = () => {
       <ScreenWrapper bg="white">
         <View style={styles.container}>
           <View style={styles.header}>
-            <BackButton />
+            <BackButton router={router} to="/settings" />
             <Text style={styles.title}>Close Friends</Text>
             <View style={{ width: 40 }} />
           </View>
@@ -155,7 +166,7 @@ const CloseFriends = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <BackButton />
+          <BackButton router={router} to="/settings" />
           <Text style={styles.title}>Close Friends</Text>
           <View style={{ width: 40 }} />
         </View>

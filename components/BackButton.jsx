@@ -4,11 +4,13 @@ import { theme } from '../constants/theme'
 import Icon from '../assets/icons/index'
 
 
-const BackButton = ({size=26, router}) => {
+const BackButton = ({size=26, router, to}) => {
   return (
-    <Pressable onPress={()=>router.back()} style={styles.button}>
+    <Pressable 
+      onPress={() => to ? router.push(to) : router.back()} 
+      style={styles.button}
+    >
       <Icon name="arrowLeft" strokeWidth={2.5} size={size} color={theme.colors.text} />
-
     </Pressable>
   )
 }

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import Input from '../../components/Input';
 import SmartInput from '../../components/SmartInput'; 
