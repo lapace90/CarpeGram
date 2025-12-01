@@ -133,6 +133,14 @@ const TabLayout = () => {
           }}
         />
         <Tabs.Screen
+          name="map"
+          options={{
+            title: 'Map',
+            headerShown: false,
+            tabBarIcon: ({ focused }) => <TabIcon name="location" focused={focused} />
+          }}
+        />
+        <Tabs.Screen
           name="settings"
           options={{
             href: null,
