@@ -162,6 +162,13 @@ const TabLayout = () => {
           }}
         />
         <Tabs.Screen
+          name="settings/location"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
           name="settings/blocked"
           options={{
             href: null,

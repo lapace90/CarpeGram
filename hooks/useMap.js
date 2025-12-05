@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { mapService } from '../services/mapService';
 import * as Location from 'expo-location';
 
@@ -6,27 +6,32 @@ export function useMap() {
   const [spots, setSpots] = useState([]);
   const [stores, setStores] = useState([]);
   const [users, setUsers] = useState([]);
+  const [events, setEvents] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Demander la permission de géolocalisation
+  /**
+   * Demander la permission de géolocalisation
+   */
   const requestLocationPermission = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setError('Permission de localisation refusée');
+        setError('Location permission denied');
         return false;
       }
       return true;
-    } catch (error) {
-      console.error('Error requesting location permission:', error);
-      setError(error.message);
+    } catch (err) {
+      console.error('Error requesting location permission:', err);
+      setError(err.message);
       return false;
     }
   };
 
-  // Obtenir la position actuelle
+  /**
+   * Obtenir la position actuelle
+   */
   const getCurrentLocation = async () => {
     try {
       const hasPermission = await requestLocationPermission();
@@ -43,32 +48,37 @@ export function useMap() {
 
       setUserLocation(currentLocation);
       return currentLocation;
-    } catch (error) {
-      console.error('Error getting current location:', error);
-      setError(error.message);
+    } catch (err) {
+      console.error('Error getting current location:', err);
+      setError(err.message);
       return null;
     }
   };
 
-  // Charger les données de la map dans une zone
+  /**
+   * Charger toutes les données de la map dans une zone
+   */
   const loadMapData = useCallback(async (bounds) => {
     setLoading(true);
     setError(null);
 
     try {
-      const [spotsResult, storesResult, usersResult] = await Promise.all([
+      const [spotsResult, storesResult, usersResult, eventsResult] = await Promise.all([
         mapService.getSpotsInArea(bounds),
         mapService.getStoresInArea(bounds),
         mapService.getUsersInArea(bounds),
+        mapService.getEventsInArea(bounds),
       ]);
 
-      if (spotsResult.error) throw spotsResult.error;
-      if (storesResult.error) throw storesResult.error;
-      if (usersResult.error) throw usersResult.error;
+      if (spotsResult.error) console.warn('Spots error:', spotsResult.error);
+      if (storesResult.error) console.warn('Stores error:', storesResult.error);
+      if (usersResult.error) console.warn('Users error:', usersResult.error);
+      if (eventsResult.error) console.warn('Events error:', eventsResult.error);
 
       setSpots(spotsResult.data || []);
       setStores(storesResult.data || []);
       setUsers(usersResult.data || []);
+      setEvents(eventsResult.data || []);
     } catch (err) {
       console.error('Error loading map data:', err);
       setError(err.message);
@@ -77,11 +87,13 @@ export function useMap() {
     }
   }, []);
 
-  // Créer un nouveau spot
+  /**
+   * Créer un nouveau spot
+   */
   const createSpot = useCallback(async (spotData) => {
     try {
       const result = await mapService.createSpot(spotData);
-      if (result.error) throw result.error;
+      if (result.error) throw new Error(result.error);
 
       setSpots(prev => [...prev, result.data]);
       return result.data;
@@ -92,37 +104,13 @@ export function useMap() {
     }
   }, []);
 
-  // Mettre à jour sa position
-  const updateUserLocation = useCallback(async (location) => {
-    try {
-      const result = await mapService.updateUserLocation(location);
-      if (result.error) throw result.error;
-      return result.data;
-    } catch (err) {
-      console.error('Error updating location:', err);
-      setError(err.message);
-      return null;
-    }
-  }, []);
-
-  // Toggle partage de position
-  const toggleLocationSharing = useCallback(async (enabled, shareWith = 'followers') => {
-    try {
-      const result = await mapService.toggleLocationSharing(enabled, shareWith);
-      if (result.error) throw result.error;
-      return result.data;
-    } catch (err) {
-      console.error('Error toggling location sharing:', err);
-      setError(err.message);
-      return null;
-    }
-  }, []);
-
-  // Supprimer un spot
+  /**
+   * Supprimer un spot
+   */
   const deleteSpot = useCallback(async (spotId) => {
     try {
       const result = await mapService.deleteSpot(spotId);
-      if (result.error) throw result.error;
+      if (!result.success) throw new Error(result.error);
       
       setSpots(prev => prev.filter(spot => spot.id !== spotId));
       return true;
@@ -133,27 +121,93 @@ export function useMap() {
     }
   }, []);
 
-  // Rafraîchir les données
+  /**
+   * Mettre à jour un spot
+   */
+  const updateSpot = useCallback(async (spotId, updates) => {
+    try {
+      const result = await mapService.updateSpot(spotId, updates);
+      if (!result.success) throw new Error(result.error);
+      
+      setSpots(prev => prev.map(spot => 
+        spot.id === spotId ? { ...spot, ...result.data } : spot
+      ));
+      return result.data;
+    } catch (err) {
+      console.error('Error updating spot:', err);
+      setError(err.message);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Mettre à jour sa position
+   */
+  const updateUserLocation = useCallback(async (location) => {
+    try {
+      const result = await mapService.updateUserLocation(location);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    } catch (err) {
+      console.error('Error updating location:', err);
+      setError(err.message);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Toggle partage de position
+   */
+  const toggleLocationSharing = useCallback(async (enabled, shareWith = 'followers') => {
+    try {
+      const result = await mapService.toggleLocationSharing(enabled, shareWith);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    } catch (err) {
+      console.error('Error toggling location sharing:', err);
+      setError(err.message);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Rafraîchir les données
+   */
   const refresh = useCallback(async (bounds) => {
     if (bounds) {
       await loadMapData(bounds);
     }
   }, [loadMapData]);
 
+  /**
+   * Effacer les erreurs
+   */
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
+    // Data
     spots,
     stores,
     users,
+    events,
     userLocation,
+    
+    // State
     loading,
     error,
+    
+    // Actions
     getCurrentLocation,
     loadMapData,
     createSpot,
+    deleteSpot,
+    updateSpot,
     updateUserLocation,
     toggleLocationSharing,
-    deleteSpot,
     refresh,
     requestLocationPermission,
+    clearError,
   };
 }

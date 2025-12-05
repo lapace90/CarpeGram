@@ -40,6 +40,12 @@ const Settings = () => {
           description: 'Control who sees your content',
         },
         {
+          icon: 'location',
+          label: 'Location Sharing',
+          route: '/settings/location',
+          description: 'Share your position on the map',
+        },
+        {
           icon: 'alertCircle',
           label: 'Blocked Users',
           route: '/settings/blocked',

@@ -1,664 +1,399 @@
-import { View, StyleSheet, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal } from 'react-native'
-import React, { useEffect, useState, useRef } from 'react'
-import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps'
-import { Platform, StatusBar, Alert } from 'react-native'
-import { theme } from '../../constants/theme'
-import { useMap } from '../../hooks/useMap'
-import { hp, wp } from '../../helpers/common'
-import Icon from '../../assets/icons'
-import { useAuth } from '../../contexts/AuthContext'
-import { mapService } from '../../services/mapService'
+import { View, StyleSheet, Text, Pressable, ActivityIndicator, Platform, StatusBar, Alert } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
+import { theme } from '../../constants/theme';
+import { useMap } from '../../hooks/useMap';
+import { hp, wp } from '../../helpers/common';
+import Icon from '../../assets/icons';
+import { useAuth } from '../../contexts/AuthContext';
+import { mapService } from '../../services/mapService';
+import { useRouter } from 'expo-router';
+
+// Import des composants refactorisés
+import MapSearchBar from '../../components/map/MapSearchBar';
+import MapFilters from '../../components/map/MapFilters';
+import CreateSpotModal from '../../components/map/CreateSpotModal';
+import SpotDetailModal from '../../components/map/SpotDetailModal';
+import StoreDetailModal from '../../components/map/StoreDetailModal';
+import CustomMarker, { 
+  MARKER_TYPES, 
+  NewSpotMarker,
+  SpotMarker,
+  StoreMarker,
+  UserMarker,
+  EventMarker,
+} from '../../components/map/CustomMarker';
 
 const Map = () => {
-    const mapRef = useRef(null)
-    const { user } = useAuth()
-    const {
-        spots,
-        stores,
-        users,
-        loading,
-        getCurrentLocation,
-        loadMapData
-    } = useMap()
+  const mapRef = useRef(null);
+  const router = useRouter();
+  const { user } = useAuth();
+  
+  const {
+    spots,
+    stores,
+    users,
+    events,
+    loading,
+    getCurrentLocation,
+    loadMapData,
+    deleteSpot,
+  } = useMap();
 
-    const [region, setRegion] = useState(null)
-    const [searchText, setSearchText] = useState('')
-    const [showSpots, setShowSpots] = useState(true)
-    const [showStores, setShowStores] = useState(true)
-    const [showUsers, setShowUsers] = useState(true)
+  // États de base
+  const [region, setRegion] = useState(null);
+  const [searchText, setSearchText] = useState('');
+  
+  // Filtres
+  const [showSpots, setShowSpots] = useState(true);
+  const [showStores, setShowStores] = useState(true);
+  const [showUsers, setShowUsers] = useState(true);
+  const [showEvents, setShowEvents] = useState(true);
 
-    // Pour la création de spot
-    const [showCreateModal, setShowCreateModal] = useState(false)
-    const [newSpotCoords, setNewSpotCoords] = useState(null)
-    const [newSpotName, setNewSpotName] = useState('')
-    const [newSpotDescription, setNewSpotDescription] = useState('')
-    const [newSpotPrivacy, setNewSpotPrivacy] = useState('public')
-    const [creating, setCreating] = useState(false)
-    const [newSpotType, setNewSpotType] = useState('lake')
-    const [newSpotFishTypes, setNewSpotFishTypes] = useState([])
+  // Modals
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newSpotCoords, setNewSpotCoords] = useState(null);
+  const [creating, setCreating] = useState(false);
 
-    const privacyOptions = [
-        { value: 'public', icon: 'unlock', label: 'Public' },
-        { value: 'followers', icon: 'user', label: 'Followers' },
-        { value: 'close_friends', icon: 'heart', label: 'Close Friends' },
-        { value: 'private', icon: 'lock', label: 'Private' }
-    ];
+  // Détails
+  const [selectedSpot, setSelectedSpot] = useState(null);
+  const [showSpotDetail, setShowSpotDetail] = useState(false);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [showStoreDetail, setShowStoreDetail] = useState(false);
 
-    const spotTypes = [
-        { value: 'lake', label: 'Lake' },
-        { value: 'river', label: 'River' },
-        { value: 'pond', label: 'Pond' },
-        { value: 'canal', label: 'Canal' },
-        { value: 'sea', label: 'Sea' }
-    ];
+  useEffect(() => {
+    setupMap();
+  }, []);
 
-    const fishTypes = [
-        'Carp', 'Pike', 'Catfish', 'Black bass',
-        'Zander', 'Perch', 'Roach', 'Tench', 'Grass carp'
-    ]
+  const setupMap = async () => {
+    const location = await getCurrentLocation();
 
-    useEffect(() => {
-        setupMap()
-    }, [])
+    const initialRegion = {
+      latitude: location?.latitude || 46.603354, // Centre de la France
+      longitude: location?.longitude || 1.888334,
+      latitudeDelta: location ? 0.0922 : 5,
+      longitudeDelta: location ? 0.0421 : 5,
+    };
 
-    const setupMap = async () => {
-        const location = await getCurrentLocation()
+    setRegion(initialRegion);
+    loadDataForRegion(initialRegion);
+  };
 
-        const initialRegion = {
-            latitude: location?.latitude || 43.2965,
-            longitude: location?.longitude || 5.3698,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-        }
+  const loadDataForRegion = useCallback((regionData) => {
+    const bounds = {
+      northEast: {
+        latitude: regionData.latitude + regionData.latitudeDelta / 2,
+        longitude: regionData.longitude + regionData.longitudeDelta / 2,
+      },
+      southWest: {
+        latitude: regionData.latitude - regionData.latitudeDelta / 2,
+        longitude: regionData.longitude - regionData.longitudeDelta / 2,
+      },
+    };
+    loadMapData(bounds);
+    // TODO: loadEventsInArea(bounds);
+  }, [loadMapData]);
 
-        setRegion(initialRegion)
+  const handleRegionChangeComplete = (newRegion) => {
+    setRegion(newRegion);
+    loadDataForRegion(newRegion);
+  };
 
-        const bounds = {
-            northEast: {
-                latitude: initialRegion.latitude + initialRegion.latitudeDelta / 2,
-                longitude: initialRegion.longitude + initialRegion.longitudeDelta / 2,
-            },
-            southWest: {
-                latitude: initialRegion.latitude - initialRegion.latitudeDelta / 2,
-                longitude: initialRegion.longitude - initialRegion.longitudeDelta / 2,
-            },
-        }
-        loadMapData(bounds)
+  // Gestion du long press pour créer un spot
+  const handleLongPress = (e) => {
+    if (!user) {
+      Alert.alert('Login required', 'Please login to add a spot');
+      return;
     }
+    setNewSpotCoords(e.nativeEvent.coordinate);
+    setShowCreateModal(true);
+  };
 
-    const handleRegionChange = (newRegion) => {
-        const bounds = {
-            northEast: {
-                latitude: newRegion.latitude + newRegion.latitudeDelta / 2,
-                longitude: newRegion.longitude + newRegion.longitudeDelta / 2,
-            },
-            southWest: {
-                latitude: newRegion.latitude - newRegion.latitudeDelta / 2,
-                longitude: newRegion.longitude - newRegion.longitudeDelta / 2,
-            },
-        }
-        loadMapData(bounds)
+  // Création de spot
+  const handleCreateSpot = async (spotData) => {
+    setCreating(true);
+    const result = await mapService.createSpot(spotData);
+    setCreating(false);
+
+    if (result.success) {
+      Alert.alert('Success', 'Spot created successfully! 🎣');
+      setNewSpotCoords(null);
+      loadDataForRegion(region);
+      return true;
+    } else {
+      Alert.alert('Error', result.error || 'Failed to create spot');
+      return false;
     }
+  };
 
-    // Gestion du long press pour créer un spot
-    const handleLongPress = (e) => {
-        if (!user) {
-            Alert.alert('Login required', 'Please login to add a spot')
-            return
-        }
-        setNewSpotCoords(e.nativeEvent.coordinate)
-        setShowCreateModal(true)
+  // Suppression de spot
+  const handleDeleteSpot = async (spotId) => {
+    const success = await deleteSpot(spotId);
+    return success;
+  };
+
+  // Gestion des clics sur les markers
+  const handleSpotPress = (spot) => {
+    setSelectedSpot(spot);
+    setShowSpotDetail(true);
+  };
+
+  const handleStorePress = (store) => {
+    setSelectedStore(store);
+    setShowStoreDetail(true);
+  };
+
+  const handleUserPress = (userItem) => {
+    if (userItem.user_id) {
+      router.push(`/userProfile/${userItem.user_id}`);
     }
+  };
 
-    // Créer le nouveau spot
-    const handleCreateSpot = async () => {
-        if (!newSpotName.trim()) {
-            Alert.alert('Error', 'Spot name is required')
-            return
-        }
-
-        setCreating(true)
-        const result = await mapService.createSpot({
-            name: newSpotName,
-            description: newSpotDescription,
-            latitude: newSpotCoords.latitude,
-            longitude: newSpotCoords.longitude,
-            spot_type: newSpotPrivacy,
-            fish_types: newSpotFishTypes,
-            water_type: newSpotType
-        })
-
-        if (result.success) {
-            Alert.alert('Success', 'Spot created successfully!')
-            setShowCreateModal(false)
-            setNewSpotName('')
-            setNewSpotDescription('')
-            setNewSpotPrivacy('public')
-            setNewSpotCoords(null)
-
-            // Recharger les données
-            handleRegionChange(region)
-        } else {
-            Alert.alert('Error', result.error || 'Failed to create spot')
-        }
-        setCreating(false)
+  // Navigation vers le détail d'un event
+  const handleEventPress = (event) => {
+    if (event.id) {
+      router.push(`/event/${event.id}`);
     }
+  };
 
-    if (!region) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-            </View>
-        )
+  // Centrer sur la position de l'utilisateur
+  const handleCenterOnUser = async () => {
+    const location = await getCurrentLocation();
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      }, 500);
     }
+  };
 
-    // Filtrer les éléments selon la recherche
-    const filteredSpots = showSpots ? spots.filter(s =>
-        s.name?.toLowerCase().includes(searchText.toLowerCase())
-    ) : []
+  // Filtrer les éléments selon la recherche
+  const filteredSpots = showSpots 
+    ? spots.filter(s => s.name?.toLowerCase().includes(searchText.toLowerCase()))
+    : [];
 
-    const filteredStores = showStores ? stores.filter(s =>
-        s.name?.toLowerCase().includes(searchText.toLowerCase())
-    ) : []
+  const filteredStores = showStores 
+    ? stores.filter(s => s.name?.toLowerCase().includes(searchText.toLowerCase()))
+    : [];
 
+  const filteredUsers = showUsers ? users : [];
+  const filteredEvents = showEvents ? events : [];
+
+  if (!region) {
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Map</Text>
-                <View style={styles.headerButtons}>
-                    <Pressable onPress={setupMap} style={styles.locationButton}>
-                        <Icon name="location" size={24} color={theme.colors.primary} />
-                    </Pressable>
-                    <Pressable
-                        onPress={() => Alert.alert('Help', 'Long press on the map to add a spot')}
-                        style={styles.helpButton}
-                    >
-                        <Icon name="info" size={24} color={theme.colors.textLight} />
-                    </Pressable>
-                </View>
-            </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>Loading map...</Text>
+      </View>
+    );
+  }
 
-            {/* Barre de recherche */}
-            <View style={styles.searchContainer}>
-                <Icon name="search" size={20} color={theme.colors.textLight} />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Search spots or stores..."
-                    value={searchText}
-                    onChangeText={setSearchText}
-                    placeholderTextColor={theme.colors.textLight}
-                />
-                {searchText.length > 0 && (
-                    <Pressable onPress={() => setSearchText('')}>
-                        <Icon name="close" size={20} color={theme.colors.textLight} />
-                    </Pressable>
-                )}
-            </View>
-
-            {/* Filtres */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.filtersContainer}
-            >
-                <Pressable
-                    style={[styles.filterChip, showSpots && styles.filterChipActive]}
-                    onPress={() => setShowSpots(!showSpots)}
-                >
-                    <Icon
-                        name="location"
-                        size={16}
-                        color={showSpots ? 'white' : theme.colors.text}
-                    />
-                    <Text style={[styles.filterText, showSpots && styles.filterTextActive]}>
-                        Spots ({spots.length})
-                    </Text>
-                </Pressable>
-
-                <Pressable
-                    style={[styles.filterChip, showStores && styles.filterChipActive]}
-                    onPress={() => setShowStores(!showStores)}
-                >
-                    <Icon
-                        name="home"
-                        size={16}
-                        color={showStores ? 'white' : theme.colors.text}
-                    />
-                    <Text style={[styles.filterText, showStores && styles.filterTextActive]}>
-                        Stores ({stores.length})
-                    </Text>
-                </Pressable>
-
-                <Pressable
-                    style={[styles.filterChip, showUsers && styles.filterChipActive]}
-                    onPress={() => setShowUsers(!showUsers)}
-                >
-                    <Icon
-                        name="user"
-                        size={16}
-                        color={showUsers ? 'white' : theme.colors.text}
-                    />
-                    <Text style={[styles.filterText, showUsers && styles.filterTextActive]}>
-                        Anglers ({users.length})
-                    </Text>
-                </Pressable>
-            </ScrollView>
-
-            <MapView
-                ref={mapRef}
-                style={styles.map}
-                provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
-                initialRegion={region}
-                showsUserLocation={true}
-                showsMyLocationButton={true}
-                onRegionChangeComplete={handleRegionChange}
-                onLongPress={handleLongPress}
-            >
-                {/* Marker temporaire pour le nouveau spot */}
-                {newSpotCoords && (
-                    <Marker
-                        coordinate={newSpotCoords}
-                        pinColor="yellow"
-                        title="New Spot"
-                    />
-                )}
-
-                {filteredSpots.map((spot) => (
-                    <Marker
-                        key={spot.id}
-                        coordinate={{
-                            latitude: parseFloat(spot.latitude),
-                            longitude: parseFloat(spot.longitude),
-                        }}
-                        title={spot.name}
-                        description={spot.description}
-                        pinColor={theme.colors.primary}
-                    />
-                ))}
-
-                {filteredStores.map((store) => (
-                    <Marker
-                        key={store.id}
-                        coordinate={{
-                            latitude: parseFloat(store.latitude),
-                            longitude: parseFloat(store.longitude),
-                        }}
-                        title={store.name}
-                        description={store.address}
-                        pinColor="blue"
-                    />
-                ))}
-
-                {showUsers && users.map((user) => (
-                    <Marker
-                        key={user.user_id}
-                        coordinate={{
-                            latitude: parseFloat(user.latitude),
-                            longitude: parseFloat(user.longitude),
-                        }}
-                        title="Angler"
-                        pinColor="green"
-                    />
-                ))}
-            </MapView>
-
-            {/* Modal de création de spot */}
-            <Modal
-                visible={showCreateModal}
-                transparent
-                animationType="slide"
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>New Spot</Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Spot name *"
-                            value={newSpotName}
-                            onChangeText={setNewSpotName}
-                            placeholderTextColor={theme.colors.textLight}
-                        />
-                        <View style={styles.spotTypeContainer}>
-                            <Text style={styles.label}>Spot type :</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                {spotTypes.map(type => (
-                                    <Pressable
-                                        key={type.value}
-                                        style={[styles.typeOption, newSpotType === type.value && styles.typeActive]}
-                                        onPress={() => setNewSpotType(type.value)}
-                                    >
-                                        <Text style={[styles.typeText, newSpotType === type.value && styles.typeTextActive]}>
-                                            {type.label}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </ScrollView>
-                        </View>
-
-                        <View style={styles.fishContainer}>
-                            <Text style={styles.label}>Fish species :</Text>
-                            <View style={styles.fishGrid}>
-                                {fishTypes.map(fish => (
-                                    <Pressable
-                                        key={fish}
-                                        style={[styles.fishChip, newSpotFishTypes.includes(fish) && styles.fishChipActive]}
-                                        onPress={() => {
-                                            if (newSpotFishTypes.includes(fish)) {
-                                                setNewSpotFishTypes(newSpotFishTypes.filter(f => f !== fish))
-                                            } else {
-                                                setNewSpotFishTypes([...newSpotFishTypes, fish])
-                                            }
-                                        }}
-                                    >
-                                        <Text style={[styles.fishText, newSpotFishTypes.includes(fish) && styles.fishTextActive]}>
-                                            {fish}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </View>
-                        </View>
-
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder="Description (optional)"
-                            value={newSpotDescription}
-                            onChangeText={setNewSpotDescription}
-                            multiline
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                            placeholderTextColor={theme.colors.textLight}
-                        />
-
-                        <View style={styles.privacyContainer}>
-                            <Text style={styles.privacyLabel}>Who can see this spot :</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.privacyScroll}>
-                                {privacyOptions.map(option => (
-                                    <Pressable
-                                        key={option.value}
-                                        style={[styles.privacyOption, newSpotPrivacy === option.value && styles.privacyActive]}
-                                        onPress={() => setNewSpotPrivacy(option.value)}
-                                    >
-                                        <Icon
-                                            name={option.icon}
-                                            size={16}
-                                            color={newSpotPrivacy === option.value ? 'white' : theme.colors.text}
-                                        />
-                                        <Text style={[styles.privacyText, newSpotPrivacy === option.value && styles.privacyTextActive]}>
-                                            {option.label}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </ScrollView>
-                        </View>
-
-                        <View style={styles.modalButtons}>
-                            <Pressable
-                                style={[styles.button, styles.cancelButton]}
-                                onPress={() => {
-                                    setShowCreateModal(false)
-                                    setNewSpotCoords(null)
-                                }}
-                                disabled={creating}
-                            >
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
-                            </Pressable>
-
-                            <Pressable
-                                style={[styles.button, styles.createButton]}
-                                onPress={handleCreateSpot}
-                                disabled={creating}
-                            >
-                                {creating ? (
-                                    <ActivityIndicator size="small" color="white" />
-                                ) : (
-                                    <Text style={styles.createButtonText}>Create</Text>
-                                )}
-                            </Pressable>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Map</Text>
+        <View style={styles.headerButtons}>
+          <Pressable onPress={handleCenterOnUser} style={styles.headerButton}>
+            <Icon name="location" size={24} color={theme.colors.primary} />
+          </Pressable>
+          <Pressable
+            onPress={() => Alert.alert('Help', 'Long press on the map to add a fishing spot')}
+            style={styles.headerButton}
+          >
+            <Icon name="info" size={24} color={theme.colors.textLight} />
+          </Pressable>
         </View>
-    )
-}
+      </View>
+
+      {/* Barre de recherche */}
+      <MapSearchBar
+        value={searchText}
+        onChangeText={setSearchText}
+        placeholder="Search spots or stores..."
+      />
+
+      {/* Filtres */}
+      <MapFilters
+        showSpots={showSpots}
+        showStores={showStores}
+        showUsers={showUsers}
+        showEvents={showEvents}
+        spotsCount={spots.length}
+        storesCount={stores.length}
+        usersCount={users.length}
+        eventsCount={events.length}
+        onToggleSpots={() => setShowSpots(!showSpots)}
+        onToggleStores={() => setShowStores(!showStores)}
+        onToggleUsers={() => setShowUsers(!showUsers)}
+        onToggleEvents={() => setShowEvents(!showEvents)}
+      />
+
+      {/* Map */}
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
+        initialRegion={region}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
+        onRegionChangeComplete={handleRegionChangeComplete}
+        onLongPress={handleLongPress}
+      >
+        {/* Marker temporaire pour le nouveau spot */}
+        {newSpotCoords && (
+          <NewSpotMarker coordinate={newSpotCoords} />
+        )}
+
+        {/* Spots - avec CustomMarker */}
+        {filteredSpots.map((spot) => (
+          <SpotMarker
+            key={`spot-${spot.id}`}
+            spot={spot}
+            onPress={() => handleSpotPress(spot)}
+          />
+        ))}
+
+        {/* Stores - avec CustomMarker (détecte automatiquement partenaire) */}
+        {filteredStores.map((store) => (
+          <StoreMarker
+            key={`store-${store.id}`}
+            store={store}
+            onPress={() => handleStorePress(store)}
+          />
+        ))}
+
+        {/* Users/Anglers - avec CustomMarker et couleurs selon relation */}
+        {filteredUsers.map((userItem) => {
+          // Déterminer le type de marker selon la relation
+          let markerType = MARKER_TYPES.USER_ANONYMOUS;
+          if (userItem.isCloseFriend) {
+            markerType = MARKER_TYPES.USER_CLOSE_FRIEND;
+          } else if (userItem.isFollowing) {
+            markerType = MARKER_TYPES.USER_FRIEND;
+          }
+          
+          return (
+            <UserMarker
+              key={`user-${userItem.user_id}`}
+              user={userItem}
+              type={markerType}
+              onPress={() => handleUserPress(userItem)}
+            />
+          );
+        })}
+
+        {/* Events - avec CustomMarker et date */}
+        {filteredEvents.map((event) => (
+          <EventMarker
+            key={`event-${event.id}`}
+            event={event}
+            onPress={() => handleEventPress(event)}
+          />
+        ))}
+      </MapView>
+
+      {/* Loading indicator */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+        </View>
+      )}
+
+      {/* Modal création de spot */}
+      <CreateSpotModal
+        visible={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          setNewSpotCoords(null);
+        }}
+        coordinates={newSpotCoords}
+        onCreateSpot={handleCreateSpot}
+        loading={creating}
+      />
+
+      {/* Modal détail spot */}
+      <SpotDetailModal
+        visible={showSpotDetail}
+        onClose={() => {
+          setShowSpotDetail(false);
+          setSelectedSpot(null);
+        }}
+        spot={selectedSpot}
+        currentUserId={user?.id}
+        onDelete={handleDeleteSpot}
+      />
+
+      {/* Modal détail store */}
+      <StoreDetailModal
+        visible={showStoreDetail}
+        onClose={() => {
+          setShowStoreDetail(false);
+          setSelectedStore(null);
+        }}
+        store={selectedStore}
+      />
+    </View>
+  );
+};
+
+export default Map;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: 'white',
-    },
-    header: {
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 50,
-        paddingBottom: hp(1.5),
-        paddingHorizontal: wp(5),
-        backgroundColor: 'white',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottomWidth: 0.5,
-        borderBottomColor: theme.colors.gray,
-    },
-    headerTitle: {
-        fontSize: hp(2.8),
-        fontWeight: theme.fonts.bold,
-        color: theme.colors.text,
-    },
-    headerButtons: {
-        flexDirection: 'row',
-        gap: 10,
-    },
-    locationButton: {
-        padding: 8,
-    },
-    helpButton: {
-        padding: 8,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: theme.colors.backgroundLight,
-        marginHorizontal: wp(5),
-        marginVertical: hp(1),
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(1.2),
-        borderRadius: theme.radius.xxl,
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: wp(2),
-        fontSize: hp(1.8),
-        color: theme.colors.text,
-    },
-    filtersContainer: {
-        paddingHorizontal: wp(5),
-        paddingBottom: hp(1),
-        maxHeight: hp(6),
-    },
-    filterChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: wp(3),
-        paddingVertical: hp(1),
-        marginRight: wp(2),
-        borderRadius: theme.radius.xl,
-        borderWidth: 1,
-        borderColor: theme.colors.gray,
-        backgroundColor: 'white',
-    },
-    filterChipActive: {
-        backgroundColor: theme.colors.primary,
-        borderColor: theme.colors.primary,
-    },
-    filterText: {
-        fontSize: hp(1.6),
-        color: theme.colors.text,
-        fontWeight: theme.fonts.medium,
-    },
-    filterTextActive: {
-        color: 'white',
-    },
-    map: {
-        flex: 1,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-    },
-    // Modal styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContent: {
-        backgroundColor: 'white',
-        borderRadius: theme.radius.xxl,
-        padding: wp(6),
-        width: wp(90),
-    },
-    modalTitle: {
-        fontSize: hp(2.5),
-        fontWeight: theme.fonts.bold,
-        color: theme.colors.text,
-        marginBottom: hp(2),
-        textAlign: 'center',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: theme.colors.gray,
-        borderRadius: theme.radius.xl,
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(1.5),
-        fontSize: hp(1.8),
-        color: theme.colors.text,
-        marginBottom: hp(2),
-    },
-    textArea: {
-        height: hp(12),
-        textAlignVertical: 'top',
-    },
-    privacyContainer: {
-        marginBottom: hp(2),
-    },
-    privacyLabel: {
-        fontSize: hp(1.8),
-        color: theme.colors.text,
-        marginBottom: hp(1),
-        fontWeight: theme.fonts.medium,
-    },
-    spotTypeContainer: {
-        marginBottom: hp(2),
-    },
-    label: {
-        fontSize: hp(1.8),
-        color: theme.colors.text,
-        marginBottom: hp(1),
-        fontWeight: theme.fonts.medium,
-    },
-    typeOption: {
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(1),
-        marginRight: wp(2),
-        borderRadius: theme.radius.md,
-        borderWidth: 1,
-        borderColor: theme.colors.gray,
-    },
-    typeActive: {
-        backgroundColor: theme.colors.primary,
-        borderColor: theme.colors.primary,
-    },
-    typeText: {
-        fontSize: hp(1.6),
-        color: theme.colors.text,
-    },
-    typeTextActive: {
-        color: 'white',
-    },
-    fishContainer: {
-        marginBottom: hp(2),
-    },
-    fishGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    fishChip: {
-        paddingHorizontal: wp(3),
-        paddingVertical: hp(0.8),
-        borderRadius: theme.radius.md,
-        borderWidth: 1,
-        borderColor: theme.colors.gray,
-        marginBottom: hp(1),
-    },
-    fishChipActive: {
-        backgroundColor: theme.colors.primary,
-        borderColor: theme.colors.primary,
-    },
-    fishText: {
-        fontSize: hp(1.4),
-        color: theme.colors.text,
-    },
-    fishTextActive: {
-        color: 'white',
-    }, privacyScroll: {
-        maxHeight: hp(5),
-        marginTop: hp(1),
-    },
-    privacyOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: wp(3),
-        paddingVertical: hp(1),
-        marginRight: wp(2),
-        borderRadius: theme.radius.xl,
-        borderWidth: 1,
-        borderColor: theme.colors.gray,
-        backgroundColor: 'white',
-    },
-    privacyActive: {
-        backgroundColor: theme.colors.primary,
-        borderColor: theme.colors.primary,
-    },
-    privacyText: {
-        fontSize: hp(.9),
-        color: theme.colors.text,
-    },
-    privacyTextActive: {
-        color: 'white',
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        gap: 10,
-    },
-    button: {
-        flex: 1,
-        paddingVertical: hp(1.8),
-        borderRadius: theme.radius.xl,
-        alignItems: 'center',
-    },
-    cancelButton: {
-        backgroundColor: theme.colors.gray,
-    },
-    cancelButtonText: {
-        fontSize: hp(1.8),
-        color: theme.colors.text,
-        fontWeight: theme.fonts.semiBold,
-    },
-    createButton: {
-        backgroundColor: theme.colors.primary,
-    },
-    createButtonText: {
-        fontSize: hp(1.8),
-        color: 'white',
-        fontWeight: theme.fonts.semiBold,
-    },
-})
-
-export default Map
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  loadingText: {
+    marginTop: hp(2),
+    fontSize: hp(1.8),
+    color: theme.colors.textLight,
+  },
+  header: {
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 50,
+    paddingBottom: hp(1.5),
+    paddingHorizontal: wp(5),
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.gray,
+  },
+  headerTitle: {
+    fontSize: hp(2.8),
+    fontWeight: theme.fonts.bold,
+    color: theme.colors.text,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  headerButton: {
+    padding: 8,
+  },
+  map: {
+    flex: 1,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: hp(20),
+    alignSelf: 'center',
+    backgroundColor: 'white',
+    padding: wp(3),
+    borderRadius: theme.radius.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+});

@@ -6,11 +6,12 @@ import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import Input from '../../components/Input';
-import SmartInput from '../../components/SmartInput'; 
+import SmartInput from '../../components/SmartInput';
 import Button from '../../components/Button';
 import Icon from '../../assets/icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { createEvent } from '../../services/eventService';
+import LocationPicker from '../../components/map/LocationPicker';
 
 const CreateEvent = () => {
   const router = useRouter();
@@ -24,7 +25,10 @@ const CreateEvent = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000)); // +1h par défaut
   const [maxParticipants, setMaxParticipants] = useState('');
-  
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [coordinates, setCoordinates] = useState(null);
+  // coordinates = { latitude, longitude, name }
+
   // Date pickers
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -32,9 +36,9 @@ const CreateEvent = () => {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
   const formatDateTime = (date) => {
-    return date.toLocaleDateString('fr-FR', { 
-      weekday: 'short', 
-      day: 'numeric', 
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'short',
+      day: 'numeric',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit'
@@ -74,7 +78,10 @@ const CreateEvent = () => {
       startDate.toISOString(),
       endDate.toISOString(),
       location.trim(),
-      maxPart
+      maxPart,
+      coordinates?.latitude || null,
+      coordinates?.longitude || null,
+      nul
     );
 
     setLoading(false);
@@ -116,13 +123,21 @@ const CreateEvent = () => {
     }
   };
 
+  const handleLocationSelect = (locationData) => {
+    setCoordinates(locationData);
+    // Mettre à jour le champ location texte si un nom est fourni
+    if (locationData.name) {
+      setLocation(locationData.name);
+    }
+  };
+
   return (
     <ScreenWrapper bg="white">
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView 
+        <ScrollView
           style={styles.container}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -166,18 +181,44 @@ const CreateEvent = () => {
             {/* Location */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Location *</Text>
-              <Input
-                placeholder="e.g. Lake Geneva"
-                value={location}
-                onChangeText={setLocation}
-                icon={<Icon name="location" size={24} strokeWidth={1.6} />}
-              />
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Location *</Text>
+
+                {/* Champ texte pour l'adresse */}
+                <Input
+                  placeholder="e.g., Lake Geneva, France"
+                  value={location}
+                  onChangeText={setLocation}
+                  icon={<Icon name="location" size={24} strokeWidth={1.6} />}
+                />
+
+                {/* Bouton pour ouvrir la map */}
+                <Pressable
+                  style={styles.mapButton}
+                  onPress={() => setShowLocationPicker(true)}
+                >
+                  <Icon name="maps" size={20} color={theme.colors.primary} />
+                  <Text style={styles.mapButtonText}>
+                    {coordinates ? 'Change location on map' : 'Select on map'}
+                  </Text>
+                  {coordinates && (
+                    <Icon name="check" size={18} color={theme.colors.primary} />
+                  )}
+                </Pressable>
+
+                {/* Afficher les coordonnées si sélectionnées */}
+                {coordinates && (
+                  <Text style={styles.coordsInfo}>
+                    📍 {coordinates.latitude.toFixed(5)}, {coordinates.longitude.toFixed(5)}
+                  </Text>
+                )}
+              </View>
             </View>
 
             {/* Start Date & Time */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Start Date & Time *</Text>
-              <Pressable 
+              <Pressable
                 style={styles.dateButton}
                 onPress={() => setShowStartDatePicker(true)}
               >
@@ -191,7 +232,7 @@ const CreateEvent = () => {
             {/* End Date & Time */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>End Date & Time *</Text>
-              <Pressable 
+              <Pressable
                 style={styles.dateButton}
                 onPress={() => setShowEndDatePicker(true)}
               >
@@ -235,7 +276,7 @@ const CreateEvent = () => {
           minimumDate={new Date()}
         />
       )}
-      
+
       {showStartTimePicker && (
         <DateTimePicker
           value={startDate}
@@ -263,6 +304,14 @@ const CreateEvent = () => {
           onChange={onEndTimeChange}
         />
       )}
+
+      <LocationPicker
+        visible={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onSelectLocation={handleLocationSelect}
+        initialLocation={coordinates}
+        title="Select Event Location"
+      />
     </ScreenWrapper>
   );
 };
@@ -322,5 +371,28 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: 10,
+  },
+    mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
+    marginTop: hp(1),
+    paddingVertical: hp(1.2),
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    borderRadius: theme.radius.xl,
+    borderStyle: 'dashed',
+  },
+  mapButtonText: {
+    fontSize: hp(1.6),
+    color: theme.colors.primary,
+    fontWeight: theme.fonts.medium,
+  },
+  coordsInfo: {
+    fontSize: hp(1.4),
+    color: theme.colors.textLight,
+    textAlign: 'center',
+    marginTop: hp(0.8),
   },
 });
