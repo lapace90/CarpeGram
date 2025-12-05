@@ -17,7 +17,8 @@ export const useMessages = (conversationId, userId) => {
     if (conversationId && userId) {
       loadMessages();
       markAsRead();
-      subscribeToNewMessages();
+      const unsubscribe = subscribeToNewMessages();
+      return unsubscribe;
     }
   }, [conversationId, userId]);
 
@@ -69,7 +70,7 @@ export const useMessages = (conversationId, userId) => {
    * S'abonner aux nouveaux messages en temps réel
    */
   const subscribeToNewMessages = () => {
-    if (!conversationId || !userId) return null;
+    if (!conversationId || !userId) return () => {};
     
     const channel = supabase
       .channel(`messages-${conversationId}`)
@@ -82,7 +83,7 @@ export const useMessages = (conversationId, userId) => {
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          // Charger le message complet avec les relations
+          // Charger le message complet avec les relations de base
           const { data } = await supabase
             .from('messages')
             .select(`
@@ -99,18 +100,24 @@ export const useMessages = (conversationId, userId) => {
                 id,
                 image_url,
                 description,
-                user_id,
-                profiles:user_id (
-                  username,
-                  avatar_url
-                )
+                user_id
+              ),
+              event:event_id (
+                id,
+                title,
+                description,
+                event_date,
+                creator_id
               )
             `)
             .eq('id', payload.new.id)
             .single();
 
           if (data) {
-            setMessages(prev => [...prev, data]);
+            // Enrichir avec le profil du post/event si nécessaire
+            const enrichedMessage = await enrichSingleMessage(data);
+            
+            setMessages(prev => [...prev, enrichedMessage]);
             
             // Marquer comme lu si c'est un message reçu
             if (data.sender_id !== userId) {
@@ -141,6 +148,52 @@ export const useMessages = (conversationId, userId) => {
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  /**
+   * Enrichir un seul message avec les profils de l'auteur du post et créateur d'event
+   */
+  const enrichSingleMessage = async (message) => {
+    const userIds = [];
+    
+    if (message.post?.user_id) {
+      userIds.push(message.post.user_id);
+    }
+    if (message.event?.creator_id) {
+      userIds.push(message.event.creator_id);
+    }
+
+    if (userIds.length === 0) {
+      return message;
+    }
+
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, first_name, last_name, show_full_name')
+      .in('id', userIds);
+
+    const profileMap = {};
+    (profiles || []).forEach(p => {
+      profileMap[p.id] = p;
+    });
+
+    const enriched = { ...message };
+    
+    if (message.post?.user_id && profileMap[message.post.user_id]) {
+      enriched.post = {
+        ...message.post,
+        profiles: profileMap[message.post.user_id]
+      };
+    }
+    
+    if (message.event?.creator_id && profileMap[message.event.creator_id]) {
+      enriched.event = {
+        ...message.event,
+        creator: profileMap[message.event.creator_id]
+      };
+    }
+    
+    return enriched;
   };
 
   return {

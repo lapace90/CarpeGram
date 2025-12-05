@@ -169,6 +169,13 @@ const TabLayout = () => {
           }}
         />
         <Tabs.Screen
+          name="weather"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
           name="settings/blocked"
           options={{
             href: null,

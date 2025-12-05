@@ -3,6 +3,7 @@ import { uploadImage } from './imageService';
 
 /**
  * Récupérer les messages d'une conversation
+ * On récupère les données de base puis on enrichit manuellement
  */
 export const getConversationMessages = async (conversationId, limit = 50) => {
   try {
@@ -22,33 +23,7 @@ export const getConversationMessages = async (conversationId, limit = 50) => {
           id,
           image_url,
           description,
-          user_id,
-          profiles:user_id (
-            username,
-            avatar_url
-          ),
-          event:event_id (
-            *,
-            creator:creator_id (
-              id,
-              username,
-              avatar_url,
-              first_name,
-              last_name,
-              show_full_name
-            )
-          )
-        ),
-        event:event_id (
-          *,
-          creator:creator_id (
-            id,
-            username,
-            avatar_url,
-            first_name,
-            last_name,
-            show_full_name
-          )
+          user_id
         )
       `)
       .eq('conversation_id', conversationId)
@@ -57,11 +32,92 @@ export const getConversationMessages = async (conversationId, limit = 50) => {
 
     if (error) throw error;
 
-    return { success: true, data: data || [] };
+    // Enrichir avec les profils et events
+    const enrichedData = await enrichMessages(data || []);
+
+    return { success: true, data: enrichedData };
   } catch (error) {
     console.error('Get conversation messages error:', error);
     return { success: false, error: error.message };
   }
+};
+
+/**
+ * Enrichir les messages avec les profils et events
+ */
+const enrichMessages = async (messages) => {
+  // Collecter les IDs nécessaires
+  const userIds = new Set();
+  const eventIds = new Set();
+  
+  messages.forEach(msg => {
+    if (msg.post?.user_id) {
+      userIds.add(msg.post.user_id);
+    }
+    if (msg.event_id) {
+      eventIds.add(msg.event_id);
+    }
+  });
+
+  // Récupérer les profils
+  let profileMap = {};
+  if (userIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, first_name, last_name, show_full_name')
+      .in('id', Array.from(userIds));
+    
+    (profiles || []).forEach(p => {
+      profileMap[p.id] = p;
+    });
+  }
+
+  // Récupérer les events
+  let eventMap = {};
+  if (eventIds.size > 0) {
+    const { data: events } = await supabase
+      .from('events')
+      .select('id, title, description, event_date, end_date, location, creator_id')
+      .in('id', Array.from(eventIds));
+    
+    // Aussi récupérer les créateurs d'events
+    const creatorIds = (events || []).map(e => e.creator_id).filter(Boolean);
+    if (creatorIds.length > 0) {
+      const { data: creators } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, first_name, last_name, show_full_name')
+        .in('id', creatorIds);
+      
+      (creators || []).forEach(c => {
+        profileMap[c.id] = c;
+      });
+    }
+    
+    (events || []).forEach(e => {
+      eventMap[e.id] = {
+        ...e,
+        creator: profileMap[e.creator_id] || null
+      };
+    });
+  }
+
+  // Enrichir les messages
+  return messages.map(msg => {
+    const enriched = { ...msg };
+    
+    if (msg.post?.user_id && profileMap[msg.post.user_id]) {
+      enriched.post = {
+        ...msg.post,
+        profiles: profileMap[msg.post.user_id]
+      };
+    }
+    
+    if (msg.event_id && eventMap[msg.event_id]) {
+      enriched.event = eventMap[msg.event_id];
+    }
+    
+    return enriched;
+  });
 };
 
 /**
@@ -193,6 +249,9 @@ export const markMessagesAsRead = async (conversationId, userId) => {
   }
 };
 
+/**
+ * Récupérer une conversation par ID avec l'autre utilisateur
+ */
 export const getConversationById = async (conversationId, currentUserId) => {
   try {
     const { data: conversation, error: convError } = await supabase

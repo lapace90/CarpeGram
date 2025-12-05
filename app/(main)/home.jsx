@@ -13,17 +13,18 @@ import { useRouter } from 'expo-router'
 import EmptyState from '../../components/EmptyState'
 import BubblesLoader from '../../components/animations/BubblesLoader'
 import { useNotifications } from '../../hooks/useNotifications'
+import WeatherWidget from '../../components/weather/WeatherWidget';
 
 const Home = () => {
   const router = useRouter();
   const isFocused = useIsFocused();
-  const { user } = useAuth(); // ← Hooks en haut du composant
+  const { user } = useAuth(); 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { unreadCount } = useNotifications(user?.id);
 
-  // ← Charger les posts quand user est disponible
+  // Charger les posts quand user est disponible
   useEffect(() => {
     if (user) {
       loadPosts();
@@ -128,6 +129,7 @@ const Home = () => {
           </View>
         </View>
       </View>
+       <WeatherWidget />
     </View>
   );
 
