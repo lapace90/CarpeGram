@@ -1,12 +1,13 @@
 import { Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
 import Icon from '../assets/icons';
 import { useRouter } from 'expo-router';
 import { getOrCreateConversation } from '../services/conversationService';
 
 const MessageButton = ({ currentUserId, otherUserId, variant = 'full' }) => {
+  const { theme } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +26,7 @@ const MessageButton = ({ currentUserId, otherUserId, variant = 'full' }) => {
   if (variant === 'icon') {
     return (
       <Pressable
-        style={styles.iconButton}
+        style={[styles.iconButton, { backgroundColor: theme.colors.primary + '15' }]}
         onPress={handlePress}
         disabled={loading}
       >
@@ -40,7 +41,11 @@ const MessageButton = ({ currentUserId, otherUserId, variant = 'full' }) => {
 
   return (
     <Pressable
-      style={[styles.button, loading && styles.buttonDisabled]}
+      style={[
+        styles.button, 
+        { backgroundColor: theme.colors.primary, borderRadius: theme.radius.lg },
+        loading && styles.buttonDisabled
+      ]}
       onPress={handlePress}
       disabled={loading}
     >
@@ -49,7 +54,9 @@ const MessageButton = ({ currentUserId, otherUserId, variant = 'full' }) => {
       ) : (
         <>
           <Icon name="send" size={20} color="white" />
-          <Text style={styles.buttonText}>Message</Text>
+          <Text style={[styles.buttonText, { fontWeight: theme.fonts.semiBold }]}>
+            Message
+          </Text>
         </>
       )}
     </Pressable>
@@ -64,24 +71,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: theme.colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: theme.radius.lg,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semiBold,
     color: 'white',
   },
   iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },

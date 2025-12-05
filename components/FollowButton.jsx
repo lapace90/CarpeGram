@@ -1,33 +1,32 @@
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
+import { Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
 import React from 'react'
-import { theme } from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import { hp } from '../helpers/common'
 
 const FollowButton = ({ 
   isFollowing, 
   onPress, 
   loading = false,
-  size = 'medium', // small, medium, large
+  size = 'medium',
   style 
 }) => {
+  const { theme } = useTheme();
+
   const getButtonStyle = () => {
-    const baseStyle = [styles.button];
+    const baseStyle = [styles.button, { borderRadius: theme.radius.xl }];
     
-    // Size variations
     if (size === 'small') {
       baseStyle.push(styles.buttonSmall);
     } else if (size === 'large') {
       baseStyle.push(styles.buttonLarge);
     }
     
-    // Following state
     if (isFollowing) {
-      baseStyle.push(styles.buttonFollowing);
+      baseStyle.push({ backgroundColor: 'white', borderWidth: 1.5, borderColor: theme.colors.gray });
     } else {
-      baseStyle.push(styles.buttonNotFollowing);
+      baseStyle.push({ backgroundColor: theme.colors.primary });
     }
     
-    // Custom style
     if (style) {
       baseStyle.push(style);
     }
@@ -36,7 +35,7 @@ const FollowButton = ({
   };
 
   const getTextStyle = () => {
-    const baseStyle = [styles.buttonText];
+    const baseStyle = [styles.buttonText, { fontWeight: theme.fonts.semiBold }];
     
     if (size === 'small') {
       baseStyle.push(styles.textSmall);
@@ -45,9 +44,9 @@ const FollowButton = ({
     }
     
     if (isFollowing) {
-      baseStyle.push(styles.textFollowing);
+      baseStyle.push({ color: theme.colors.text });
     } else {
-      baseStyle.push(styles.textNotFollowing);
+      baseStyle.push({ color: 'white' });
     }
     
     return baseStyle;
@@ -79,7 +78,6 @@ const styles = StyleSheet.create({
   button: {
     paddingHorizontal: 24,
     paddingVertical: 8,
-    borderRadius: theme.radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 100,
@@ -94,28 +92,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     minWidth: 120,
   },
-  buttonNotFollowing: {
-    backgroundColor: theme.colors.primary,
-  },
-  buttonFollowing: {
-    backgroundColor: 'white',
-    borderWidth: 1.5,
-    borderColor: theme.colors.gray,
-  },
   buttonText: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semibold,
   },
   textSmall: {
     fontSize: hp(1.6),
   },
   textLarge: {
     fontSize: hp(2),
-  },
-  textNotFollowing: {
-    color: 'white',
-  },
-  textFollowing: {
-    color: theme.colors.text,
   },
 });

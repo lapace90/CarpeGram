@@ -1,11 +1,12 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import React from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
 import Avatar from './Avatar';
 import { useRouter } from 'expo-router';
 
 const ConversationItem = ({ conversation }) => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { otherUser, lastMessage, unreadCount, id } = conversation;
 
@@ -37,16 +38,24 @@ const ConversationItem = ({ conversation }) => {
 
   return (
     <Pressable
-      style={[styles.container, unreadCount > 0 && styles.unread]}
+      style={[
+        styles.container, 
+        { borderBottomColor: theme.colors.gray + '40' },
+        unreadCount > 0 && { backgroundColor: theme.colors.primary + '05' }
+      ]}
       onPress={() => router.push(`/chat/${id}`)}
     >
       <Avatar profile={otherUser} size={56} />
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.name}>{displayName}</Text>
+          <Text style={[styles.name, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+            {displayName}
+          </Text>
           {lastMessage && (
-            <Text style={styles.time}>{formatTimeAgo(lastMessage.created_at)}</Text>
+            <Text style={[styles.time, { color: theme.colors.textLight }]}>
+              {formatTimeAgo(lastMessage.created_at)}
+            </Text>
           )}
         </View>
 
@@ -54,7 +63,8 @@ const ConversationItem = ({ conversation }) => {
           <Text 
             style={[
               styles.lastMessage,
-              unreadCount > 0 && styles.lastMessageUnread
+              { color: theme.colors.textLight },
+              unreadCount > 0 && { fontWeight: theme.fonts.semiBold, color: theme.colors.text }
             ]}
             numberOfLines={1}
           >
@@ -62,8 +72,8 @@ const ConversationItem = ({ conversation }) => {
           </Text>
           
           {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
+            <View style={[styles.badge, { backgroundColor: theme.colors.primary }]}>
+              <Text style={[styles.badgeText, { fontWeight: theme.fonts.bold }]}>
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Text>
             </View>
@@ -83,10 +93,6 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray + '40',
-  },
-  unread: {
-    backgroundColor: theme.colors.primary + '05',
   },
   content: {
     flex: 1,
@@ -99,12 +105,9 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   time: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   messageRow: {
     flexDirection: 'row',
@@ -114,14 +117,8 @@ const styles = StyleSheet.create({
   lastMessage: {
     flex: 1,
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
-  },
-  lastMessageUnread: {
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   badge: {
-    backgroundColor: theme.colors.primary,
     borderRadius: 12,
     minWidth: 24,
     height: 24,
@@ -132,6 +129,5 @@ const styles = StyleSheet.create({
   badgeText: {
     color: 'white',
     fontSize: hp(1.2),
-    fontWeight: theme.fonts.bold,
   },
 });

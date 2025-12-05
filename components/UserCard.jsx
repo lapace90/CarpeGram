@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, Pressable} from 'react-native'
+import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { Image } from 'expo-image'
-import React, {memo} from 'react'
-import { theme } from '../constants/theme'
+import React, { memo } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 import { hp, wp } from '../helpers/common'
 import Icon from '../assets/icons'
 import { useRouter } from 'expo-router'
@@ -9,6 +9,7 @@ import FollowButton from './FollowButton'
 import { useFollow } from '../hooks/useFollow'
 
 const UserCard = ({ user, currentUserId, showFollowButton = true }) => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { isFollowing, followersCount, loading, toggleFollow } = useFollow(
     currentUserId,
@@ -23,7 +24,7 @@ const UserCard = ({ user, currentUserId, showFollowButton = true }) => {
     : user.username;
 
   const handlePress = () => {
-    router.push( `/userProfile/${user.id}` );
+    router.push(`/userProfile/${user.id}`);
   };
 
   return (
@@ -32,29 +33,29 @@ const UserCard = ({ user, currentUserId, showFollowButton = true }) => {
       {user.avatar_url ? (
         <Image
           source={{ uri: user.avatar_url }}
-          style={styles.avatar}
+          style={[styles.avatar, { borderColor: theme.colors.gray }]}
         />
       ) : (
-        <View style={styles.avatarPlaceholder}>
+        <View style={[styles.avatarPlaceholder, { backgroundColor: theme.colors.gray, borderColor: theme.colors.gray }]}>
           <Icon name="user" size={28} color={theme.colors.textLight} />
         </View>
       )}
 
       {/* User Info */}
       <View style={styles.userInfo}>
-        <Text style={styles.displayName} numberOfLines={1}>
+        <Text style={[styles.displayName, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]} numberOfLines={1}>
           {displayName}
         </Text>
-        <Text style={styles.username} numberOfLines={1}>
+        <Text style={[styles.username, { color: theme.colors.textLight }]} numberOfLines={1}>
           @{user.username}
         </Text>
         {/* Stats */}
         <View style={styles.stats}>
-          <Text style={styles.statText}>
+          <Text style={[styles.statText, { color: theme.colors.textLight }]}>
             {user.posts_count || 0} posts
           </Text>
-          <Text style={styles.statDot}>•</Text>
-          <Text style={styles.statText}>
+          <Text style={[styles.statDot, { color: theme.colors.textLight }]}>•</Text>
+          <Text style={[styles.statText, { color: theme.colors.textLight }]}>
             {followersCount} followers
           </Text>
         </View>
@@ -89,17 +90,14 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 2,
-    borderColor: theme.colors.gray,
   },
   avatarPlaceholder: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.colors.gray,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.gray,
   },
   userInfo: {
     flex: 1,
@@ -107,12 +105,9 @@ const styles = StyleSheet.create({
   },
   displayName: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
   },
   username: {
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
   },
   stats: {
     flexDirection: 'row',
@@ -122,10 +117,8 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
   },
   statDot: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
   },
 });

@@ -1,16 +1,49 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { View, StyleSheet } from 'react-native';
+import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
 
-const ScreenWrapper = ({ children, bg }) => {
-    const { top } = useSafeAreaInsets();
-    const paddingTop = top > 0 ? top + 5 : 30;
-    
-    return (
-        <View style={{ flex: 1, paddingTop, backgroundColor: bg }}>
-            {children}
-        </View>
-    )
-}
+/**
+ * ScreenWrapper - Safe area wrapper with theme support
+ * 
+ * @param {string} bg - Optional background color override
+ * @param {object} style - Additional styles
+ * @param {boolean} edges - Safe area edges to apply (default: top)
+ */
+const ScreenWrapper = ({ 
+  children, 
+  bg, 
+  style,
+  edges = ['top'],
+}) => {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
-export default ScreenWrapper
+  const paddingStyle = {
+    paddingTop: edges.includes('top') ? insets.top : 0,
+    paddingBottom: edges.includes('bottom') ? insets.bottom : 0,
+    paddingLeft: edges.includes('left') ? insets.left : 0,
+    paddingRight: edges.includes('right') ? insets.right : 0,
+  };
+
+  return (
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: bg || theme.colors.background },
+        paddingStyle,
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
+};
+
+export default ScreenWrapper;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

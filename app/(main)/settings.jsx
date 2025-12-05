@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useRouter } from 'expo-router';
 import Icon from '../../assets/icons';
@@ -11,6 +11,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const Settings = () => {
   const router = useRouter();
   const { user } = useAuth();
+  const { theme } = useTheme();
 
   const settingsSections = [
     {
@@ -60,8 +61,14 @@ const Settings = () => {
       ],
     },
     {
-      title: 'Notifications',
+      title: 'Preferences',
       items: [
+        {
+          icon: 'globe',
+          label: 'Appearance',
+          route: '/settings/appearance',
+          description: 'Theme and display options',
+        },
         {
           icon: 'bell',
           label: 'Notifications',
@@ -93,14 +100,16 @@ const Settings = () => {
       style={styles.settingItem}
       onPress={() => handleNavigate(item.route)}
     >
-      <View style={styles.iconContainer}>
+      <View style={[styles.iconContainer, { backgroundColor: theme.colors.primary + '15' }]}>
         <Icon name={item.icon} size={22} color={theme.colors.primary} />
       </View>
 
       <View style={styles.settingContent}>
-        <Text style={styles.settingLabel}>{item.label}</Text>
+        <Text style={[styles.settingLabel, { color: theme.colors.text }]}>{item.label}</Text>
         {item.description && (
-          <Text style={styles.settingDescription}>{item.description}</Text>
+          <Text style={[styles.settingDescription, { color: theme.colors.textLight }]}>
+            {item.description}
+          </Text>
         )}
       </View>
 
@@ -110,12 +119,16 @@ const Settings = () => {
 
   const renderSection = (section) => (
     <View key={section.title} style={styles.section}>
-      <Text style={styles.sectionTitle}>{section.title}</Text>
-      <View style={styles.sectionContent}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.textLight }]}>
+        {section.title}
+      </Text>
+      <View style={[styles.sectionContent, { borderColor: theme.colors.gray }]}>
         {section.items.map((item, index) => (
           <View key={item.label}>
             {renderSettingItem(item)}
-            {index < section.items.length - 1 && <View style={styles.separator} />}
+            {index < section.items.length - 1 && (
+              <View style={[styles.separator, { backgroundColor: theme.colors.gray }]} />
+            )}
           </View>
         ))}
       </View>
@@ -123,12 +136,12 @@ const Settings = () => {
   );
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.background}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
-          <BackButton />
-          <Text style={styles.title}>Settings</Text>
+        <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
+          <BackButton router={router} />
+          <Text style={[styles.title, { color: theme.colors.text }]}>Settings</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -141,8 +154,12 @@ const Settings = () => {
 
           {/* App Version */}
           <View style={styles.versionContainer}>
-            <Text style={styles.versionText}>Carpegram v1.0.0</Text>
-            <Text style={styles.versionSubtext}>Built with 💚 for anglers</Text>
+            <Text style={[styles.versionText, { color: theme.colors.textLight }]}>
+              Carpegram v1.0.0
+            </Text>
+            <Text style={[styles.versionSubtext, { color: theme.colors.textLight }]}>
+              Built with 💚 for anglers
+            </Text>
           </View>
         </ScrollView>
       </View>
@@ -163,12 +180,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   title: {
     fontSize: hp(2.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
+    fontWeight: '700',
   },
   scrollContent: {
     paddingVertical: hp(2),
@@ -178,8 +193,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.textLight,
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     paddingHorizontal: wp(5),
@@ -189,7 +203,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: theme.colors.gray,
   },
   settingItem: {
     flexDirection: 'row',
@@ -202,7 +215,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -212,17 +224,14 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.medium,
-    color: theme.colors.text,
+    fontWeight: '500',
   },
   settingDescription: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
   },
   separator: {
     height: 1,
-    backgroundColor: theme.colors.gray,
-    marginLeft: wp(5) + 52, // Align with content
+    marginLeft: wp(5) + 52,
   },
   versionContainer: {
     alignItems: 'center',
@@ -231,10 +240,8 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
   },
   versionSubtext: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
 });

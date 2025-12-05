@@ -1,14 +1,15 @@
-import { StyleSheet, Pressable, View } from 'react-native'
+import { StyleSheet, Pressable } from 'react-native'
 import React from 'react'
-import { theme } from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import Icon from '../assets/icons/index'
 
+const BackButton = ({ size = 26, router, to }) => {
+  const { theme } = useTheme();
 
-const BackButton = ({size=26, router, to}) => {
   return (
     <Pressable 
       onPress={() => to ? router.push(to) : router.back()} 
-      style={styles.button}
+      style={[styles.button, { borderRadius: theme.radius.sm }]}
     >
       <Icon name="arrowLeft" strokeWidth={2.5} size={size} color={theme.colors.text} />
     </Pressable>
@@ -18,11 +19,9 @@ const BackButton = ({size=26, router, to}) => {
 export default BackButton
 
 const styles = StyleSheet.create({
-
-    button:{
-        alignSelf: "flex-start",
-        padding: 5,
-        borderRadius: theme.radius.sm,
-        backgroundColor: 'rgba(0,0,0,0.07)'
-    }
+  button: {
+    alignSelf: "flex-start",
+    padding: 5,
+    backgroundColor: 'rgba(0,0,0,0.07)'
+  }
 })

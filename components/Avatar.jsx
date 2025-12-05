@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image'
 import React from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Avatar = ({ profile, size = 40, style }) => {
+  const { theme } = useTheme();
+
   const avatarSize = {
     width: size,
     height: size,
@@ -42,7 +44,7 @@ const Avatar = ({ profile, size = 40, style }) => {
 
   // Sinon afficher les initiales
   return (
-    <View style={[styles.placeholder, avatarSize, style]}>
+    <View style={[styles.placeholder, { backgroundColor: theme.colors.primary }, avatarSize, style]}>
       <Text style={[styles.initials, { fontSize }]}>{initials}</Text>
     </View>
   );
@@ -52,7 +54,6 @@ export default Avatar;
 
 const styles = StyleSheet.create({
   placeholder: {
-    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
