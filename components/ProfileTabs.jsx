@@ -1,30 +1,26 @@
-import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
+import { View, Pressable, StyleSheet, Animated } from 'react-native';
 import React, { useEffect, useRef } from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { commonStyles } from '../constants/commonStyles';
-import { hp, wp } from '../helpers/common';
+import { hp } from '../helpers/common';
 import Icon from '../assets/icons';
 
 const ProfileTabs = ({ 
   activeTab, 
   onTabPress, 
   showSaved = true,
-  // postsCount = 0,
-  // sharedCount = 0,
-  // savedCount = 0,
 }) => {
+  const { theme } = useTheme();
   const indicatorPosition = useRef(new Animated.Value(0)).current;
 
-  // Tabs configuration
   const tabs = [
     { id: 'posts', label: 'Posts', icon: 'image' },
     { id: 'shared', label: 'Shared', icon: 'share' },
     ...(showSaved ? [{ id: 'saved', label: 'Saved', icon: 'bookmark' }] : []),
   ];
 
-  const tabWidth = 100 / tabs.length; // Percentage
+  const tabWidth = 100 / tabs.length;
 
-  // Animer l'indicateur quand la tab change
   useEffect(() => {
     const tabIndex = tabs.findIndex(tab => tab.id === activeTab);
     
@@ -37,8 +33,7 @@ const ProfileTabs = ({
   }, [activeTab, tabs.length]);
 
   return (
-    <View style={styles.container}>
-      {/* Tabs */}
+    <View style={[styles.container, { borderBottomColor: theme.colors.gray }]}>
       <View style={styles.tabsRow}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -49,24 +44,23 @@ const ProfileTabs = ({
               style={[styles.tab, { width: `${tabWidth}%` }]}
               onPress={() => onTabPress(tab.id)}
             >
-              <View style={[commonStyles.flexCenter, styles.tabContent]}>
+              <View style={[commonStyles.center, styles.tabContent]}>
                 <Icon
                   name={tab.icon}
                   size={24}
                   color={isActive ? theme.colors.primary : theme.colors.textLight}
                   strokeWidth={isActive ? 2.5 : 2}
                 />
-                
               </View>
             </Pressable>
           );
         })}
       </View>
 
-      {/* Indicateur animé */}
       <Animated.View
         style={[
           styles.indicator,
+          { backgroundColor: theme.colors.text },
           {
             width: `${tabWidth}%`,
             left: indicatorPosition.interpolate({
@@ -77,8 +71,7 @@ const ProfileTabs = ({
         ]}
       />
 
-      {/* Ligne de séparation */}
-      <View style={styles.separator} />
+      <View style={[styles.separator, { backgroundColor: theme.colors.gray }]} />
     </View>
   );
 };
@@ -89,7 +82,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   tabsRow: {
     flexDirection: 'row',
@@ -102,23 +94,12 @@ const styles = StyleSheet.create({
   tabContent: {
     gap: 4,
   },
-  countText: {
-    fontSize: hp(1.3),
-    color: theme.colors.textLight,
-    fontWeight: theme.fonts.medium,
-  },
-  countTextActive: {
-    color: theme.colors.text,
-    fontWeight: theme.fonts.semiBold,
-  },
   indicator: {
     position: 'absolute',
     bottom: 0,
     height: 2,
-    backgroundColor: theme.colors.text,
   },
   separator: {
     height: 1,
-    backgroundColor: theme.colors.gray,
   },
 });

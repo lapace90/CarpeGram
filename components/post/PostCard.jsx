@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native'
 import { Image } from 'expo-image'
 import React, { useRef, useState, memo } from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
@@ -20,6 +20,7 @@ import Avatar from '../Avatar'
 import RichText from '../RichText';
 
 const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false }) => {
+  const { theme } = useTheme();
   const [showComments, setShowComments] = useState(false);
   const [showRepostModal, setShowRepostModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -42,7 +43,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
     comments_count,
     created_at,
     profiles,
-    // Repost fields
     is_repost,
     repost_user_id,
     repost_comment,
@@ -52,10 +52,7 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
     reposted_at,
   } = post;
 
-  // Use original_profiles if it's a repost, otherwise use profiles
   const postAuthor = is_repost ? original_profiles : profiles;
-
-  // Check ownership
   const isOwnPost = currentUserId === user_id;
   const isOwnRepost = is_repost && currentUserId === repost_user_id;
 
@@ -123,12 +120,9 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
   };
 
   const handleEventJoin = async (eventId) => {
-    // On peut importer et utiliser directement le service
     const { joinEvent } = require('../../services/eventService');
     const result = await joinEvent(eventId, currentUserId);
-
     if (result.success && onUpdate) {
-      // Rafraîchir pour mettre à jour le statut
       onUpdate();
     }
   };
@@ -136,7 +130,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
   const handleEventLeave = async (eventId) => {
     const { leaveEvent } = require('../../services/eventService');
     const result = await leaveEvent(eventId, currentUserId);
-
     if (result.success && onUpdate) {
       onUpdate();
     }
@@ -144,8 +137,15 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
 
   return (
     <>
-      <View style={styles.card}>
-        {/* Repost Header - Menu ICI si c'est ton repost */}
+      <View style={[
+        styles.card, 
+        { 
+          backgroundColor: theme.colors.card, 
+          borderRadius: theme.radius.xl,
+          borderColor: theme.colors.gray,
+          shadowColor: theme.colors.dark,
+        }
+      ]}>
         {is_repost && (
           <RepostHeader
             repostProfile={repost_profiles}
@@ -156,7 +156,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
         )}
 
         <Pressable onPress={onPress}>
-          {/* Original Post Header - Menu ICI si c'est ton post ORIGINAL (pas repost) */}
           <View style={[commonStyles.flexRowBetween, commonStyles.paddingH12, commonStyles.paddingV12]}>
             <View style={[commonStyles.flexRowCenter, commonStyles.gap10]}>
               <Avatar profile={postAuthor} size={40} />
@@ -172,7 +171,7 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
             </View>
 
             <View style={[commonStyles.flexRowCenter, commonStyles.gap8]}>
-              <View style={styles.privacyBadge}>
+              <View style={[styles.privacyBadge, { backgroundColor: theme.colors.gray }]}>
                 <Icon
                   name={privacy === 'public' ? 'globe' : privacy === 'followers' ? 'user' : 'heart'}
                   size={14}
@@ -180,7 +179,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
                 />
               </View>
 
-              {/* Menu UNIQUEMENT si c'est ton post original ET que ce n'est PAS un repost */}
               {isOwnPost && !is_repost && (
                 <Pressable
                   onPress={() => setShowMenu(true)}
@@ -195,7 +193,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
 
           <Image source={{ uri: image_url }} style={styles.postImage} />
 
-          {/** Event Card */}
           {post.event && (
             <View style={styles.eventContainer}>
               <EventCard
@@ -210,7 +207,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
           )}
 
           <View style={[commonStyles.flexRow, styles.actions]}>
-            {/* Like */}
             <Pressable onPress={handleLike} style={[commonStyles.flexRowCenter, commonStyles.gap6]}>
               <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
                 <Icon
@@ -220,21 +216,25 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
                   color={liked ? theme.colors.rose : theme.colors.text}
                 />
               </Animated.View>
-              <Text style={[styles.actionText, liked && styles.actionTextLiked]}>
+              <Text style={[
+                styles.actionText, 
+                { color: theme.colors.text, fontWeight: theme.fonts.medium },
+                liked && { color: theme.colors.rose, fontWeight: theme.fonts.semiBold }
+              ]}>
                 {likesCount}
               </Text>
             </Pressable>
 
-            {/* Comment */}
             <Pressable
               onPress={() => setShowComments(true)}
               style={[commonStyles.flexRowCenter, commonStyles.gap6]}
             >
               <Icon name="comment" size={24} color={theme.colors.text} />
-              <Text style={styles.actionText}>{comments_count || 0}</Text>
+              <Text style={[styles.actionText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                {comments_count || 0}
+              </Text>
             </Pressable>
 
-            {/* Repost */}
             <Pressable
               onPress={() => setShowRepostModal(true)}
               style={[commonStyles.flexRowCenter, commonStyles.gap6]}
@@ -246,7 +246,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
               />
             </Pressable>
 
-            {/* Save (Spacer pousse ce bouton à droite) */}
             <View style={{ flex: 1 }} />
             <Pressable onPress={toggleSave} style={[commonStyles.flexRowCenter, commonStyles.gap6]}>
               <Icon
@@ -259,39 +258,77 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
           </View>
 
           <View style={[commonStyles.paddingH12, styles.contentBottom]}>
-            <Text style={styles.description}>
-              <Text style={styles.usernameInline}>{displayName} </Text>
+            <Text style={[styles.description, { color: theme.colors.text }]}>
+              <Text style={[styles.usernameInline, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                {displayName}{' '}
+              </Text>
             </Text>
             <RichText
               text={description}
-              style={styles.description}
+              style={[styles.description, { color: theme.colors.text }]}
             />
           </View>
 
           {(fish_species || fish_weight || bait || spot) && (
             <View style={[commonStyles.flexRow, styles.fishDetails]}>
               {fish_species && (
-                <View style={styles.detailItem}>
+                <View style={[
+                  styles.detailItem, 
+                  { 
+                    backgroundColor: theme.colors.primary + '10',
+                    borderRadius: theme.radius.md,
+                    borderColor: theme.colors.primary + '30',
+                  }
+                ]}>
                   <Text style={styles.detailLabel}>🐟</Text>
-                  <Text style={styles.detailText}>{fish_species}</Text>
+                  <Text style={[styles.detailText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                    {fish_species}
+                  </Text>
                 </View>
               )}
               {fish_weight && (
-                <View style={styles.detailItem}>
+                <View style={[
+                  styles.detailItem, 
+                  { 
+                    backgroundColor: theme.colors.primary + '10',
+                    borderRadius: theme.radius.md,
+                    borderColor: theme.colors.primary + '30',
+                  }
+                ]}>
                   <Text style={styles.detailLabel}>⚖️</Text>
-                  <Text style={styles.detailText}>{fish_weight} kg</Text>
+                  <Text style={[styles.detailText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                    {fish_weight} kg
+                  </Text>
                 </View>
               )}
               {bait && (
-                <View style={styles.detailItem}>
+                <View style={[
+                  styles.detailItem, 
+                  { 
+                    backgroundColor: theme.colors.primary + '10',
+                    borderRadius: theme.radius.md,
+                    borderColor: theme.colors.primary + '30',
+                  }
+                ]}>
                   <Text style={styles.detailLabel}>🎣</Text>
-                  <Text style={styles.detailText}>{bait}</Text>
+                  <Text style={[styles.detailText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                    {bait}
+                  </Text>
                 </View>
               )}
               {spot && (
-                <View style={styles.detailItem}>
+                <View style={[
+                  styles.detailItem, 
+                  { 
+                    backgroundColor: theme.colors.primary + '10',
+                    borderRadius: theme.radius.md,
+                    borderColor: theme.colors.primary + '30',
+                  }
+                ]}>
                   <Icon name="location" size={14} color={theme.colors.primary} />
-                  <Text style={styles.detailText}>{spot}</Text>
+                  <Text style={[styles.detailText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                    {spot}
+                  </Text>
                 </View>
               )}
             </View>
@@ -299,7 +336,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
         </Pressable>
       </View>
 
-      {/* Modals */}
       <CommentsModal
         visible={showComments}
         onClose={() => setShowComments(false)}
@@ -313,7 +349,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
         onRepost={handleRepost}
       />
 
-      {/* Own Post Menus */}
       {isOwnPost && (
         <>
           <PostMenu
@@ -332,7 +367,6 @@ const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false
         </>
       )}
 
-      {/* Own Repost Menus */}
       {isOwnRepost && (
         <>
           <RepostMenu
@@ -359,13 +393,9 @@ export default memo(PostCard);
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'white',
     marginBottom: 15,
-    borderRadius: theme.radius.xl,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: theme.colors.gray,
-    shadowColor: theme.colors.dark,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -381,7 +411,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: theme.colors.gray,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -402,25 +431,15 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: hp(1.6),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
-  },
-  actionTextLiked: {
-    color: theme.colors.rose,
-    fontWeight: theme.fonts.semiBold,
   },
   contentBottom: {
     paddingBottom: 10,
   },
   description: {
     fontSize: hp(1.7),
-    color: theme.colors.text,
     lineHeight: hp(2.4),
   },
-  usernameInline: {
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
-  },
+  usernameInline: {},
   fishDetails: {
     flexWrap: 'wrap',
     gap: 12,
@@ -431,22 +450,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: theme.colors.primary + '10',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.primary + '30',
   },
   detailLabel: {
     fontSize: hp(1.6),
   },
   detailText: {
     fontSize: hp(1.5),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
   },
   eventContainer: {
-  padding: 12,
-},
+    padding: 12,
+  },
 });

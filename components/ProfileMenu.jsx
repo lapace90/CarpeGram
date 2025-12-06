@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet, Modal, Pressable } from 'react-native';
 import React from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { hp, wp } from '../helpers/common';
 import Icon from '../assets/icons';
 import { useRouter } from 'expo-router';
 import { useLogout } from '../hooks/useLogout';
 
 const ProfileMenu = ({ visible, onClose, onUpdate }) => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { logout, loading } = useLogout();
 
@@ -33,24 +34,28 @@ const ProfileMenu = ({ visible, onClose, onUpdate }) => {
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <View style={styles.container}>
+        <View style={[styles.container, { borderRadius: theme.radius.xl }]}>
           <Pressable style={styles.option} onPress={handleEditProfile}>
             <Icon name="edit" size={22} color={theme.colors.text} />
-            <Text style={styles.optionText}>Edit Profile</Text>
+            <Text style={[styles.optionText, { fontWeight: theme.fonts.medium, color: theme.colors.text }]}>
+              Edit Profile
+            </Text>
           </Pressable>
 
-          <View style={styles.separator} />
+          <View style={[styles.separator, { backgroundColor: theme.colors.gray }]} />
 
           <Pressable style={styles.option} onPress={handleSettings}>
             <Icon name="alertCircle" size={22} color={theme.colors.text} />
-            <Text style={styles.optionText}>Settings</Text>
+            <Text style={[styles.optionText, { fontWeight: theme.fonts.medium, color: theme.colors.text }]}>
+              Settings
+            </Text>
           </Pressable>
 
-          <View style={styles.separator} />
+          <View style={[styles.separator, { backgroundColor: theme.colors.gray }]} />
 
           <Pressable style={styles.option} onPress={handleLogout} disabled={loading}>
             <Icon name="logout" size={22} color={theme.colors.rose} />
-            <Text style={[styles.optionText, { color: theme.colors.rose }]}>
+            <Text style={[styles.optionText, { fontWeight: theme.fonts.medium, color: theme.colors.rose }]}>
               {loading ? 'Logging out...' : 'Logout'}
             </Text>
           </Pressable>
@@ -70,7 +75,6 @@ const styles = StyleSheet.create({
   container: {
     width: wp(70),
     backgroundColor: 'white',
-    borderRadius: theme.radius.xl,
     padding: wp(3),
   },
   option: {
@@ -82,12 +86,9 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.medium,
-    color: theme.colors.text,
   },
   separator: {
     height: 1,
-    backgroundColor: theme.colors.gray,
     marginVertical: hp(0.5),
   },
 });

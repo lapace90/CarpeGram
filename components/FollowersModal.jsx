@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet, Modal, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { theme } from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import { hp, wp } from '../helpers/common'
 import Icon from '../assets/icons'
 import { getFollowers } from '../services/followService'
 import UserCard from './UserCard'
 
 const FollowersModal = ({ visible, onClose, userId, currentUserId }) => {
+  const { theme } = useTheme();
   const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -43,8 +44,12 @@ const FollowersModal = ({ visible, onClose, userId, currentUserId }) => {
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Icon name="user" size={60} strokeWidth={1.5} color={theme.colors.textLight} />
-      <Text style={styles.emptyTitle}>No followers yet</Text>
-      <Text style={styles.emptyText}>When people follow this account, they'll appear here 👥</Text>
+      <Text style={[styles.emptyTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+        No followers yet
+      </Text>
+      <Text style={[styles.emptyText, { color: theme.colors.textLight }]}>
+        When people follow this account, they'll appear here 👥
+      </Text>
     </View>
   );
 
@@ -56,15 +61,15 @@ const FollowersModal = ({ visible, onClose, userId, currentUserId }) => {
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Followers</Text>
+        <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
+          <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            Followers
+          </Text>
           <Pressable style={styles.closeButton} onPress={onClose}>
             <Icon name="arrowLeft" size={24} color={theme.colors.text} />
           </Pressable>
         </View>
 
-        {/* Followers List */}
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -98,12 +103,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   title: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   closeButton: {
     padding: 8,
@@ -126,13 +128,10 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
     marginTop: 10,
   },
   emptyText: {
     fontSize: hp(1.8),
-    color: theme.colors.textLight,
     textAlign: 'center',
   },
 });

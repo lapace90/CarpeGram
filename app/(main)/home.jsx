@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, FlatList, RefreshControl, Pressable, BackHandle
 import React, { useState, useEffect } from 'react'
 import { useIsFocused } from '@react-navigation/native'
 import ScreenWrapper from '../../components/ScreenWrapper'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp, wp } from '../../helpers/common'
 import { useAuth } from '../../contexts/AuthContext'
@@ -16,6 +16,7 @@ import { useNotifications } from '../../hooks/useNotifications'
 import WeatherWidget from '../../components/weather/WeatherWidget';
 
 const Home = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const isFocused = useIsFocused();
   const { user } = useAuth(); 
@@ -24,7 +25,6 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { unreadCount } = useNotifications(user?.id);
 
-  // Charger les posts quand user est disponible
   useEffect(() => {
     if (user) {
       loadPosts();
@@ -32,7 +32,6 @@ const Home = () => {
   }, [user]);
 
   useEffect(() => {
-    // Ne s'active QUE quand on est sur l'écran home
     if (!isFocused) return;
 
     const backAction = () => {
@@ -92,10 +91,18 @@ const Home = () => {
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <View style={styles.headerGradient}>
+      <View style={[
+        styles.headerGradient, 
+        { 
+          backgroundColor: theme.colors.primary,
+          borderBottomLeftRadius: theme.radius.xl,
+          borderBottomRightRadius: theme.radius.xl,
+          shadowColor: theme.colors.dark,
+        }
+      ]}>
         <View style={[commonStyles.flexRowBetween, styles.header]}>
           <View style={styles.logoSection}>
-            <Text style={styles.logo}>Carpegram</Text>
+            <Text style={[styles.logo, { fontWeight: theme.fonts.extraBold }]}>Carpegram</Text>
             <Text style={styles.logoEmoji}>🎣</Text>
           </View>
           <View style={[commonStyles.flexRow, styles.headerActions]}>
@@ -103,10 +110,10 @@ const Home = () => {
               style={styles.iconButton}
               onPress={() => router.push('/notifications')}
             >
-              <Icon name="heart" size={26} strokeWidth={2} color="white" />
+              <Icon name="heart" size={26} strokeWidth={2} color={theme.colors.card} />
               {unreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
+                <View style={[styles.badge, { backgroundColor: theme.colors.rose, borderColor: theme.colors.primary }]}>
+                  <Text style={[styles.badgeText, { fontWeight: theme.fonts.bold }]}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Text>
                 </View>
@@ -117,19 +124,19 @@ const Home = () => {
               style={styles.iconButton}
               onPress={() => router.push('/events')}
             >
-              <Icon name="calendar" size={26} strokeWidth={2} color="white" />
+              <Icon name="calendar" size={26} strokeWidth={2} color={theme.colors.card} />
             </Pressable>
 
             <Pressable
               style={styles.iconButton}
               onPress={() => router.push('/messages')}
             >
-              <Icon name="send" size={26} strokeWidth={2} color="white" />
+              <Icon name="send" size={26} strokeWidth={2} color={theme.colors.card} />
             </Pressable>
           </View>
         </View>
       </View>
-       <WeatherWidget />
+      <WeatherWidget />
     </View>
   );
 
@@ -139,7 +146,9 @@ const Home = () => {
         {renderHeader()}
         <View style={styles.loadingContainer}>
           <BubblesLoader size={80} color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading your feed...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textLight, fontWeight: theme.fonts.medium }]}>
+            Loading your feed...
+          </Text>
         </View>
       </ScreenWrapper>
     );
@@ -180,12 +189,8 @@ const styles = StyleSheet.create({
     marginBottom: hp(1),
   },
   headerGradient: {
-    backgroundColor: theme.colors.primary,
     paddingTop: hp(1),
     paddingBottom: hp(2),
-    borderBottomLeftRadius: theme.radius.xl,
-    borderBottomRightRadius: theme.radius.xl,
-    shadowColor: theme.colors.dark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -201,7 +206,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontSize: hp(2.8),
-    fontWeight: theme.fonts.extraBold,
     color: 'white',
     letterSpacing: 0.5,
   },
@@ -221,7 +225,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 2,
-    backgroundColor: theme.colors.rose,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -229,12 +232,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 5,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
   },
   badgeText: {
     color: 'white',
     fontSize: hp(1.2),
-    fontWeight: theme.fonts.bold,
   },
   listContainer: {
     paddingTop: 0,
@@ -249,8 +250,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: hp(1.8),
-    color: theme.colors.textLight,
     marginTop: hp(2),
-    fontWeight: theme.fonts.medium,
   },
 });

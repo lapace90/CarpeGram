@@ -1,11 +1,12 @@
 import { View, TextInput, StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
 import React, { useState } from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
 import Icon from '../assets/icons';
 import * as ImagePicker from 'expo-image-picker';
 
 const ChatInput = ({ onSendText, onSendImage, loading }) => {
+  const { theme } = useTheme();
   const [text, setText] = useState('');
 
   const handleSend = () => {
@@ -35,7 +36,7 @@ const ChatInput = ({ onSendText, onSendImage, loading }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderTopColor: theme.colors.gray }]}>
       <Pressable 
         style={styles.iconButton}
         onPress={handlePickImage}
@@ -45,7 +46,14 @@ const ChatInput = ({ onSendText, onSendImage, loading }) => {
       </Pressable>
 
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input, 
+          { 
+            backgroundColor: theme.colors.gray + '30',
+            borderRadius: theme.radius.xl,
+            color: theme.colors.text,
+          }
+        ]}
         placeholder="Type a message..."
         placeholderTextColor={theme.colors.textLight}
         value={text}
@@ -58,7 +66,8 @@ const ChatInput = ({ onSendText, onSendImage, loading }) => {
       <Pressable
         style={[
           styles.sendButton,
-          (!text.trim() || loading) && styles.sendButtonDisabled
+          { backgroundColor: theme.colors.primary },
+          (!text.trim() || loading) && { backgroundColor: theme.colors.gray }
         ]}
         onPress={handleSend}
         disabled={!text.trim() || loading}
@@ -87,7 +96,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     gap: 8,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray,
     backgroundColor: 'white',
   },
   iconButton: {
@@ -95,23 +103,16 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: theme.colors.gray + '30',
-    borderRadius: theme.radius.xl,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: hp(1.7),
-    color: theme.colors.text,
     maxHeight: 100,
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    backgroundColor: theme.colors.gray,
   },
 });

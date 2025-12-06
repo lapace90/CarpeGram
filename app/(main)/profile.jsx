@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { hp, wp } from '../../helpers/common'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'expo-router'
@@ -17,6 +17,7 @@ import ProfileTabs from '../../components/ProfileTabs'
 import { useProfileTabs } from '../../hooks/useProfileTabs'
 
 const Profile = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -82,24 +83,26 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.card}>
         <View style={styles.center}>
-          <Text>Loading...</Text>
+          <Text style={{ color: theme.colors.text }}>Loading...</Text>
         </View>
       </ScreenWrapper>
     )
   }
 
   return (
-    <ScreenWrapper bg="white">
-      <View style={styles.container}>
+    <ScreenWrapper bg={theme.colors.card}>
+      <View style={[styles.container, { backgroundColor: theme.colors.card }]}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header avec gradient */}
-          <View style={styles.headerGradient}>
+          <View style={[styles.headerGradient, { backgroundColor: theme.colors.primary }]}>
             <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>@{profile?.username}</Text>
+              <Text style={[styles.headerTitle, { fontWeight: theme.fonts.bold }]}>
+                @{profile?.username}
+              </Text>
               <Pressable style={styles.menuButton} onPress={() => setShowMenu(true)}>
-                <Icon name="threeDotsHorizontal" size={20} color="white" />
+                <Icon name="threeDotsHorizontal" size={20} color={theme.colors.card} />
               </Pressable>
             </View>
 
@@ -109,15 +112,18 @@ const Profile = () => {
                 {profile?.avatar_url ? (
                   <Image
                     source={{ uri: `${profile.avatar_url}?t=${Date.now()}` }}
-                    style={styles.avatar}
+                    style={[styles.avatar, { borderColor: theme.colors.card, shadowColor: theme.colors.dark }]}
                   />
                 ) : (
-                  <View style={styles.avatar}>
+                  <View style={[styles.avatar, { backgroundColor: theme.colors.card, borderColor: theme.colors.card, shadowColor: theme.colors.dark }]}>
                     <Icon name="user" size={50} color={theme.colors.primary} />
                   </View>
                 )}
-                <Pressable style={styles.cameraButton} onPress={handleAvatarChange}>
-                  <Icon name="camera" size={14} color="white" />
+                <Pressable 
+                  style={[styles.cameraButton, { backgroundColor: theme.colors.primary, borderColor: theme.colors.card }]} 
+                  onPress={handleAvatarChange}
+                >
+                  <Icon name="camera" size={14} color={theme.colors.card} />
                 </Pressable>
               </View>
             </View>
@@ -126,14 +132,14 @@ const Profile = () => {
           {/* Info Section */}
           <View style={styles.infoSection}>
             {profile?.show_full_name && profile?.first_name && (
-              <Text style={styles.fullName}>
+              <Text style={[styles.fullName, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
                 {profile.first_name} {profile.last_name || ''}
               </Text>
             )}
 
             {profile?.angler_since && (
-              <View style={styles.anglerBadge}>
-                <Text style={styles.anglerBadgeText}>
+              <View style={[styles.anglerBadge, { backgroundColor: theme.colors.primary + '15', borderRadius: theme.radius.xxl }]}>
+                <Text style={[styles.anglerBadgeText, { color: theme.colors.primary, fontWeight: theme.fonts.semiBold }]}>
                   🎣 Angler since {profile.angler_since}
                 </Text>
               </View>
@@ -142,45 +148,53 @@ const Profile = () => {
 
           {/* Stats Cards */}
           <View style={styles.statsSection}>
-            <View style={[styles.statCard, { backgroundColor: '#FF6B6B20' }]}>
-              <Text style={styles.statNumber}>{postsCount}</Text>
-              <Text style={styles.statLabel}>Catches</Text>
+            <View style={[styles.statCard, { backgroundColor: theme.colors.rose + '20', borderRadius: theme.radius.lg }]}>
+              <Text style={[styles.statNumber, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                {postsCount}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.colors.textLight }]}>Catches</Text>
             </View>
 
             <Pressable 
-              style={[styles.statCard, { backgroundColor: '#4ECDC420' }]}
+              style={[styles.statCard, { backgroundColor: theme.colors.primary + '20', borderRadius: theme.radius.lg }]}
               onPress={() => setShowFollowers(true)}
             >
-              <Text style={styles.statNumber}>{profile?.followers_count || 0}</Text>
-              <Text style={styles.statLabel}>Followers</Text>
+              <Text style={[styles.statNumber, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                {profile?.followers_count || 0}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.colors.textLight }]}>Followers</Text>
             </Pressable>
 
             <Pressable 
-              style={[styles.statCard, { backgroundColor: '#95E1D320' }]}
+              style={[styles.statCard, { backgroundColor: theme.colors.accent + '20', borderRadius: theme.radius.lg }]}
               onPress={() => setShowFollowing(true)}
             >
-              <Text style={styles.statNumber}>{profile?.following_count || 0}</Text>
-              <Text style={styles.statLabel}>Following</Text>
+              <Text style={[styles.statNumber, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                {profile?.following_count || 0}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.colors.textLight }]}>Following</Text>
             </Pressable>
           </View>
 
           {/* Bio & Location */}
           {(profile?.bio || profile?.location) && (
-            <View style={styles.detailsCard}>
+            <View style={[styles.detailsCard, { backgroundColor: theme.colors.gray, borderRadius: theme.radius.lg }]}>
               {profile?.bio && (
                 <View style={[styles.bioSection, profile?.location && { marginBottom: hp(1) }]}>
                   <View style={styles.sectionHeader}>
                     <Icon name="edit" size={16} color={theme.colors.primary} />
-                    <Text style={styles.sectionHeaderText}>Bio</Text>
+                    <Text style={[styles.sectionHeaderText, { fontWeight: theme.fonts.semiBold, color: theme.colors.primary }]}>
+                      Bio
+                    </Text>
                   </View>
-                  <Text style={styles.bioText}>{profile.bio}</Text>
+                  <Text style={[styles.bioText, { color: theme.colors.text }]}>{profile.bio}</Text>
                 </View>
               )}
               
               {profile?.location && (
                 <View style={[styles.locationSection, profile?.bio && { paddingTop: hp(0.5) }]}>
                   <Icon name="location" size={16} color={theme.colors.primary} />
-                  <Text style={styles.locationText}>{profile.location}</Text>
+                  <Text style={[styles.locationText, { color: theme.colors.text }]}>{profile.location}</Text>
                 </View>
               )}
             </View>
@@ -265,7 +279,6 @@ export default Profile
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
   center: {
     flex: 1,
@@ -274,10 +287,7 @@ const styles = StyleSheet.create({
   },
   
   // Header
-  headerGradient: {
-    backgroundColor: theme.colors.primary,
-    // paddingBottom: hp(6),
-  },
+
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -288,7 +298,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
     color: 'white',
   },
   menuButton: {
@@ -309,12 +318,9 @@ const styles = StyleSheet.create({
     width: hp(16),
     height: hp(16),
     borderRadius: hp(12),
-    backgroundColor: 'white',
     borderWidth: 4,
-    borderColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: theme.colors.dark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -327,11 +333,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: 'white',
   },
   
   // Info
@@ -343,20 +347,14 @@ const styles = StyleSheet.create({
   },
   fullName: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   anglerBadge: {
-    backgroundColor: theme.colors.primary + '15',
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.6),
-    borderRadius: theme.radius.xxl,
     marginTop: hp(0.5),
   },
   anglerBadgeText: {
     fontSize: hp(1.4),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semiBold,
   },
   
   // Stats Cards
@@ -368,27 +366,21 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    borderRadius: theme.radius.lg,
     padding: hp(1.5),
     alignItems: 'center',
     gap: hp(0.3),
   },
   statNumber: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   statLabel: {
     fontSize: hp(1.3),
-    color: theme.colors.textLight,
   },
   
   // Details Card
   detailsCard: {
     marginHorizontal: wp(4),
     marginBottom: hp(1.5),
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.lg,
     padding: hp(1.5),
   },
   bioSection: {},
@@ -400,12 +392,9 @@ const styles = StyleSheet.create({
   },
   sectionHeaderText: {
     fontSize: hp(1.5),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.primary,
   },
   bioText: {
     fontSize: hp(1.5),
-    color: theme.colors.text,
     lineHeight: hp(2),
   },
   locationSection: {
@@ -415,6 +404,5 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: hp(1.5),
-    color: theme.colors.text,
   },
 });

@@ -1,27 +1,28 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native'
-import React, { useState } from 'react' // ← MODIFIE
-import { Tabs, useRouter } from 'expo-router' // ← MODIFIE
-import { theme } from '../../constants/theme'
+import { View, StyleSheet, Pressable } from 'react-native'
+import React, { useState } from 'react'
+import { Tabs, useRouter } from 'expo-router'
+import { useTheme } from '../../contexts/ThemeContext'
 import Icon from '../../assets/icons'
 import { hp } from '../../helpers/common'
-import CreateOptionsModal from '../../components/CreateOptionsModal' // ← AJOUTE
-
-const TabIcon = ({ name, focused }) => {
-  return (
-    <View style={{ alignItems: 'center', gap: 2 }}>
-      <Icon
-        name={name}
-        size={26}
-        strokeWidth={focused ? 2.2 : 1.9}
-        color={focused ? theme.colors.primary : theme.colors.textLight}
-      />
-    </View>
-  )
-}
+import CreateOptionsModal from '../../components/CreateOptionsModal'
 
 const TabLayout = () => {
-  const router = useRouter(); // ← AJOUTE
-  const [showCreateModal, setShowCreateModal] = useState(false); // ← AJOUTE
+  const { theme } = useTheme();
+  const router = useRouter();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const TabIcon = ({ name, focused }) => {
+    return (
+      <View style={{ alignItems: 'center', gap: 2 }}>
+        <Icon
+          name={name}
+          size={26}
+          strokeWidth={focused ? 2.2 : 1.9}
+          color={focused ? theme.colors.primary : theme.colors.textLight}
+        />
+      </View>
+    )
+  };
 
   return (
     <>
@@ -31,7 +32,7 @@ const TabLayout = () => {
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textLight,
           tabBarStyle: {
-            backgroundColor: 'white',
+            backgroundColor: theme.colors.card,
             borderTopWidth: 1,
             borderTopColor: theme.colors.gray,
             height: hp(10),

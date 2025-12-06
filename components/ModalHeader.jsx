@@ -1,13 +1,17 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import React from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
 import Icon from '../assets/icons';
 
 const ModalHeader = ({ title, onClose, rightElement }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+    <View style={[styles.container, { borderBottomColor: theme.colors.gray }]}>
+      <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+        {title}
+      </Text>
       
       {rightElement ? (
         <View style={styles.rightContainer}>{rightElement}</View>
@@ -30,13 +34,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
     backgroundColor: 'white',
   },
   title: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   closeButton: {
     padding: 8,

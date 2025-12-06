@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import React from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
 import { useRouter } from 'expo-router';
 import RichText from './RichText';
 
 const MessageBubble = ({ message, isOwn }) => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { type, content, post, read, created_at } = message;
 
@@ -25,7 +26,7 @@ const MessageBubble = ({ message, isOwn }) => {
         return (
           <RichText 
             text={content} 
-            style={[styles.text, isOwn && styles.textOwn]} 
+            style={[styles.text, { color: theme.colors.text }, isOwn && styles.textOwn]} 
           />
         );
 
@@ -33,7 +34,7 @@ const MessageBubble = ({ message, isOwn }) => {
         return (
           <Image
             source={{ uri: content }}
-            style={styles.image}
+            style={[styles.image, { borderRadius: theme.radius.lg }]}
             contentFit="cover"
           />
         );
@@ -41,7 +42,7 @@ const MessageBubble = ({ message, isOwn }) => {
       case 'post_share':
         return (
           <Pressable 
-            style={styles.postShare}
+            style={[styles.postShare, { borderRadius: theme.radius.lg, borderColor: theme.colors.gray }]}
             onPress={() => router.push(`/post/${post.id}`)}
           >
             {post?.image_url && (
@@ -52,13 +53,15 @@ const MessageBubble = ({ message, isOwn }) => {
               />
             )}
             <View style={styles.postInfo}>
-              <Text style={styles.postLabel}>🎣 Shared post</Text>
+              <Text style={[styles.postLabel, { fontWeight: theme.fonts.semiBold, color: theme.colors.primary }]}>
+                🎣 Shared post
+              </Text>
               {post?.description && (
-                <Text style={styles.postDescription} numberOfLines={2}>
+                <Text style={[styles.postDescription, { color: theme.colors.text }]} numberOfLines={2}>
                   {post.description}
                 </Text>
               )}
-              <Text style={styles.postAuthor}>
+              <Text style={[styles.postAuthor, { color: theme.colors.textLight }]}>
                 by @{post?.profiles?.username}
               </Text>
             </View>
@@ -66,17 +69,21 @@ const MessageBubble = ({ message, isOwn }) => {
         );
 
       default:
-        return <Text style={styles.text}>{content}</Text>;
+        return <Text style={[styles.text, { color: theme.colors.text }]}>{content}</Text>;
     }
   };
 
   return (
     <View style={[styles.container, isOwn && styles.containerOwn]}>
-      <View style={[styles.bubble, isOwn && styles.bubbleOwn]}>
+      <View style={[
+        styles.bubble, 
+        { backgroundColor: theme.colors.gray + '30', borderRadius: theme.radius.xl },
+        isOwn && { backgroundColor: theme.colors.primary }
+      ]}>
         {renderContent()}
         
         <View style={styles.footer}>
-          <Text style={[styles.time, isOwn && styles.timeOwn]}>
+          <Text style={[styles.time, { color: theme.colors.textLight }, isOwn && styles.timeOwn]}>
             {formatTime(created_at)}
           </Text>
           
@@ -104,17 +111,11 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '75%',
-    backgroundColor: theme.colors.gray + '30',
-    borderRadius: theme.radius.xl,
     padding: 12,
     gap: 4,
   },
-  bubbleOwn: {
-    backgroundColor: theme.colors.primary,
-  },
   text: {
     fontSize: hp(1.7),
-    color: theme.colors.text,
     lineHeight: hp(2.3),
   },
   textOwn: {
@@ -123,14 +124,11 @@ const styles = StyleSheet.create({
   image: {
     width: 200,
     height: 200,
-    borderRadius: theme.radius.lg,
   },
   postShare: {
     backgroundColor: 'white',
-    borderRadius: theme.radius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: theme.colors.gray,
   },
   postImage: {
     width: 200,
@@ -142,16 +140,12 @@ const styles = StyleSheet.create({
   },
   postLabel: {
     fontSize: hp(1.5),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.primary,
   },
   postDescription: {
     fontSize: hp(1.6),
-    color: theme.colors.text,
   },
   postAuthor: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   footer: {
     flexDirection: 'row',
@@ -161,7 +155,6 @@ const styles = StyleSheet.create({
   },
   time: {
     fontSize: hp(1.2),
-    color: theme.colors.textLight,
   },
   timeOwn: {
     color: 'rgba(255,255,255,0.8)',

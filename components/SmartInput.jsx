@@ -1,14 +1,11 @@
 import { View, Text, StyleSheet, TextInput, FlatList, Pressable } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
 import { searchUsers } from '../services/userService';
 import { searchHashtags } from '../services/hashtagService';
 import Avatar from './Avatar';
 
-/**
- * TextInput avec autocomplétion des mentions @username et hashtags #tag
- */
 const MentionInput = ({ 
   value, 
   onChangeText, 
@@ -21,9 +18,10 @@ const MentionInput = ({
   maxLength,
   ...props 
 }) => {
+  const { theme } = useTheme();
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestionType, setSuggestionType] = useState(null); // 'mention' ou 'hashtag'
+  const [suggestionType, setSuggestionType] = useState(null);
   const [suggestionStart, setSuggestionStart] = useState(-1);
   const inputRef = useRef(null);
 
@@ -38,7 +36,6 @@ const MentionInput = ({
     let lastTriggerPosition = -1;
     let triggerChar = null;
     
-    // Chercher le dernier @ ou #
     for (let i = cursorPosition - 1; i >= 0; i--) {
       if (text[i] === '@' || text[i] === '#') {
         const textAfterTrigger = text.substring(i + 1, cursorPosition);
@@ -58,7 +55,6 @@ const MentionInput = ({
       
       if (query.length >= 1) {
         if (triggerChar === '@') {
-          // Rechercher des utilisateurs
           const result = await searchUsers(query, currentUserId, 5);
           
           if (result.success && result.data.length > 0) {
@@ -70,7 +66,6 @@ const MentionInput = ({
             setShowSuggestions(false);
           }
         } else if (triggerChar === '#') {
-          // Rechercher des hashtags
           const result = await searchHashtags(query, 5);
           
           if (result.success && result.data.length > 0) {
@@ -129,13 +124,17 @@ const MentionInput = ({
 
     return (
       <Pressable 
-        style={styles.suggestionItem}
+        style={[styles.suggestionItem, { borderBottomColor: theme.colors.gray + '40' }]}
         onPress={() => selectUser(item)}
       >
         <Avatar profile={item} size={36} />
         <View style={styles.suggestionInfo}>
-          <Text style={styles.suggestionName}>{displayName}</Text>
-          <Text style={styles.suggestionUsername}>@{item.username}</Text>
+          <Text style={[styles.suggestionName, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+            {displayName}
+          </Text>
+          <Text style={[styles.suggestionUsername, { color: theme.colors.textLight }]}>
+            @{item.username}
+          </Text>
         </View>
       </Pressable>
     );
@@ -144,15 +143,21 @@ const MentionInput = ({
   const renderHashtagSuggestion = ({ item }) => {
     return (
       <Pressable 
-        style={styles.suggestionItem}
+        style={[styles.suggestionItem, { borderBottomColor: theme.colors.gray + '40' }]}
         onPress={() => selectHashtag(item)}
       >
-        <View style={styles.hashtagIcon}>
-          <Text style={styles.hashtagIconText}>#</Text>
+        <View style={[styles.hashtagIcon, { backgroundColor: theme.colors.primary + '15' }]}>
+          <Text style={[styles.hashtagIconText, { fontWeight: theme.fonts.bold, color: theme.colors.primary }]}>
+            #
+          </Text>
         </View>
         <View style={styles.suggestionInfo}>
-          <Text style={styles.suggestionName}>#{item.tag}</Text>
-          <Text style={styles.suggestionUsername}>{item.usage_count} posts</Text>
+          <Text style={[styles.suggestionName, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+            #{item.tag}
+          </Text>
+          <Text style={[styles.suggestionUsername, { color: theme.colors.textLight }]}>
+            {item.usage_count} posts
+          </Text>
         </View>
       </Pressable>
     );
@@ -174,7 +179,14 @@ const MentionInput = ({
       />
 
       {showSuggestions && suggestions.length > 0 && (
-        <View style={styles.suggestionsContainer}>
+        <View style={[
+          styles.suggestionsContainer, 
+          { 
+            borderRadius: theme.radius.lg,
+            borderColor: theme.colors.gray,
+            shadowColor: theme.colors.dark,
+          }
+        ]}>
           <FlatList
             data={suggestions}
             renderItem={suggestionType === 'mention' ? renderUserSuggestion : renderHashtagSuggestion}
@@ -195,21 +207,16 @@ const styles = StyleSheet.create({
     position: 'relative',
     flex: 1,
   },
-  input: {
-    // Styles seront passés via la prop style
-  },
+  input: {},
   suggestionsContainer: {
     position: 'absolute',
     bottom: '100%',
     left: 0,
     right: 0,
     backgroundColor: 'white',
-    borderRadius: theme.radius.lg,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
     maxHeight: hp(25),
     marginBottom: 8,
-    shadowColor: theme.colors.dark,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -224,31 +231,24 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray + '40',
   },
   suggestionInfo: {
     flex: 1,
   },
   suggestionName: {
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   suggestionUsername: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
   },
   hashtagIcon: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: theme.colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
   hashtagIconText: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.primary,
   },
 });

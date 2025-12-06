@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { theme } from '../../constants/theme';
 
-const BubblesLoader = ({ size = 60, color = theme.colors.primary }) => {
+const BubblesLoader = ({ size = 60, color = '#0088c2' }) => {
   const bubble1 = useRef(new Animated.Value(0)).current;
   const bubble2 = useRef(new Animated.Value(0)).current;
   const bubble3 = useRef(new Animated.Value(0)).current;
