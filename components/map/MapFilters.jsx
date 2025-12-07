@@ -1,20 +1,28 @@
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import React from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 
-const FilterChip = ({ label, count, icon, active, onPress }) => (
+const FilterChip = ({ label, count, icon, active, onPress, theme }) => (
   <Pressable
-    style={[styles.chip, active && styles.chipActive]}
+    style={[
+      styles.chip, 
+      { borderRadius: theme.radius.xl, borderColor: theme.colors.gray, backgroundColor: theme.colors.card },
+      active && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+    ]}
     onPress={onPress}
   >
     <Icon
       name={icon}
       size={16}
-      color={active ? 'white' : theme.colors.text}
+      color={active ? theme.colors.card : theme.colors.text}
     />
-    <Text style={[styles.chipText, active && styles.chipTextActive]}>
+    <Text style={[
+      styles.chipText, 
+      { color: theme.colors.text, fontWeight: theme.fonts.medium },
+      active && { color: theme.colors.card }
+    ]}>
       {label} ({count})
     </Text>
   </Pressable>
@@ -34,6 +42,8 @@ const MapFilters = ({
   onToggleUsers,
   onToggleEvents,
 }) => {
+  const { theme } = useTheme();
+
   return (
     <ScrollView
       horizontal
@@ -47,6 +57,7 @@ const MapFilters = ({
         icon="location"
         active={showSpots}
         onPress={onToggleSpots}
+        theme={theme}
       />
       
       <FilterChip
@@ -55,6 +66,7 @@ const MapFilters = ({
         icon="home"
         active={showStores}
         onPress={onToggleStores}
+        theme={theme}
       />
       
       <FilterChip
@@ -63,6 +75,7 @@ const MapFilters = ({
         icon="user"
         active={showUsers}
         onPress={onToggleUsers}
+        theme={theme}
       />
 
       {onToggleEvents && (
@@ -72,6 +85,7 @@ const MapFilters = ({
           icon="calendar"
           active={showEvents}
           onPress={onToggleEvents}
+          theme={theme}
         />
       )}
     </ScrollView>
@@ -95,21 +109,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     paddingVertical: hp(1),
     marginRight: wp(2),
-    borderRadius: theme.radius.xl,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
-    backgroundColor: 'white',
-  },
-  chipActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
   chipText: {
     fontSize: hp(1.6),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
-  },
-  chipTextActive: {
-    color: 'white',
   },
 });

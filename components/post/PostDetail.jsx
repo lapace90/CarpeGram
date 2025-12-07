@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Modal, ScrollView, Pressable, Animated } from 'react-native'
 import { Image } from 'expo-image'
 import React, { useState, useRef } from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp, wp } from '../../helpers/common'
 import Icon from '../../assets/icons'
@@ -12,12 +12,12 @@ import Avatar from '../Avatar'
 import CommentsModal from './CommentsModal'
 import LikesModal from './LikesModal'
 import RepostModal from '../RepostModal'
-import RippleContainer from '../animations/RippleEffect'
 import PostMenu from './PostMenu'
 import EditPostModal from './EditPostModal'
 import RichText from '../RichText';
 
 const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
+  const { theme } = useTheme();
   const [showComments, setShowComments] = useState(false);
   const [showLikes, setShowLikes] = useState(false);
   const [showRepostModal, setShowRepostModal] = useState(false);
@@ -45,7 +45,6 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
     bait,
     spot,
     privacy,
-    likes_count,
     comments_count,
     created_at,
     profiles,
@@ -78,7 +77,6 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
         useNativeDriver: true,
       }),
     ]).start();
-
     toggleLike();
   };
 
@@ -96,7 +94,6 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
   };
 
   const handleUpdate = async () => {
-    // Rafraîchir les données du post
     if (onDelete) {
       await onDelete();
     }
@@ -109,13 +106,15 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
         animationType="slide"
         onRequestClose={onClose}
       >
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.card }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.colors.gray, backgroundColor: theme.colors.card }]}>
             <Pressable onPress={onClose} style={styles.backButton}>
               <Icon name="arrowLeft" size={24} color={theme.colors.text} />
             </Pressable>
-            <Text style={styles.headerTitle}>Post</Text>
+            <Text style={[styles.headerTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              Post
+            </Text>
             {isOwnPost ? (
               <Pressable onPress={() => setShowMenu(true)} style={styles.menuButton}>
                 <Icon name="threeDotsHorizontal" size={22} color={theme.colors.text} />
@@ -141,40 +140,41 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
                   </View>
                 </View>
 
-                <View style={styles.privacyBadge}>
+                <View style={[styles.privacyBadge, { backgroundColor: theme.colors.gray + '40' }]}>
                   <Icon
                     name={privacy === 'public' ? 'globe' : privacy === 'followers' ? 'user' : 'heart'}
-                    size={16}
-                    color={theme.colors.primary}
+                    size={18}
+                    color={theme.colors.textLight}
                   />
                 </View>
               </View>
             </View>
 
-            {/* Image */}
-            <Image source={{ uri: image_url }} style={styles.postImage} />
+            {/* Post Image */}
+            {image_url && (
+              <Image
+                source={{ uri: image_url }}
+                style={styles.postImage}
+                contentFit="cover"
+              />
+            )}
 
-            {/* Actions avec Ripple Effect */}
+            {/* Actions */}
             <View style={styles.actionsSection}>
               <View style={[commonStyles.flexRow, styles.actions]}>
-                {/* Like avec Ripple */}
-                <RippleContainer onPress={handleLike} color={theme.colors.rose} size={80}>
-                  {({ onPress }) => (
-                    <Pressable onPress={onPress} style={[commonStyles.flexRowCenter, commonStyles.gap8]}>
-                      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-                        <Icon
-                          name="heart"
-                          size={28}
-                          fill={liked ? theme.colors.rose : 'transparent'}
-                          color={liked ? theme.colors.rose : theme.colors.text}
-                        />
-                      </Animated.View>
-                    </Pressable>
-                  )}
-                </RippleContainer>
+                <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+                  <Pressable onPress={handleLike}>
+                    <Icon
+                      name="heart"
+                      size={28}
+                      fill={liked ? theme.colors.rose : 'transparent'}
+                      color={liked ? theme.colors.rose : theme.colors.text}
+                    />
+                  </Pressable>
+                </Animated.View>
 
                 <Pressable onPress={() => setShowComments(true)}>
-                  <Icon name="comment" size={28} color={theme.colors.text} />
+                  <Icon name="comment" size={26} color={theme.colors.text} />
                 </Pressable>
 
                 <Pressable onPress={() => setShowRepostModal(true)}>
@@ -202,81 +202,84 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
                 onPress={() => setShowLikes(true)}
               >
                 <Text style={[commonStyles.textLight, styles.statsText]}>
-                  <Text style={styles.statsNumber}>{likesCount}</Text> likes
+                  <Text style={[styles.statsNumber, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                    {likesCount}
+                  </Text> likes
                 </Text>
                 <Text style={[commonStyles.textLight, styles.statsText]}>•</Text>
                 <Text style={[commonStyles.textLight, styles.statsText]}>
-                  <Text style={styles.statsNumber}>{comments_count || 0}</Text> comments
+                  <Text style={[styles.statsNumber, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                    {comments_count || 0}
+                  </Text> comments
                 </Text>
               </Pressable>
             </View>
 
             {/* Description */}
             <View style={styles.descriptionSection}>
-              <Text style={styles.description}>
-                <Text style={styles.username}>{displayName} </Text>
+              <Text style={[styles.description, { color: theme.colors.text }]}>
+                <Text style={{ fontWeight: theme.fonts.bold }}>{displayName} </Text>
               </Text>
-              <RichText
-                text={description}
-                style={styles.description}
-              />
+              <RichText text={description} style={[styles.description, { color: theme.colors.text }]} />
             </View>
 
             {/* Fish Details */}
             {(fish_species || fish_weight || bait || spot) && (
-              <View style={styles.fishSection}>
+              <View style={[styles.fishSection, { backgroundColor: theme.colors.primary + '05', borderRadius: theme.radius.xl }]}>
                 <View style={styles.sectionHeader}>
-                  <View style={styles.sectionIconBadge}>
+                  <View style={[styles.sectionIconBadge, { backgroundColor: theme.colors.primary + '15' }]}>
                     <Text style={styles.sectionIcon}>🎣</Text>
                   </View>
-                  <Text style={styles.sectionTitle}>Catch Details</Text>
+                  <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                    Catch Details
+                  </Text>
                 </View>
 
                 <View style={styles.fishDetails}>
                   {fish_species && (
-                    <View style={styles.detailCard}>
-                      <View style={styles.detailIconBadge}>
+                    <View style={[styles.detailCard, { backgroundColor: theme.colors.card, borderRadius: theme.radius.lg, borderColor: theme.colors.primary + '20' }]}>
+                      <View style={[styles.detailIconBadge, { backgroundColor: theme.colors.gray + '30' }]}>
                         <Text style={styles.detailIcon}>🐟</Text>
                       </View>
                       <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>Species</Text>
-                        <Text style={styles.detailValue}>{fish_species}</Text>
+                        <Text style={[styles.detailLabel, { color: theme.colors.textLight }]}>Species</Text>
+                        <Text style={[styles.detailValue, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>{fish_species}</Text>
                       </View>
                     </View>
                   )}
 
                   {fish_weight && (
-                    <View style={styles.detailCard}>
-                      <View style={styles.detailIconBadge}>
+                    <View style={[styles.detailCard, { backgroundColor: theme.colors.card, borderRadius: theme.radius.lg, borderColor: theme.colors.primary + '20' }]}>
+                      <View style={[styles.detailIconBadge, { backgroundColor: theme.colors.gray + '30' }]}>
                         <Text style={styles.detailIcon}>⚖️</Text>
                       </View>
                       <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>Weight</Text>
-                        <Text style={styles.detailValue}>{fish_weight} kg</Text>
+                        <Text style={[styles.detailLabel, { color: theme.colors.textLight }]}>Weight</Text>
+                        <Text style={[styles.detailValue, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>{fish_weight} kg</Text>
                       </View>
                     </View>
                   )}
 
                   {bait && (
-                    <View style={styles.detailCard}>
-                      <View style={styles.detailIconBadge}>
+                    <View style={[styles.detailCard, { backgroundColor: theme.colors.card, borderRadius: theme.radius.lg, borderColor: theme.colors.primary + '20' }]}>
+                      <View style={[styles.detailIconBadge, { backgroundColor: theme.colors.gray + '30' }]}>
                         <Text style={styles.detailIcon}>🪱</Text>
                       </View>
                       <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>Bait</Text>
-                        <Text style={styles.detailValue}>{bait}</Text>
+                        <Text style={[styles.detailLabel, { color: theme.colors.textLight }]}>Bait</Text>
+                        <Text style={[styles.detailValue, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>{bait}</Text>
                       </View>
                     </View>
                   )}
 
                   {spot && (
-                    <View style={styles.detailCard}>
-                      <View style={[styles.detailIconBadge, { backgroundColor: theme.colors.primary + '15' }]}>
-                        <Icon name="location" size={18} color={theme.colors.primary} />
+                    <View style={[styles.detailCard, { backgroundColor: theme.colors.card, borderRadius: theme.radius.lg, borderColor: theme.colors.primary + '20' }]}>
+                      <View style={[styles.detailIconBadge, { backgroundColor: theme.colors.gray + '30' }]}>
+                        <Text style={styles.detailIcon}>📍</Text>
                       </View>
                       <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>Location</Text>
-                        <Text style={styles.detailValue}>{spot}</Text>
+                        <Text style={[styles.detailLabel, { color: theme.colors.textLight }]}>Spot</Text>
+                        <Text style={[styles.detailValue, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>{spot}</Text>
                       </View>
                     </View>
                   )}
@@ -286,20 +289,14 @@ const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
 
             {/* View Comments Button */}
             {comments_count > 0 && (
-              <Pressable
-                style={styles.viewCommentsButton}
+              <Pressable 
+                style={[styles.viewCommentsButton, { backgroundColor: theme.colors.primary + '10', borderRadius: theme.radius.xl, borderColor: theme.colors.primary + '30' }]}
                 onPress={() => setShowComments(true)}
               >
                 <Icon name="comment" size={20} color={theme.colors.primary} />
-                <Text style={styles.viewCommentsText}>
+                <Text style={[styles.viewCommentsText, { fontWeight: theme.fonts.semiBold, color: theme.colors.primary }]}>
                   View all {comments_count} comments
                 </Text>
-                <Icon
-                  name="arrowLeft"
-                  size={16}
-                  color={theme.colors.primary}
-                  style={{ transform: [{ rotate: '180deg' }] }}
-                />
               </Pressable>
             )}
 
@@ -351,7 +348,6 @@ export default PostDetail;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
   header: {
     flexDirection: 'row',
@@ -360,16 +356,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
-    backgroundColor: 'white',
   },
   backButton: {
     padding: 8,
   },
   headerTitle: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   menuButton: {
     padding: 8,
@@ -391,7 +383,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: theme.colors.gray + '40',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -415,29 +406,19 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: hp(1.6),
   },
-  statsNumber: {
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
-  },
+  statsNumber: {},
   descriptionSection: {
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
   },
   description: {
     fontSize: hp(1.8),
-    color: theme.colors.text,
     lineHeight: hp(2.6),
-  },
-  username: {
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   fishSection: {
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
-    backgroundColor: theme.colors.primary + '05',
     marginHorizontal: wp(5),
-    borderRadius: theme.radius.xl,
     marginBottom: hp(2),
   },
   sectionHeader: {
@@ -450,7 +431,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: theme.colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -459,8 +439,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   fishDetails: {
     gap: hp(1.5),
@@ -469,17 +447,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: 'white',
     padding: hp(1.5),
-    borderRadius: theme.radius.lg,
     borderWidth: 1,
-    borderColor: theme.colors.primary + '20',
   },
   detailIconBadge: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: theme.colors.gray + '30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -491,13 +465,10 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
     marginBottom: 2,
   },
   detailValue: {
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   viewCommentsButton: {
     flexDirection: 'row',
@@ -507,14 +478,9 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1.5),
     paddingHorizontal: wp(5),
     marginHorizontal: wp(5),
-    backgroundColor: theme.colors.primary + '10',
-    borderRadius: theme.radius.xl,
     borderWidth: 1,
-    borderColor: theme.colors.primary + '30',
   },
   viewCommentsText: {
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.primary,
   },
 });

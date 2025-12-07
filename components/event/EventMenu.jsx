@@ -1,12 +1,13 @@
-import { View, Text, StyleSheet, Modal, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Modal, Pressable, Alert } from 'react-native';
 import React from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import { deleteEvent } from '../../services/eventService';
-import { Alert } from 'react-native';
 
 const EventMenu = ({ visible, onClose, eventId, onAction }) => {
+  const { theme } = useTheme();
+
   const handleDelete = async () => {
     Alert.alert(
       'Delete Event',
@@ -44,17 +45,19 @@ const EventMenu = ({ visible, onClose, eventId, onAction }) => {
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
           <Pressable style={styles.option} onPress={handleEdit}>
             <Icon name="edit" size={22} color={theme.colors.text} />
-            <Text style={styles.optionText}>Edit Event</Text>
+            <Text style={[styles.optionText, { fontWeight: theme.fonts.medium, color: theme.colors.text }]}>
+              Edit Event
+            </Text>
           </Pressable>
 
-          <View style={styles.separator} />
+          <View style={[styles.separator, { backgroundColor: theme.colors.gray }]} />
 
           <Pressable style={styles.option} onPress={handleDelete}>
             <Icon name="delete" size={22} color={theme.colors.rose} />
-            <Text style={[styles.optionText, { color: theme.colors.rose }]}>
+            <Text style={[styles.optionText, { fontWeight: theme.fonts.medium, color: theme.colors.rose }]}>
               Delete Event
             </Text>
           </Pressable>
@@ -73,8 +76,6 @@ const styles = StyleSheet.create({
   },
   container: {
     width: wp(70),
-    backgroundColor: 'white',
-    borderRadius: theme.radius.xl,
     padding: wp(3),
   },
   option: {
@@ -86,12 +87,9 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.medium,
-    color: theme.colors.text,
   },
   separator: {
     height: 1,
-    backgroundColor: theme.colors.gray,
     marginVertical: hp(0.5),
   },
 });

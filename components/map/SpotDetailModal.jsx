@@ -9,9 +9,8 @@ import {
   Linking,
   ActivityIndicator,
 } from 'react-native';
-import { Image } from 'expo-image';
 import React, { useState } from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import Avatar from '../Avatar';
@@ -33,6 +32,7 @@ const SpotDetailModal = ({
   onDelete,
   onNavigate,
 }) => {
+  const { theme } = useTheme();
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
@@ -84,20 +84,21 @@ const SpotDetailModal = ({
   };
 
   const handleShare = () => {
-    // TODO: Implement share functionality
     Alert.alert('Share', 'Share feature coming soon!');
   };
 
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.card, borderTopLeftRadius: theme.radius.xxl, borderTopRightRadius: theme.radius.xxl }]}>
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
                 <Text style={styles.waterType}>{waterTypeIcon}</Text>
-                <Text style={styles.title} numberOfLines={2}>{spot.name}</Text>
+                <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]} numberOfLines={2}>
+                  {spot.name}
+                </Text>
               </View>
               <Pressable onPress={onClose} hitSlop={10}>
                 <Icon name="delete" size={24} color={theme.colors.text} />
@@ -106,13 +107,16 @@ const SpotDetailModal = ({
 
             {/* Creator Info */}
             {spot.profiles && (
-              <Pressable style={styles.creatorRow} onPress={handleViewProfile}>
+              <Pressable 
+                style={[styles.creatorRow, { backgroundColor: theme.colors.backgroundLight, borderRadius: theme.radius.xl }]} 
+                onPress={handleViewProfile}
+              >
                 <Avatar uri={spot.profiles.avatar_url} size={hp(4.5)} />
                 <View style={styles.creatorInfo}>
-                  <Text style={styles.creatorName}>
+                  <Text style={[styles.creatorName, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
                     {spot.profiles.username}
                   </Text>
-                  <Text style={styles.createdAt}>
+                  <Text style={[styles.createdAt, { color: theme.colors.textLight }]}>
                     Added {formatDate(spot.created_at)}
                   </Text>
                 </View>
@@ -123,25 +127,31 @@ const SpotDetailModal = ({
             {/* Description */}
             {spot.description && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Description</Text>
-                <Text style={styles.description}>{spot.description}</Text>
+                <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                  Description
+                </Text>
+                <Text style={[styles.description, { color: theme.colors.textDark }]}>
+                  {spot.description}
+                </Text>
               </View>
             )}
 
             {/* Details */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Details</Text>
+              <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                Details
+              </Text>
               
               <View style={styles.detailRow}>
                 <Icon name="location" size={20} color={theme.colors.primary} />
-                <Text style={styles.detailText}>
+                <Text style={[styles.detailText, { color: theme.colors.text }]}>
                   {spot.latitude.toFixed(5)}, {spot.longitude.toFixed(5)}
                 </Text>
               </View>
 
               <View style={styles.detailRow}>
                 <Text style={styles.detailIcon}>💧</Text>
-                <Text style={styles.detailText}>
+                <Text style={[styles.detailText, { color: theme.colors.text }]}>
                   {spot.water_type?.charAt(0).toUpperCase() + spot.water_type?.slice(1) || 'Unknown'}
                 </Text>
               </View>
@@ -149,7 +159,7 @@ const SpotDetailModal = ({
               {spot.fish_types && spot.fish_types.length > 0 && (
                 <View style={styles.detailRow}>
                   <Text style={styles.detailIcon}>🐟</Text>
-                  <Text style={styles.detailText}>
+                  <Text style={[styles.detailText, { color: theme.colors.text }]}>
                     {spot.fish_types.join(', ')}
                   </Text>
                 </View>
@@ -161,37 +171,41 @@ const SpotDetailModal = ({
                   size={20} 
                   color={theme.colors.primary} 
                 />
-                <Text style={styles.detailText}>
+                <Text style={[styles.detailText, { color: theme.colors.text }]}>
                   {spot.privacy?.charAt(0).toUpperCase() + spot.privacy?.slice(1) || 'Public'}
                 </Text>
               </View>
             </View>
 
-            {/* Rating (if available) */}
+            {/* Rating */}
             {spot.rating_count > 0 && (
               <View style={styles.ratingRow}>
                 <Text style={styles.ratingIcon}>⭐</Text>
-                <Text style={styles.ratingText}>
+                <Text style={[styles.ratingText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
                   {spot.rating_avg?.toFixed(1)} ({spot.rating_count} ratings)
                 </Text>
               </View>
             )}
 
             {/* Action Buttons */}
-            <View style={styles.actions}>
+            <View style={[styles.actions, { borderTopColor: theme.colors.gray }]}>
               <Pressable style={styles.actionButton} onPress={handleNavigate}>
                 <Icon name="location" size={22} color={theme.colors.primary} />
-                <Text style={styles.actionText}>Navigate</Text>
+                <Text style={[styles.actionText, { color: theme.colors.primary, fontWeight: theme.fonts.medium }]}>
+                  Navigate
+                </Text>
               </Pressable>
 
               <Pressable style={styles.actionButton} onPress={handleShare}>
                 <Icon name="share" size={22} color={theme.colors.primary} />
-                <Text style={styles.actionText}>Share</Text>
+                <Text style={[styles.actionText, { color: theme.colors.primary, fontWeight: theme.fonts.medium }]}>
+                  Share
+                </Text>
               </Pressable>
 
               {isOwner && (
                 <Pressable 
-                  style={[styles.actionButton, styles.deleteButton]} 
+                  style={styles.actionButton} 
                   onPress={handleDelete}
                   disabled={deleting}
                 >
@@ -200,7 +214,9 @@ const SpotDetailModal = ({
                   ) : (
                     <>
                       <Icon name="delete" size={22} color={theme.colors.rose} />
-                      <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
+                      <Text style={[styles.actionText, { color: theme.colors.rose, fontWeight: theme.fonts.medium }]}>
+                        Delete
+                      </Text>
                     </>
                   )}
                 </Pressable>
@@ -222,9 +238,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: theme.radius.xxl,
-    borderTopRightRadius: theme.radius.xxl,
     padding: wp(5),
     maxHeight: '80%',
   },
@@ -245,16 +258,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
     flex: 1,
   },
   creatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.backgroundLight,
     padding: wp(3),
-    borderRadius: theme.radius.xl,
     marginBottom: hp(2),
   },
   creatorInfo: {
@@ -263,12 +272,9 @@ const styles = StyleSheet.create({
   },
   creatorName: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
   },
   createdAt: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
     marginTop: 2,
   },
   section: {
@@ -276,13 +282,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
     marginBottom: hp(1),
   },
   description: {
     fontSize: hp(1.7),
-    color: theme.colors.textDark,
     lineHeight: hp(2.4),
   },
   detailRow: {
@@ -298,7 +301,6 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: hp(1.7),
-    color: theme.colors.text,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -311,15 +313,12 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: hp(1.7),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingTop: hp(2),
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray,
     marginTop: hp(1),
   },
   actionButton: {
@@ -328,12 +327,6 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: hp(1.5),
-    color: theme.colors.primary,
     marginTop: 4,
-    fontWeight: theme.fonts.medium,
-  },
-  deleteButton: {},
-  deleteText: {
-    color: theme.colors.rose,
   },
 });

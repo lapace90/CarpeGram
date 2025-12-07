@@ -1,14 +1,14 @@
-import { View, Text, StyleSheet, Modal, Pressable, Alert, TextInput, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, Modal, Pressable, Alert, TextInput, ScrollView, Share } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { theme } from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import { hp, wp } from '../helpers/common'
 import Icon from '../assets/icons'
 import { unfollowUser } from '../services/followService'
 import { toggleCloseFriend, checkIfCloseFriend, blockUser } from '../services/relationshipService'
 import { reportUser } from '../services/reportService'
-import { Share } from 'react-native'
 
 const UserProfileMenu = ({ visible, onClose, userId, targetUserId, targetUsername, isFollowing, onActionComplete }) => {
+  const { theme } = useTheme();
   const [isCloseFriend, setIsCloseFriend] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showReportInput, setShowReportInput] = useState(false);
@@ -130,7 +130,6 @@ const UserProfileMenu = ({ visible, onClose, userId, targetUserId, targetUsernam
     try {
       await Share.share({
         message: `Check out @${targetUsername} on Carpegram!`,
-        // url: `carpegram://user/${targetUserId}`, // Deep link si tu en as
       });
     } catch (error) {
       console.error('Share error:', error);
@@ -146,17 +145,28 @@ const UserProfileMenu = ({ visible, onClose, userId, targetUserId, targetUsernam
         onRequestClose={onClose}
       >
         <Pressable style={styles.overlay} onPress={onClose}>
-          <Pressable style={styles.reportContainer} onPress={(e) => e.stopPropagation()}>
+          <Pressable style={[styles.reportContainer, { backgroundColor: theme.colors.card }]} onPress={(e) => e.stopPropagation()}>
             <View style={styles.reportHeader}>
-              <Text style={styles.reportTitle}>Report @{targetUsername}</Text>
+              <Text style={[styles.reportTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                Report @{targetUsername}
+              </Text>
               <Pressable onPress={() => setShowReportInput(false)}>
                 <Icon name="close" size={24} color={theme.colors.text} />
               </Pressable>
             </View>
 
-            <Text style={styles.reportLabel}>Why are you reporting this user?</Text>
+            <Text style={[styles.reportLabel, { color: theme.colors.textLight }]}>
+              Why are you reporting this user?
+            </Text>
             <TextInput
-              style={styles.reportInput}
+              style={[
+                styles.reportInput, 
+                { 
+                  borderColor: theme.colors.gray,
+                  borderRadius: theme.radius.md,
+                  color: theme.colors.text,
+                }
+              ]}
               placeholder="Explain the reason (minimum 10 characters)"
               placeholderTextColor={theme.colors.textLight}
               value={reportReason}
@@ -167,11 +177,15 @@ const UserProfileMenu = ({ visible, onClose, userId, targetUserId, targetUsernam
             />
 
             <Pressable
-              style={[styles.reportSubmitBtn, loading && styles.buttonDisabled]}
+              style={[
+                styles.reportSubmitBtn, 
+                { backgroundColor: theme.colors.primary, borderRadius: theme.radius.md },
+                loading && styles.buttonDisabled
+              ]}
               onPress={handleReport}
               disabled={loading}
             >
-              <Text style={styles.reportSubmitText}>
+              <Text style={[styles.reportSubmitText, { fontWeight: theme.fonts.semibold }]}>
                 {loading ? 'Submitting...' : 'Submit Report'}
               </Text>
             </Pressable>
@@ -189,80 +203,95 @@ const UserProfileMenu = ({ visible, onClose, userId, targetUserId, targetUsernam
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={[styles.bottomSheet, { backgroundColor: theme.colors.card }]} onPress={(e) => e.stopPropagation()}>
           {/* Handle */}
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: theme.colors.gray }]} />
 
           {/* Title */}
-          <Text style={styles.title}>@{targetUsername}</Text>
+          <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            @{targetUsername}
+          </Text>
 
           {/* Options */}
           <ScrollView style={styles.options}>
-            {/* Close Friends - Seulement si tu le suis */}
+            {/* Close Friends */}
             {isFollowing && (
               <Pressable
-                style={styles.option}
+                style={[styles.option, { borderBottomColor: theme.colors.gray }]}
                 onPress={handleCloseFriend}
                 disabled={loading}
               >
                 <Icon
-                  name={isCloseFriend ? "heart" : "heart"}
+                  name="heart"
                   size={22}
                   color={isCloseFriend ? theme.colors.rose : theme.colors.text}
                   fill={isCloseFriend ? theme.colors.rose : 'none'}
                 />
-                <Text style={styles.optionText}>
+                <Text style={[styles.optionText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
                   {isCloseFriend ? 'Remove from Close Friends' : 'Add to Close Friends'}
                 </Text>
               </Pressable>
             )}
 
-            {/* Unfollow - Seulement si tu le suis */}
+            {/* Unfollow */}
             {isFollowing && (
               <Pressable
-                style={styles.option}
+                style={[styles.option, { borderBottomColor: theme.colors.gray }]}
                 onPress={handleUnfollow}
                 disabled={loading}
               >
                 <Icon name="userMinus" size={22} color={theme.colors.text} />
-                <Text style={styles.optionText}>Unfollow</Text>
+                <Text style={[styles.optionText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                  Unfollow
+                </Text>
               </Pressable>
             )}
 
             {/* Block */}
             <Pressable
-              style={styles.option}
+              style={[styles.option, { borderBottomColor: theme.colors.gray }]}
               onPress={handleBlock}
               disabled={loading}
             >
               <Icon name="lock" size={22} color={theme.colors.rose} />
-              <Text style={[styles.optionText, styles.dangerText]}>Block</Text>
+              <Text style={[styles.optionText, { color: theme.colors.rose, fontWeight: theme.fonts.medium }]}>
+                Block
+              </Text>
             </Pressable>
 
             {/* Report */}
             <Pressable
-              style={styles.option}
+              style={[styles.option, { borderBottomColor: theme.colors.gray }]}
               onPress={() => setShowReportInput(true)}
               disabled={loading}
             >
               <Icon name="alertCircle" size={22} color={theme.colors.rose} />
-              <Text style={[styles.optionText, styles.dangerText]}>Report</Text>
+              <Text style={[styles.optionText, { color: theme.colors.rose, fontWeight: theme.fonts.medium }]}>
+                Report
+              </Text>
             </Pressable>
 
             {/* Share Profile */}
             <Pressable
-              style={styles.option}
+              style={[styles.option, { borderBottomColor: theme.colors.gray }]}
               onPress={handleShare}
               disabled={loading}
             >
               <Icon name="share" size={22} color={theme.colors.text} />
-              <Text style={styles.optionText}>Share Profile</Text>
+              <Text style={[styles.optionText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                Share Profile
+              </Text>
             </Pressable>
           </ScrollView>
 
           {/* Cancel */}
-          <Pressable style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelText}>Cancel</Text>
+          <Pressable 
+            style={[styles.cancelButton, { backgroundColor: theme.colors.gray, borderRadius: theme.radius.md }]} 
+            onPress={onClose}
+          >
+            <Text style={[styles.cancelText, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+              Cancel
+            </Text>
           </Pressable>
         </Pressable>
       </Pressable>
@@ -279,7 +308,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   bottomSheet: {
-    backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 10,
@@ -289,15 +317,12 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: theme.colors.gray,
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 20,
   },
   title: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
     textAlign: 'center',
     marginBottom: 20,
     paddingHorizontal: 20,
@@ -311,35 +336,23 @@ const styles = StyleSheet.create({
     gap: 15,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   optionText: {
     fontSize: hp(2),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
-  },
-  dangerText: {
-    color: theme.colors.rose,
   },
   cancelButton: {
     marginTop: 15,
     marginHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.md,
     alignItems: 'center',
   },
   cancelText: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
   },
   buttonDisabled: {
     opacity: 0.5,
   },
-  // Report modal styles
   reportContainer: {
-    backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -353,33 +366,24 @@ const styles = StyleSheet.create({
   },
   reportTitle: {
     fontSize: hp(2.4),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   reportLabel: {
     fontSize: hp(1.8),
-    color: theme.colors.textLight,
     marginBottom: 10,
   },
   reportInput: {
     borderWidth: 1,
-    borderColor: theme.colors.gray,
-    borderRadius: theme.radius.md,
     padding: 12,
     fontSize: hp(1.8),
-    color: theme.colors.text,
     height: 120,
     marginBottom: 20,
   },
   reportSubmitBtn: {
-    backgroundColor: theme.colors.primary,
     paddingVertical: 14,
-    borderRadius: theme.radius.md,
     alignItems: 'center',
   },
   reportSubmitText: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.semibold,
     color: 'white',
   },
 });

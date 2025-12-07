@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 
 /**
@@ -9,10 +9,13 @@ import { hp, wp } from '../../helpers/common';
  */
 const FishSwim = ({ 
   size = 60, 
-  color = theme.colors.primary,
+  color,
   showBubbles = true,
-  speed = 3000, // ms for one cycle
+  speed = 3000,
 }) => {
+  const { theme } = useTheme();
+  const fishColor = color || theme.colors.primary;
+
   const swimX = useRef(new Animated.Value(0)).current;
   const swimY = useRef(new Animated.Value(0)).current;
   const tailWag = useRef(new Animated.Value(0)).current;
@@ -21,7 +24,6 @@ const FishSwim = ({
   const bubble3 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Swimming motion - side to side
     const swimAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(swimX, {
@@ -39,7 +41,6 @@ const FishSwim = ({
       ])
     );
 
-    // Up and down bobbing
     const bobAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(swimY, {
@@ -57,7 +58,6 @@ const FishSwim = ({
       ])
     );
 
-    // Tail wagging
     const tailAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(tailWag, {
@@ -81,7 +81,6 @@ const FishSwim = ({
       ])
     );
 
-    // Bubbles
     const createBubbleAnimation = (bubbleAnim, delay) => {
       return Animated.loop(
         Animated.sequence([
@@ -133,7 +132,6 @@ const FishSwim = ({
         }),
       },
       {
-        // Flip fish when swimming back
         scaleX: swimX.interpolate({
           inputRange: [0, 0.5, 0.5, 1],
           outputRange: [1, 1, -1, -1],
@@ -153,15 +151,10 @@ const FishSwim = ({
     ],
   };
 
-  const createBubbleStyle = (bubbleAnim, offsetX) => ({
-    position: 'absolute',
-    width: size * 0.12,
-    height: size * 0.12,
-    borderRadius: size * 0.06,
-    backgroundColor: color,
+  const createBubbleStyle = (bubbleAnim, startX, startY) => ({
     opacity: bubbleAnim.interpolate({
-      inputRange: [0, 0.3, 1],
-      outputRange: [0, 0.5, 0],
+      inputRange: [0, 0.2, 0.8, 1],
+      outputRange: [0, 1, 1, 0],
     }),
     transform: [
       {
@@ -172,8 +165,8 @@ const FishSwim = ({
       },
       {
         translateX: bubbleAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [offsetX, offsetX + size * 0.1],
+          inputRange: [0, 0.5, 1],
+          outputRange: [startX, startX + 5, startX - 3],
         }),
       },
       {
@@ -187,83 +180,78 @@ const FishSwim = ({
 
   return (
     <View style={[styles.container, { width: size * 2, height: size * 1.5 }]}>
-      {/* Bubbles */}
-      {showBubbles && (
-        <>
-          <Animated.View style={[styles.bubble, createBubbleStyle(bubble1, size * 0.6)]} />
-          <Animated.View style={[styles.bubble, createBubbleStyle(bubble2, size * 0.7)]} />
-          <Animated.View style={[styles.bubble, createBubbleStyle(bubble3, size * 0.5)]} />
-        </>
-      )}
-
-      {/* Fish */}
       <Animated.View style={[styles.fishContainer, fishTransform]}>
-        {/* Body */}
-        <View 
-          style={[
-            styles.body, 
-            { 
-              width: size, 
-              height: size * 0.6,
-              backgroundColor: color,
-              borderRadius: size * 0.3,
-            }
-          ]} 
-        >
+        {/* Fish body */}
+        <View style={[styles.body, { 
+          width: size * 0.6, 
+          height: size * 0.4, 
+          backgroundColor: fishColor,
+          borderRadius: size * 0.2,
+        }]}>
           {/* Eye */}
-          <View style={[styles.eye, { width: size * 0.15, height: size * 0.15, left: size * 0.15, top: size * 0.15 }]}>
-            <View style={[styles.pupil, { width: size * 0.08, height: size * 0.08 }]} />
+          <View style={[styles.eye, { 
+            width: size * 0.1, 
+            height: size * 0.1, 
+            backgroundColor: theme.colors.card,
+            left: size * 0.35,
+          }]}>
+            <View style={[styles.pupil, { 
+              width: size * 0.05, 
+              height: size * 0.05,
+              backgroundColor: theme.colors.dark,
+            }]} />
           </View>
-          
-          {/* Mouth */}
-          <View 
-            style={[
-              styles.mouth, 
-              { 
-                width: size * 0.08, 
-                height: size * 0.04, 
-                left: size * 0.05, 
-                top: size * 0.3,
-              }
-            ]} 
-          />
         </View>
 
         {/* Tail */}
-        <Animated.View 
-          style={[
-            styles.tail,
-            tailTransform,
-            {
-              right: -size * 0.15,
-              borderLeftWidth: size * 0.25,
-              borderLeftColor: color,
-              borderTopWidth: size * 0.2,
-              borderBottomWidth: size * 0.2,
-            }
-          ]} 
-        />
+        <Animated.View style={[
+          styles.tail,
+          tailTransform,
+          {
+            borderLeftWidth: size * 0.15,
+            borderTopWidth: size * 0.12,
+            borderBottomWidth: size * 0.12,
+            borderLeftColor: fishColor,
+            left: -size * 0.1,
+          }
+        ]} />
 
-        {/* Dorsal fin */}
-        <View 
-          style={[
-            styles.dorsalFin,
-            {
-              top: -size * 0.12,
-              left: size * 0.35,
-              borderBottomWidth: size * 0.15,
-              borderBottomColor: color,
-              borderLeftWidth: size * 0.1,
-              borderRightWidth: size * 0.1,
-            }
-          ]} 
-        />
+        {/* Fin */}
+        <View style={[styles.fin, {
+          borderLeftWidth: size * 0.08,
+          borderTopWidth: size * 0.08,
+          borderLeftColor: fishColor + 'CC',
+          top: -size * 0.08,
+          left: size * 0.2,
+        }]} />
       </Animated.View>
+
+      {/* Bubbles */}
+      {showBubbles && (
+        <>
+          <Animated.View style={[
+            styles.bubble,
+            { backgroundColor: theme.colors.primary + '40' },
+            createBubbleStyle(bubble1, size * 0.7, 0),
+            { width: size * 0.08, height: size * 0.08 }
+          ]} />
+          <Animated.View style={[
+            styles.bubble,
+            { backgroundColor: theme.colors.primary + '40' },
+            createBubbleStyle(bubble2, size * 0.8, 0),
+            { width: size * 0.06, height: size * 0.06 }
+          ]} />
+          <Animated.View style={[
+            styles.bubble,
+            { backgroundColor: theme.colors.primary + '40' },
+            createBubbleStyle(bubble3, size * 0.75, 0),
+            { width: size * 0.05, height: size * 0.05 }
+          ]} />
+        </>
+      )}
     </View>
   );
 };
-
-export default FishSwim;
 
 const styles = StyleSheet.create({
   container: {
@@ -271,42 +259,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fishContainer: {
-    position: 'relative',
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   body: {
-    position: 'relative',
+    justifyContent: 'center',
   },
   eye: {
     position: 'absolute',
-    backgroundColor: 'white',
-    borderRadius: 100,
+    borderRadius: 999,
     justifyContent: 'center',
     alignItems: 'center',
   },
   pupil: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 100,
-  },
-  mouth: {
-    position: 'absolute',
-    backgroundColor: '#1a1a2e',
-    borderRadius: 100,
+    borderRadius: 999,
   },
   tail: {
     position: 'absolute',
     borderTopColor: 'transparent',
     borderBottomColor: 'transparent',
-    borderStyle: 'solid',
   },
-  dorsalFin: {
+  fin: {
     position: 'absolute',
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderStyle: 'solid',
+    borderTopColor: 'transparent',
+    transform: [{ rotate: '45deg' }],
   },
   bubble: {
     position: 'absolute',
-    bottom: '40%',
+    borderRadius: 999,
+    right: 0,
+    bottom: '50%',
   },
 });
+
+export default FishSwim;

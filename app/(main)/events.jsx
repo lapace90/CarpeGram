@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
@@ -11,6 +11,7 @@ import BackButton from '../../components/BackButton';
 import EmptyState from '../../components/EmptyState';
 
 const Events = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -65,14 +66,21 @@ const Events = () => {
   };
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
           <BackButton router={router}/>
-          <Text style={styles.title}>Fishing Events</Text>
-          <Pressable onPress={() => router.push('/createEvent')} style={styles.createButton}>
-            <Text style={styles.createButtonText}>+ Create</Text>
+          <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            Fishing Events
+          </Text>
+          <Pressable 
+            onPress={() => router.push('/createEvent')} 
+            style={[styles.createButton, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.md }]}
+          >
+            <Text style={[styles.createButtonText, { fontWeight: theme.fonts.semiBold }]}>
+              + Create
+            </Text>
           </Pressable>
         </View>
 
@@ -108,23 +116,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   title: {
     fontSize: hp(2.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   createButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.md,
   },
   createButtonText: {
     color: 'white',
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semiBold,
   },
   listContent: {
     padding: wp(5),

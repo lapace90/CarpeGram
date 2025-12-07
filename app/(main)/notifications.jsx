@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -9,6 +9,7 @@ import NotificationItem from '../../components/NotificationItem';
 import EmptyState from '../../components/EmptyState';
 
 const Notifications = () => {
+  const { theme } = useTheme();
   const { user } = useAuth();
 
   const {
@@ -29,20 +30,26 @@ const Notifications = () => {
   );
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
           <View>
-            <Text style={styles.title}>Notifications</Text>
+            <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              Notifications
+            </Text>
             {unreadCount > 0 && (
-              <Text style={styles.unreadText}>{unreadCount} unread</Text>
+              <Text style={[styles.unreadText, { color: theme.colors.textLight }]}>
+                {unreadCount} unread
+              </Text>
             )}
           </View>
 
           {unreadCount > 0 && (
             <Pressable onPress={markAllAsRead} style={styles.markAllButton}>
-              <Text style={styles.markAllText}>Mark all as read</Text>
+              <Text style={[styles.markAllText, { color: theme.colors.primary, fontWeight: theme.fonts.semiBold }]}>
+                Mark all as read
+              </Text>
             </Pressable>
           )}
         </View>
@@ -81,16 +88,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   title: {
     fontSize: hp(2.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   unreadText: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
     marginTop: 2,
   },
   markAllButton: {
@@ -99,7 +102,5 @@ const styles = StyleSheet.create({
   },
   markAllText: {
     fontSize: hp(1.6),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semiBold,
   },
 });

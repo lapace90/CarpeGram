@@ -1,15 +1,15 @@
 import { View, Text, StyleSheet, Modal, ScrollView, Pressable, Platform, Alert, KeyboardAvoidingView } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import Input from '../Input';
 import SmartInput from '../SmartInput';
-import Button from '../Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { updateEvent } from '../../services/eventService';
 
 const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) => {
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -90,15 +90,21 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.card }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
             <Pressable onPress={onClose} disabled={loading}>
-              <Text style={styles.cancelButton}>Cancel</Text>
+              <Text style={[styles.cancelButton, { color: theme.colors.text }]}>Cancel</Text>
             </Pressable>
-            <Text style={styles.title}>Edit Event</Text>
+            <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              Edit Event
+            </Text>
             <Pressable onPress={handleSave} disabled={loading}>
-              <Text style={[styles.saveButton, loading && styles.saveButtonDisabled]}>
+              <Text style={[
+                styles.saveButton, 
+                { color: theme.colors.primary, fontWeight: theme.fonts.semibold },
+                loading && styles.saveButtonDisabled
+              ]}>
                 {loading ? 'Saving...' : 'Save'}
               </Text>
             </Pressable>
@@ -111,38 +117,50 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
           >
             {/* Title */}
             <View style={styles.section}>
-              <Text style={styles.label}>Event Title *</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                Event Title *
+              </Text>
               <Input
                 placeholder="e.g., Carp Session at Lake Geneva"
                 value={title}
                 onChangeText={setTitle}
                 maxLength={100}
-                containerStyles={styles.input}
+                containerStyles={[styles.input, { backgroundColor: theme.colors.card }]}
               />
             </View>
 
             {/* Location */}
             <View style={styles.section}>
-              <Text style={styles.label}>Location *</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                Location *
+              </Text>
               <Input
-                icon={<Icon name="location" size={22} strokeWidth={1.6} />}
+                icon={<Icon name="location" size={22} strokeWidth={1.6} color={theme.colors.textLight} />}
                 placeholder="e.g., Lake Geneva, France"
                 value={location}
                 onChangeText={setLocation}
                 maxLength={200}
-                containerStyles={styles.input}
+                containerStyles={[styles.input, { backgroundColor: theme.colors.card }]}
               />
             </View>
 
             {/* Start Date & Time */}
             <View style={styles.section}>
-              <Text style={styles.label}>Start Date & Time *</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                Start Date & Time *
+              </Text>
               <Pressable 
-                style={styles.dateTimeButton}
+                style={[styles.dateTimeButton, { 
+                  backgroundColor: theme.colors.primary + '10',
+                  borderRadius: theme.radius.md,
+                  borderColor: theme.colors.primary + '30'
+                }]}
                 onPress={() => setShowStartDatePicker(true)}
               >
                 <Icon name="calendar" size={20} color={theme.colors.primary} />
-                <Text style={styles.dateTimeText}>{formatDateTime(startDate)}</Text>
+                <Text style={[styles.dateTimeText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                  {formatDateTime(startDate)}
+                </Text>
               </Pressable>
 
               {showStartDatePicker && (
@@ -152,12 +170,7 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={(event, selectedDate) => {
                     setShowStartDatePicker(Platform.OS === 'ios');
-                    if (selectedDate) {
-                      setStartDate(selectedDate);
-                      if (Platform.OS === 'android') {
-                        setShowStartTimePicker(true);
-                      }
-                    }
+                    if (selectedDate) setStartDate(selectedDate);
                   }}
                 />
               )}
@@ -169,9 +182,7 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={(event, selectedTime) => {
                     setShowStartTimePicker(Platform.OS === 'ios');
-                    if (selectedTime) {
-                      setStartDate(selectedTime);
-                    }
+                    if (selectedTime) setStartDate(selectedTime);
                   }}
                 />
               )}
@@ -179,13 +190,21 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
 
             {/* End Date & Time */}
             <View style={styles.section}>
-              <Text style={styles.label}>End Date & Time *</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                End Date & Time *
+              </Text>
               <Pressable 
-                style={styles.dateTimeButton}
+                style={[styles.dateTimeButton, { 
+                  backgroundColor: theme.colors.primary + '10',
+                  borderRadius: theme.radius.md,
+                  borderColor: theme.colors.primary + '30'
+                }]}
                 onPress={() => setShowEndDatePicker(true)}
               >
                 <Icon name="calendar" size={20} color={theme.colors.primary} />
-                <Text style={styles.dateTimeText}>{formatDateTime(endDate)}</Text>
+                <Text style={[styles.dateTimeText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                  {formatDateTime(endDate)}
+                </Text>
               </Pressable>
 
               {showEndDatePicker && (
@@ -193,16 +212,11 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
                   value={endDate}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  minimumDate={startDate}
                   onChange={(event, selectedDate) => {
                     setShowEndDatePicker(Platform.OS === 'ios');
-                    if (selectedDate) {
-                      setEndDate(selectedDate);
-                      if (Platform.OS === 'android') {
-                        setShowEndTimePicker(true);
-                      }
-                    }
+                    if (selectedDate) setEndDate(selectedDate);
                   }}
+                  minimumDate={startDate}
                 />
               )}
 
@@ -213,9 +227,7 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={(event, selectedTime) => {
                     setShowEndTimePicker(Platform.OS === 'ios');
-                    if (selectedTime) {
-                      setEndDate(selectedTime);
-                    }
+                    if (selectedTime) setEndDate(selectedTime);
                   }}
                 />
               )}
@@ -223,7 +235,9 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
 
             {/* Description */}
             <View style={styles.section}>
-              <Text style={styles.label}>Description (Optional)</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                Description (Optional)
+              </Text>
               <SmartInput
                 placeholder="Tell people about this fishing event... 🐟"
                 value={description}
@@ -232,20 +246,26 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
                 multiline
                 numberOfLines={4}
                 maxLength={500}
-                style={styles.descriptionInput}
+                style={[styles.descriptionInput, { 
+                  backgroundColor: theme.colors.gray,
+                  borderRadius: theme.radius.xl,
+                  color: theme.colors.text
+                }]}
               />
             </View>
 
             {/* Max Participants */}
             <View style={styles.section}>
-              <Text style={styles.label}>Max Participants (Optional)</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                Max Participants (Optional)
+              </Text>
               <Input
                 placeholder="Leave empty for unlimited"
                 value={maxParticipants}
                 onChangeText={setMaxParticipants}
                 keyboardType="number-pad"
                 maxLength={4}
-                containerStyles={styles.input}
+                containerStyles={[styles.input, { backgroundColor: theme.colors.card }]}
               />
             </View>
           </ScrollView>
@@ -258,7 +278,6 @@ const EditEventModal = ({ visible, onClose, event, currentUserId, onUpdate }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
   header: {
     flexDirection: 'row',
@@ -267,21 +286,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   cancelButton: {
     fontSize: hp(1.8),
-    color: theme.colors.text,
   },
   title: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   saveButton: {
     fontSize: hp(1.8),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semibold,
   },
   saveButtonDisabled: {
     opacity: 0.5,
@@ -295,20 +308,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
     marginBottom: hp(1),
   },
-  input: {
-    backgroundColor: 'white',
-  },
+  input: {},
   descriptionInput: {
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.xl,
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
     fontSize: hp(1.7),
-    color: theme.colors.text,
     minHeight: hp(12),
     textAlignVertical: 'top',
   },
@@ -316,17 +322,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(2),
-    backgroundColor: theme.colors.primary + '10',
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
-    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.primary + '30',
   },
   dateTimeText: {
     fontSize: hp(1.7),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
   },
 });
 

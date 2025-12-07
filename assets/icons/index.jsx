@@ -1,6 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { theme } from '../../constants/theme'
 
 import Home from './Home'
 import { ArrowLeft, ArrowRight } from './Arrows'
@@ -81,22 +79,19 @@ const icons = {
   atSign: AtSign, 
 }
 
+// Fallback color - neutral gray that works with all themes
+// Components should always pass explicit color from theme for best results
+const FALLBACK_COLOR = '#6B7280';
+
 const Icon = ({ name, ...props }) => {
   const IconComponent = icons[name];
-
-  // console.log('Icon requested:', name, 'Found:', !!IconComponent);
-
-  // if (!IconComponent) {
-  //   console.warn(`Icon "${name}" not found`);
-  //   return null;
-  // }
 
   return (
     <IconComponent
       height={props.size || 24}
       width={props.size || 24}
       strokeWidth={props.strokeWidth || 1.9}
-      color={theme.colors.textLight}
+      color={FALLBACK_COLOR}
       {...props}
     />
   )

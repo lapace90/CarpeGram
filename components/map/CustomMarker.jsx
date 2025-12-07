@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import React, { memo } from 'react';
+import React, { memo, useContext } from 'react';
 import { Marker } from 'react-native-maps';
-import { theme } from '../../constants/theme';
+import { useTheme, ThemeContext } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 
@@ -11,47 +11,37 @@ import Icon from '../../assets/icons';
 // ============================================
 export const MARKER_COLORS = {
   // Users
-  closeFriend: '#9B59B6',    // Violet
-  friend: '#27AE60',         // Vert
-  anonymous: '#95A5A6',      // Gris
+  closeFriend: '#9B59B6',
+  friend: '#27AE60',
+  anonymous: '#95A5A6',
   
   // Stores
-  partner: '#F1C40F',        // Doré
-  partnerBorder: '#D4AC0D',  // Doré foncé
-  store: '#3498DB',          // Bleu
+  partner: '#F1C40F',
+  partnerBorder: '#D4AC0D',
+  store: '#3498DB',
   
-  // Spots
-  spotPublic: theme.colors.primary,  // Orange (primary)
-  spotPrivate: '#F39C12',    // Jaune/Orange
+  // Spots - note: spotPublic uses theme.colors.primary dynamically
+  spotPrivate: '#F39C12',
   
   // Events
-  event: '#E74C3C',          // Rouge
+  event: '#E74C3C',
   
   // Misc
-  newSpot: '#F1C40F',        // Jaune (marker temporaire)
+  newSpot: '#F1C40F',
 };
 
 // ============================================
 // MARKER TYPES
 // ============================================
 export const MARKER_TYPES = {
-  // Users
   USER_CLOSE_FRIEND: 'user_close_friend',
   USER_FRIEND: 'user_friend',
   USER_ANONYMOUS: 'user_anonymous',
-  
-  // Stores
   STORE_PARTNER: 'store_partner',
   STORE_STANDARD: 'store_standard',
-  
-  // Spots
   SPOT_PUBLIC: 'spot_public',
   SPOT_PRIVATE: 'spot_private',
-  
-  // Events
   EVENT: 'event',
-  
-  // Temp
   NEW_SPOT: 'new_spot',
 };
 
@@ -78,7 +68,7 @@ const MarkerPin = ({ color, borderColor, size = 40, children }) => (
 );
 
 // ============================================
-// MARKER USER (avec avatar)
+// MARKER USER
 // ============================================
 const UserMarker = memo(({ user, type, onPress }) => {
   const getColorConfig = () => {
@@ -118,7 +108,6 @@ const UserMarker = memo(({ user, type, onPress }) => {
           )}
         </MarkerPin>
         
-        {/* Badge cœur pour close friends */}
         {config.showHeart && (
           <View style={[styles.badge, { backgroundColor: '#E91E63' }]}>
             <Icon name="heart" size={10} color="white" strokeWidth={2.5} />
@@ -153,7 +142,6 @@ const StoreMarker = memo(({ store, onPress }) => {
           <Icon name="home" size={20} color="white" strokeWidth={2} />
         </MarkerPin>
         
-        {/* Badge étoile pour partenaires */}
         {isPartner && (
           <View style={[styles.badge, styles.partnerBadge]}>
             <Text style={styles.starText}>⭐</Text>
@@ -165,14 +153,15 @@ const StoreMarker = memo(({ store, onPress }) => {
 });
 
 // ============================================
-// MARKER SPOT
+// MARKER SPOT (needs theme context)
 // ============================================
 const SpotMarker = memo(({ spot, onPress }) => {
+  const { theme } = useContext(ThemeContext);
   const isPrivate = spot.privacy !== 'public';
   
   const config = isPrivate
     ? { bg: MARKER_COLORS.spotPrivate, border: '#E67E22' }
-    : { bg: MARKER_COLORS.spotPublic, border: theme.colors.primaryDark };
+    : { bg: theme.colors.primary, border: theme.colors.primaryDark };
 
   return (
     <Marker
@@ -188,7 +177,6 @@ const SpotMarker = memo(({ spot, onPress }) => {
           <Text style={styles.fishIcon}>🐟</Text>
         </MarkerPin>
         
-        {/* Badge cadenas pour spots privés */}
         {isPrivate && (
           <View style={[styles.badge, { backgroundColor: '#34495E' }]}>
             <Icon name="lock" size={10} color="white" strokeWidth={2.5} />
@@ -203,7 +191,6 @@ const SpotMarker = memo(({ spot, onPress }) => {
 // MARKER EVENT
 // ============================================
 const EventMarker = memo(({ event, onPress }) => {
-  // Formater la date (ex: "12 Jan")
   const formatDate = () => {
     if (!event.event_date) return '';
     const date = new Date(event.event_date);
@@ -224,7 +211,6 @@ const EventMarker = memo(({ event, onPress }) => {
           <Icon name="calendar" size={20} color="white" strokeWidth={2} />
         </MarkerPin>
         
-        {/* Badge avec la date */}
         <View style={styles.dateBadge}>
           <Text style={styles.dateText}>{formatDate()}</Text>
         </View>
@@ -234,7 +220,7 @@ const EventMarker = memo(({ event, onPress }) => {
 });
 
 // ============================================
-// MARKER NOUVEAU SPOT (temporaire, jaune)
+// MARKER NOUVEAU SPOT
 // ============================================
 const NewSpotMarker = memo(({ coordinate }) => (
   <Marker
@@ -248,7 +234,7 @@ const NewSpotMarker = memo(({ coordinate }) => (
 ));
 
 // ============================================
-// COMPOSANT PRINCIPAL CUSTOM MARKER
+// COMPOSANT PRINCIPAL
 // ============================================
 const CustomMarker = ({ 
   type, 
@@ -282,8 +268,6 @@ const CustomMarker = ({
 };
 
 export default CustomMarker;
-
-// Export des sous-composants pour usage direct si besoin
 export { UserMarker, StoreMarker, SpotMarker, EventMarker, NewSpotMarker };
 
 // ============================================

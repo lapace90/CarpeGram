@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'rea
 import React, { useState, useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import { searchPostsByHashtag } from '../../services/hashtagService';
@@ -12,6 +12,7 @@ import BubblesLoader from '../../components/animations/BubblesLoader';
 import EmptyState from '../../components/EmptyState';
 
 const HashtagScreen = () => {
+  const { theme } = useTheme();
   const { tag } = useLocalSearchParams();
   const router = useRouter();
   const [posts, setPosts] = useState([]);
@@ -26,11 +27,9 @@ const HashtagScreen = () => {
   const loadData = async () => {
     setLoading(true);
     
-    // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
     
-    // Load posts for this hashtag
     const result = await searchPostsByHashtag(tag, user?.id);
     
     if (result.success) {
@@ -56,12 +55,14 @@ const HashtagScreen = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg="white">
-        <View style={styles.header}>
+      <ScreenWrapper bg={theme.colors.card}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.gray, backgroundColor: theme.colors.card }]}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Icon name="arrowLeft" size={26} color={theme.colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>#{tag}</Text>
+          <Text style={[styles.headerTitle, { fontWeight: theme.fonts.bold, color: theme.colors.primary }]}>
+            #{tag}
+          </Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
@@ -72,20 +73,22 @@ const HashtagScreen = () => {
   }
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: theme.colors.gray, backgroundColor: theme.colors.card }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrowLeft" size={26} color={theme.colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>#{tag}</Text>
+        <Text style={[styles.headerTitle, { fontWeight: theme.fonts.bold, color: theme.colors.primary }]}>
+          #{tag}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Posts count */}
       {posts.length > 0 && (
-        <View style={styles.countContainer}>
-          <Text style={styles.countText}>
+        <View style={[styles.countContainer, { borderBottomColor: theme.colors.gray }]}>
+          <Text style={[styles.countText, { color: theme.colors.textLight, fontWeight: theme.fonts.medium }]}>
             {posts.length} {posts.length === 1 ? 'post' : 'posts'}
           </Text>
         </View>
@@ -123,27 +126,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
-    backgroundColor: 'white',
   },
   backButton: {
     padding: 8,
   },
   headerTitle: {
     fontSize: hp(2.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.primary,
   },
   countContainer: {
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   countText: {
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
-    fontWeight: theme.fonts.medium,
   },
   listContent: {
     paddingBottom: hp(2),

@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import React from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 
@@ -26,9 +26,13 @@ const PRIVACY_OPTIONS = [
 ];
 
 const PrivacySelector = ({ selected, onSelect }) => {
+  const { theme } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Who can see this post?</Text>
+      <Text style={[styles.title, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+        Who can see this post?
+      </Text>
       
       <View style={styles.options}>
         {PRIVACY_OPTIONS.map((option) => (
@@ -36,11 +40,15 @@ const PrivacySelector = ({ selected, onSelect }) => {
             key={option.value}
             style={[
               styles.option,
-              selected === option.value && styles.optionSelected
+              { backgroundColor: theme.colors.gray, borderRadius: theme.radius.lg },
+              selected === option.value && { 
+                borderColor: theme.colors.primary,
+                backgroundColor: theme.colors.primary + '08',
+              }
             ]}
             onPress={() => onSelect(option.value)}
           >
-            <View style={styles.optionIcon}>
+            <View style={[styles.optionIcon, { backgroundColor: theme.colors.card }]}>
               <Icon
                 name={option.icon}
                 size={24}
@@ -51,18 +59,22 @@ const PrivacySelector = ({ selected, onSelect }) => {
             <View style={styles.optionText}>
               <Text style={[
                 styles.optionLabel,
-                selected === option.value && styles.optionLabelSelected
+                { fontWeight: theme.fonts.medium, color: theme.colors.text },
+                selected === option.value && { 
+                  color: theme.colors.primary,
+                  fontWeight: theme.fonts.semiBold,
+                }
               ]}>
                 {option.label}
               </Text>
-              <Text style={styles.optionDescription}>
+              <Text style={[styles.optionDescription, { color: theme.colors.textLight }]}>
                 {option.description}
               </Text>
             </View>
 
             {selected === option.value && (
               <View style={styles.checkmark}>
-                <Icon name="heart" size={18} color={theme.colors.primary} />
+                <Icon name="check" size={18} color={theme.colors.primary} />
               </View>
             )}
           </Pressable>
@@ -80,8 +92,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   options: {
     gap: 12,
@@ -90,20 +100,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.lg,
     borderWidth: 2,
     borderColor: 'transparent',
-  },
-  optionSelected: {
-    borderColor: theme.colors.primary,
-    backgroundColor: 'rgba(0, 194, 47, 0.05)',
   },
   optionIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -114,16 +117,9 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.medium,
-    color: theme.colors.text,
-  },
-  optionLabelSelected: {
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semiBold,
   },
   optionDescription: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
   },
   checkmark: {
     marginLeft: 8,

@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import React, { useState } from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 
@@ -41,6 +41,7 @@ const CreateSpotModal = ({
   onCreateSpot,
   loading = false 
 }) => {
+  const { theme } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [waterType, setWaterType] = useState('lake');
@@ -97,24 +98,30 @@ const CreateSpotModal = ({
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xxl }]}>
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>New Spot</Text>
+              <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                New Spot
+              </Text>
               <Pressable onPress={handleClose} hitSlop={10}>
                 <Icon name="delete" size={24} color={theme.colors.text} />
               </Pressable>
             </View>
 
             {/* Coordinates */}
-            <Text style={styles.coordsText}>
+            <Text style={[styles.coordsText, { color: theme.colors.textLight }]}>
               📍 {coordinates.latitude.toFixed(5)}, {coordinates.longitude.toFixed(5)}
             </Text>
 
             {/* Name */}
             <TextInput
-              style={styles.input}
+              style={[styles.input, { 
+                borderColor: theme.colors.gray, 
+                borderRadius: theme.radius.xl,
+                color: theme.colors.text
+              }]}
               placeholder="Spot name *"
               value={name}
               onChangeText={setName}
@@ -124,17 +131,24 @@ const CreateSpotModal = ({
 
             {/* Water Type */}
             <View style={styles.section}>
-              <Text style={styles.label}>Water type</Text>
+              <Text style={[styles.label, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                Water type
+              </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {SPOT_TYPES.map(type => (
                   <Pressable
                     key={type.value}
-                    style={[styles.typeChip, waterType === type.value && styles.typeChipActive]}
+                    style={[
+                      styles.typeChip, 
+                      { borderColor: theme.colors.gray, borderRadius: theme.radius.md },
+                      waterType === type.value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+                    ]}
                     onPress={() => setWaterType(type.value)}
                   >
                     <Text style={[
                       styles.typeChipText,
-                      waterType === type.value && styles.typeChipTextActive
+                      { color: theme.colors.text },
+                      waterType === type.value && { color: 'white' }
                     ]}>
                       {type.label}
                     </Text>
@@ -145,20 +159,24 @@ const CreateSpotModal = ({
 
             {/* Fish Types */}
             <View style={styles.section}>
-              <Text style={styles.label}>Fish species (optional)</Text>
+              <Text style={[styles.label, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                Fish species (optional)
+              </Text>
               <View style={styles.fishGrid}>
                 {FISH_TYPES.map(fish => (
                   <Pressable
                     key={fish}
                     style={[
                       styles.fishChip,
-                      fishTypes.includes(fish) && styles.fishChipActive
+                      { borderColor: theme.colors.gray, borderRadius: theme.radius.md },
+                      fishTypes.includes(fish) && { backgroundColor: theme.colors.primaryLight, borderColor: theme.colors.primary }
                     ]}
                     onPress={() => toggleFishType(fish)}
                   >
                     <Text style={[
                       styles.fishChipText,
-                      fishTypes.includes(fish) && styles.fishChipTextActive
+                      { color: theme.colors.text },
+                      fishTypes.includes(fish) && { color: theme.colors.primary, fontWeight: theme.fonts.semibold }
                     ]}>
                       {fish}
                     </Text>
@@ -169,7 +187,11 @@ const CreateSpotModal = ({
 
             {/* Description */}
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { 
+                borderColor: theme.colors.gray, 
+                borderRadius: theme.radius.xl,
+                color: theme.colors.text
+              }]}
               placeholder="Description (optional)"
               value={description}
               onChangeText={setDescription}
@@ -182,14 +204,17 @@ const CreateSpotModal = ({
 
             {/* Privacy */}
             <View style={styles.section}>
-              <Text style={styles.label}>Who can see this spot</Text>
+              <Text style={[styles.label, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
+                Who can see this spot
+              </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {PRIVACY_OPTIONS.map(option => (
                   <Pressable
                     key={option.value}
                     style={[
                       styles.privacyChip,
-                      privacy === option.value && styles.privacyChipActive
+                      { borderColor: theme.colors.gray, borderRadius: theme.radius.md },
+                      privacy === option.value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
                     ]}
                     onPress={() => setPrivacy(option.value)}
                   >
@@ -200,7 +225,8 @@ const CreateSpotModal = ({
                     />
                     <Text style={[
                       styles.privacyChipText,
-                      privacy === option.value && styles.privacyChipTextActive
+                      { color: theme.colors.text },
+                      privacy === option.value && { color: 'white' }
                     ]}>
                       {option.label}
                     </Text>
@@ -212,22 +238,26 @@ const CreateSpotModal = ({
             {/* Buttons */}
             <View style={styles.buttons}>
               <Pressable
-                style={[styles.button, styles.cancelButton]}
+                style={[styles.button, { backgroundColor: theme.colors.backgroundLight, borderRadius: theme.radius.xl }]}
                 onPress={handleClose}
                 disabled={loading}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: theme.colors.text, fontWeight: theme.fonts.semibold }]}>
+                  Cancel
+                </Text>
               </Pressable>
 
               <Pressable
-                style={[styles.button, styles.createButton]}
+                style={[styles.button, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.xl }]}
                 onPress={handleCreate}
                 disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text style={styles.createButtonText}>Create Spot</Text>
+                  <Text style={[styles.createButtonText, { fontWeight: theme.fonts.semibold }]}>
+                    Create Spot
+                  </Text>
                 )}
               </Pressable>
             </View>
@@ -248,8 +278,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    backgroundColor: 'white',
-    borderRadius: theme.radius.xxl,
     padding: wp(5),
     width: wp(92),
     maxHeight: '85%',
@@ -262,22 +290,16 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: hp(2.4),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   coordsText: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
     marginBottom: hp(2),
   },
   input: {
     borderWidth: 1,
-    borderColor: theme.colors.gray,
-    borderRadius: theme.radius.xl,
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
     fontSize: hp(1.8),
-    color: theme.colors.text,
     marginBottom: hp(2),
   },
   textArea: {
@@ -289,28 +311,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: hp(1.7),
-    color: theme.colors.text,
     marginBottom: hp(1),
-    fontWeight: theme.fonts.medium,
   },
   typeChip: {
     paddingHorizontal: wp(4),
     paddingVertical: hp(1),
     marginRight: wp(2),
-    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
-  },
-  typeChipActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
   typeChipText: {
     fontSize: hp(1.6),
-    color: theme.colors.text,
-  },
-  typeChipTextActive: {
-    color: 'white',
   },
   fishGrid: {
     flexDirection: 'row',
@@ -320,22 +330,11 @@ const styles = StyleSheet.create({
   fishChip: {
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.8),
-    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
     marginBottom: hp(0.5),
-  },
-  fishChipActive: {
-    backgroundColor: theme.colors.primaryLight,
-    borderColor: theme.colors.primary,
   },
   fishChipText: {
     fontSize: hp(1.5),
-    color: theme.colors.text,
-  },
-  fishChipTextActive: {
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semibold,
   },
   privacyChip: {
     flexDirection: 'row',
@@ -344,20 +343,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     paddingVertical: hp(1),
     marginRight: wp(2),
-    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
-  },
-  privacyChipActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
   privacyChipText: {
     fontSize: hp(1.5),
-    color: theme.colors.text,
-  },
-  privacyChipTextActive: {
-    color: 'white',
   },
   buttons: {
     flexDirection: 'row',
@@ -368,24 +357,14 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     paddingVertical: hp(1.8),
-    borderRadius: theme.radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelButton: {
-    backgroundColor: theme.colors.backgroundLight,
-  },
   cancelButtonText: {
-    color: theme.colors.text,
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semibold,
-  },
-  createButton: {
-    backgroundColor: theme.colors.primary,
   },
   createButtonText: {
     color: 'white',
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semibold,
   },
 });

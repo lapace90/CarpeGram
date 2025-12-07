@@ -1,7 +1,7 @@
 import { View, StyleSheet, Text, Pressable, ActivityIndicator, Platform, StatusBar, Alert } from 'react-native';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useMap } from '../../hooks/useMap';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
@@ -25,6 +25,7 @@ import CustomMarker, {
 } from '../../components/map/CustomMarker';
 
 const Map = () => {
+  const { theme } = useTheme();
   const mapRef = useRef(null);
   const router = useRouter();
   const { user } = useAuth();
@@ -91,7 +92,6 @@ const Map = () => {
       },
     };
     loadMapData(bounds);
-    // TODO: loadEventsInArea(bounds);
   }, [loadMapData]);
 
   const handleRegionChangeComplete = (newRegion) => {
@@ -149,7 +149,6 @@ const Map = () => {
     }
   };
 
-  // Navigation vers le détail d'un event
   const handleEventPress = (event) => {
     if (event.id) {
       router.push(`/event/${event.id}`);
@@ -183,18 +182,20 @@ const Map = () => {
 
   if (!region) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading map...</Text>
+        <Text style={[styles.loadingText, { color: theme.colors.textLight }]}>Loading map...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Map</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.gray }]}>
+        <Text style={[styles.headerTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+          Map
+        </Text>
         <View style={styles.headerButtons}>
           <Pressable onPress={handleCenterOnUser} style={styles.headerButton}>
             <Icon name="location" size={24} color={theme.colors.primary} />
@@ -267,7 +268,6 @@ const Map = () => {
 
         {/* Users/Anglers - avec CustomMarker et couleurs selon relation */}
         {filteredUsers.map((userItem) => {
-          // Déterminer le type de marker selon la relation
           let markerType = MARKER_TYPES.USER_ANONYMOUS;
           if (userItem.isCloseFriend) {
             markerType = MARKER_TYPES.USER_CLOSE_FRIEND;
@@ -297,7 +297,7 @@ const Map = () => {
 
       {/* Loading indicator */}
       {loading && (
-        <View style={styles.loadingOverlay}>
+        <View style={[styles.loadingOverlay, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
         </View>
       )}
@@ -344,34 +344,27 @@ export default Map;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
   },
   loadingText: {
     marginTop: hp(2),
     fontSize: hp(1.8),
-    color: theme.colors.textLight,
   },
   header: {
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 50,
     paddingBottom: hp(1.5),
     paddingHorizontal: wp(5),
-    backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 0.5,
-    borderBottomColor: theme.colors.gray,
   },
   headerTitle: {
     fontSize: hp(2.8),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -387,9 +380,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: hp(20),
     alignSelf: 'center',
-    backgroundColor: 'white',
     padding: wp(3),
-    borderRadius: theme.radius.xl,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,

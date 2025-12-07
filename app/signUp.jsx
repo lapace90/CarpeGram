@@ -2,7 +2,7 @@ import { Alert, Pressable, StatusBar, StyleSheet, Text, View } from 'react-nativ
 import React, { useRef, useState } from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { useRouter } from 'expo-router'
-import { theme } from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import Icon from '../assets/icons/index'
 import BackButton from '../components/BackButton'
 import { hp, wp } from '../helpers/common'
@@ -11,6 +11,7 @@ import Button from '../components/Button'
 import { supabase } from '../lib/supabase'
 
 const SignUp = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const emailRef = useRef("");
   const firstNameRef = useRef("");
@@ -44,28 +45,28 @@ const SignUp = () => {
 
     setLoading(false);
 
-    console.log('session: ', session);
-    console.log('error: ', error);
-
     if (error) {
       Alert.alert('Sign Up', error.message);
     } else if (session) {
-      // ✅ AJOUTE CETTE PARTIE
       Alert.alert('Success', 'Account created successfully!');
-      router.replace('/home'); // On va créer cette page
+      router.replace('/home');
     }
   }
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <StatusBar style="dark" />
       <View style={styles.container}>
         <BackButton router={router} />
 
         {/* welcome */}
         <View>
-          <Text style={styles.welcomeText}>Let's</Text>
-          <Text style={styles.welcomeText}>Get Started!</Text>
+          <Text style={[styles.welcomeText, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            Let's
+          </Text>
+          <Text style={[styles.welcomeText, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            Get Started!
+          </Text>
         </View>
 
         {/* form */}
@@ -74,22 +75,22 @@ const SignUp = () => {
             Please, fill the form to create a new account.
           </Text>
           <Input
-            icon={<Icon name="user" size={26} strokeWidth={1.6} />}
+            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
             placeholder='Enter your first name'
             onChangeText={value => firstNameRef.current = value}
           />
           <Input
-            icon={<Icon name="user" size={26} strokeWidth={1.6} />}
+            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
             placeholder='Enter your last name'
             onChangeText={value => lastNameRef.current = value}
           />
           <Input
-            icon={<Icon name="mail" size={26} strokeWidth={1.6} />}
+            icon={<Icon name="mail" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
             placeholder='Enter your email'
             onChangeText={value => emailRef.current = value}
           />
           <Input
-            icon={<Icon name="lock" size={26} strokeWidth={1.6} />}
+            icon={<Icon name="lock" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
             placeholder='Enter your password'
             secureTextEntry
             onChangeText={value => passwordRef.current = value}
@@ -100,11 +101,13 @@ const SignUp = () => {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, { color: theme.colors.text }]}>
             Already have an account?
           </Text>
           <Pressable onPress={() => router.push('login')}>
-            <Text style={[styles.footerText, { color: theme.colors.primaryDark, fontWeight: theme.fonts.semiBold }]}>Login</Text>
+            <Text style={[styles.footerText, { color: theme.colors.primaryDark, fontWeight: theme.fonts.semiBold }]}>
+              Login
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -122,16 +125,9 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: hp(4),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text
   },
   form: {
     gap: 25,
-  },
-  forgotPassword: {
-    textAlign: 'right',
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text
   },
   footer: {
     flexDirection: 'row',
@@ -141,7 +137,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     textAlign: 'center',
-    color: theme.colors.text,
     fontSize: hp(1.6)
   }
 })

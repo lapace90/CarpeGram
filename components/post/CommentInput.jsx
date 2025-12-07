@@ -1,11 +1,12 @@
 import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import SmartInput from '../SmartInput'
 
 const CommentInput = ({ onSubmit, loading, currentUserId }) => {
+  const { theme } = useTheme();
   const [text, setText] = useState('');
 
   const handleSubmit = async () => {
@@ -19,14 +20,21 @@ const CommentInput = ({ onSubmit, loading, currentUserId }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderTopColor: theme.colors.gray, backgroundColor: theme.colors.card }]}>
       <SmartInput
         value={text}
         onChangeText={setText}
         placeholder="Add a comment..."
         currentUserId={currentUserId}
         containerStyle={{ flex: 1 }}
-        style={styles.input}
+        style={[
+          styles.input, 
+          { 
+            backgroundColor: theme.colors.gray,
+            borderRadius: theme.radius.xl,
+            color: theme.colors.text,
+          }
+        ]}
         multiline
         maxLength={500}
         editable={!loading}
@@ -35,18 +43,19 @@ const CommentInput = ({ onSubmit, loading, currentUserId }) => {
       <Pressable
         style={[
           styles.sendButton,
-          (!text.trim() || loading) && styles.sendButtonDisabled
+          { backgroundColor: theme.colors.primary },
+          (!text.trim() || loading) && { backgroundColor: theme.colors.gray }
         ]}
         onPress={handleSubmit}
         disabled={!text.trim() || loading}
       >
         {loading ? (
-          <ActivityIndicator size="small" color="white" />
+          <ActivityIndicator size="small" color={theme.colors.card} />
         ) : (
           <Icon
             name="send"
             size={20}
-            color={text.trim() ? 'white' : theme.colors.textLight}
+            color={text.trim() ? theme.colors.card : theme.colors.textLight}
           />
         )}
       </Pressable>
@@ -64,28 +73,19 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray,
-    backgroundColor: 'white',
   },
   input: {
     flex: 1,
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.xl,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: hp(1.7),
-    color: theme.colors.text,
     maxHeight: 100,
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    backgroundColor: theme.colors.gray,
   },
 });

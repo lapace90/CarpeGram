@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useRouter } from 'expo-router';
 import Icon from '../../assets/icons';
@@ -12,6 +12,7 @@ import { getFishingWeather, getMoonPhasesForWeek } from '../../services/weatherS
 import ActivityExplainerModal from '../../components/weather/ActivityExplainerModal';
 
 const Weather = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -30,7 +31,6 @@ const Weather = () => {
       setLoading(true);
       setError(null);
 
-      // Get user location
       const { status } = await Location.requestForegroundPermissionsAsync();
       
       let latitude, longitude;
@@ -42,7 +42,6 @@ const Weather = () => {
         latitude = location.coords.latitude;
         longitude = location.coords.longitude;
 
-        // Get location name
         const [place] = await Location.reverseGeocodeAsync({
           latitude,
           longitude,
@@ -51,7 +50,6 @@ const Weather = () => {
           setLocationName(place.city || place.subregion || place.region || 'Unknown');
         }
       } else {
-        // Default to Marseille
         latitude = 43.2965;
         longitude = 5.3698;
         setLocationName('Marseille');
@@ -59,7 +57,6 @@ const Weather = () => {
 
       setCoordinates({ latitude, longitude });
 
-      // Fetch weather data
       const result = await getFishingWeather(latitude, longitude);
       
       if (result.success) {
@@ -83,16 +80,20 @@ const Weather = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.container}>
-          <View style={styles.header}>
+          <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.gray }]}>
             <BackButton router={router} />
-            <Text style={styles.title}>Fishing Weather</Text>
+            <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              Fishing Weather
+            </Text>
             <View style={{ width: 40 }} />
           </View>
           <View style={styles.loadingContainer}>
             <BubblesLoader size={80} color={theme.colors.primary} />
-            <Text style={styles.loadingText}>Loading weather data...</Text>
+            <Text style={[styles.loadingText, { color: theme.colors.textLight }]}>
+              Loading weather data...
+            </Text>
           </View>
         </View>
       </ScreenWrapper>
@@ -101,18 +102,23 @@ const Weather = () => {
 
   if (error) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.container}>
-          <View style={styles.header}>
+          <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.gray }]}>
             <BackButton router={router} />
-            <Text style={styles.title}>Fishing Weather</Text>
+            <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              Fishing Weather
+            </Text>
             <View style={{ width: 40 }} />
           </View>
           <View style={styles.errorContainer}>
             <Text style={styles.errorIcon}>⚠️</Text>
-            <Text style={styles.errorText}>{error}</Text>
-            <Pressable style={styles.retryButton} onPress={loadWeather}>
-              <Text style={styles.retryText}>Try Again</Text>
+            <Text style={[styles.errorText, { color: theme.colors.textLight }]}>{error}</Text>
+            <Pressable 
+              style={[styles.retryButton, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.lg }]} 
+              onPress={loadWeather}
+            >
+              <Text style={[styles.retryText, { fontWeight: theme.fonts.semibold }]}>Try Again</Text>
             </Pressable>
           </View>
         </View>
@@ -126,9 +132,11 @@ const Weather = () => {
     <ScreenWrapper bg={theme.colors.gray + '10'}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.gray }]}>
           <BackButton router={router} />
-          <Text style={styles.title}>Fishing Weather</Text>
+          <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            Fishing Weather
+          </Text>
           <Pressable onPress={onRefresh} style={styles.refreshButton}>
             <Icon name="repeat" size={22} color={theme.colors.primary} />
           </Pressable>
@@ -142,64 +150,52 @@ const Weather = () => {
           }
         >
           {/* Location & Current Weather */}
-          <View style={styles.currentCard}>
+          <View style={[styles.currentCard, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.xl }]}>
             <View style={styles.locationRow}>
               <Text style={styles.locationIcon}>📍</Text>
-              <Text style={styles.locationText}>{locationName}</Text>
+              <Text style={[styles.locationText, { fontWeight: theme.fonts.semibold }]}>{locationName}</Text>
             </View>
 
             <View style={styles.currentMain}>
               <Text style={styles.currentIcon}>{current.icon}</Text>
               <View style={styles.currentTemp}>
-                <Text style={styles.temperature}>{current.temperature}°C</Text>
+                <Text style={[styles.temperature, { fontWeight: theme.fonts.bold }]}>{current.temperature}°</Text>
                 <Text style={styles.feelsLike}>Feels like {current.feelsLike}°</Text>
               </View>
             </View>
 
             <Text style={styles.condition}>{current.condition}</Text>
 
-            <View style={styles.currentDetails}>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailIcon}>💨</Text>
-                <Text style={styles.detailLabel}>Wind</Text>
-                <Text style={styles.detailValue}>{current.windSpeed} km/h {current.windDirection}</Text>
+            <View style={styles.weatherDetails}>
+              <View style={styles.weatherDetail}>
+                <Text style={styles.weatherDetailIcon}>💨</Text>
+                <Text style={styles.weatherDetailText}>{current.windSpeed} km/h {current.windDirection}</Text>
               </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailIcon}>💧</Text>
-                <Text style={styles.detailLabel}>Humidity</Text>
-                <Text style={styles.detailValue}>{current.humidity}%</Text>
+              <View style={styles.weatherDetail}>
+                <Text style={styles.weatherDetailIcon}>💧</Text>
+                <Text style={styles.weatherDetailText}>{current.humidity}%</Text>
               </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailIcon}>🌡️</Text>
-                <Text style={styles.detailLabel}>Pressure</Text>
-                <Text style={styles.detailValue}>{current.pressure} hPa</Text>
+              <View style={styles.weatherDetail}>
+                <Text style={styles.weatherDetailIcon}>📊</Text>
+                <Text style={styles.weatherDetailText}>{current.pressure} hPa</Text>
               </View>
             </View>
           </View>
 
-          {/* Water Temperature Card */}
+          {/* Water Temperature */}
           {waterTemperature && (
-            <View style={styles.waterTempCard}>
+            <View style={[styles.card, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
+              <Text style={[styles.cardTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                🌊 Water Temperature
+              </Text>
+              
               <View style={styles.waterTempMain}>
-                <Text style={styles.waterTempIcon}>🌊</Text>
-                <View style={styles.waterTempContent}>
-                  <Text style={styles.waterTempLabel}>Water Temperature</Text>
-                  <View style={styles.waterTempRow}>
-                    <Text style={styles.waterTempValue}>{waterTemperature.temperature}°C</Text>
-                    {waterTemperature.type === 'sea' ? (
-                      <View style={styles.waterTempBadge}>
-                        <Text style={styles.waterTempBadgeText}>Sea Surface</Text>
-                      </View>
-                    ) : (
-                      <View style={[styles.waterTempBadge, styles.waterTempBadgeEstimated]}>
-                        <Text style={[styles.waterTempBadgeText, styles.waterTempBadgeTextEstimated]}>
-                          Estimated
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.waterTempNote}>
-                    {waterTemperature.type === 'sea' 
+                <Text style={[styles.waterTempValue, { color: theme.colors.primary, fontWeight: theme.fonts.bold }]}>
+                  {waterTemperature.temperature}°C
+                </Text>
+                <View style={styles.waterTempInfo}>
+                  <Text style={[styles.waterTempSource, { color: theme.colors.textLight }]}>
+                    {waterTemperature.isRealData 
                       ? 'Real-time satellite data' 
                       : `Based on air temp & ${waterTemperature.season} season`
                     }
@@ -207,32 +203,36 @@ const Weather = () => {
                 </View>
               </View>
               
-              {/* Optimal range indicator */}
               <View style={styles.waterTempRange}>
-                <View style={styles.waterTempRangeBar}>
+                <View style={[styles.waterTempRangeBar, { backgroundColor: theme.colors.gray + '40' }]}>
                   <View style={styles.waterTempRangeOptimal} />
                   <View 
                     style={[
                       styles.waterTempMarker,
-                      { left: `${Math.max(0, Math.min(100, ((waterTemperature.temperature - 5) / 30) * 100))}%` }
+                      { 
+                        left: `${Math.max(0, Math.min(100, ((waterTemperature.temperature - 5) / 30) * 100))}%`,
+                        backgroundColor: theme.colors.primary 
+                      }
                     ]} 
                   />
                 </View>
                 <View style={styles.waterTempRangeLabels}>
-                  <Text style={styles.waterTempRangeText}>5°C</Text>
-                  <Text style={styles.waterTempRangeTextOptimal}>15-25°C optimal</Text>
-                  <Text style={styles.waterTempRangeText}>35°C</Text>
+                  <Text style={[styles.waterTempRangeText, { color: theme.colors.textLight }]}>5°C</Text>
+                  <Text style={[styles.waterTempRangeTextOptimal, { fontWeight: theme.fonts.medium }]}>15-25°C optimal</Text>
+                  <Text style={[styles.waterTempRangeText, { color: theme.colors.textLight }]}>35°C</Text>
                 </View>
               </View>
             </View>
           )}
 
           {/* Fishing Activity Card */}
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
             <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle}>🐟 Fishing Activity</Text>
+              <Text style={[styles.cardTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                🐟 Fishing Activity
+              </Text>
               <Pressable 
-                style={styles.infoButton} 
+                style={[styles.infoButton, { backgroundColor: theme.colors.primary + '15' }]} 
                 onPress={() => setShowExplainer(true)}
               >
                 <Icon name="info" size={18} color={theme.colors.primary} />
@@ -241,21 +241,18 @@ const Weather = () => {
             
             <View style={styles.activityMain}>
               <View style={styles.activityGauge}>
-                <Text style={[styles.activityScore, { color: fishingActivity.color }]}>
+                <Text style={[styles.activityScore, { color: fishingActivity.color, fontWeight: theme.fonts.bold }]}>
                   {fishingActivity.score}%
                 </Text>
-                <View style={styles.activityBarLarge}>
+                <View style={[styles.activityBarLarge, { backgroundColor: theme.colors.gray + '40' }]}>
                   <View 
                     style={[
-                      styles.activityFillLarge, 
-                      { 
-                        width: `${fishingActivity.score}%`,
-                        backgroundColor: fishingActivity.color,
-                      }
+                      styles.activityFillLarge,
+                      { width: `${fishingActivity.score}%`, backgroundColor: fishingActivity.color }
                     ]} 
                   />
                 </View>
-                <Text style={[styles.activityLabel, { color: fishingActivity.color }]}>
+                <Text style={[styles.activityLabel, { color: fishingActivity.color, fontWeight: theme.fonts.semibold }]}>
                   {fishingActivity.label}
                 </Text>
               </View>
@@ -263,26 +260,23 @@ const Weather = () => {
 
             {/* Factors Breakdown */}
             {fishingActivity.factors && (
-              <View style={styles.factorsBreakdown}>
-                <Text style={styles.factorsTitle}>Contributing Factors</Text>
+              <View style={[styles.factorsBreakdown, { borderTopColor: theme.colors.gray + '30' }]}>
+                <Text style={[styles.factorsTitle, { fontWeight: theme.fonts.semibold, color: theme.colors.textLight }]}>
+                  Key Factors
+                </Text>
                 <View style={styles.factorsGrid}>
-                  {Object.entries(fishingActivity.factors).map(([key, factor]) => (
-                    <View key={key} style={styles.factorMini}>
-                      <Text style={styles.factorMiniIcon}>
-                        {fishingActivity.weights[key]?.icon || '📊'}
-                      </Text>
-                      <View style={styles.factorMiniBar}>
+                  {fishingActivity.factors.slice(0, 4).map((factor, index) => (
+                    <View key={index} style={styles.factorMini}>
+                      <Text style={styles.factorMiniIcon}>{factor.icon}</Text>
+                      <View style={[styles.factorMiniBar, { backgroundColor: theme.colors.gray + '30' }]}>
                         <View 
                           style={[
                             styles.factorMiniFill,
-                            { 
-                              width: `${factor.score}%`,
-                              backgroundColor: factor.status.color,
-                            }
+                            { width: `${factor.score}%`, backgroundColor: factor.status.color }
                           ]} 
                         />
                       </View>
-                      <Text style={[styles.factorMiniScore, { color: factor.status.color }]}>
+                      <Text style={[styles.factorMiniScore, { color: factor.status.color, fontWeight: theme.fonts.semibold }]}>
                         {factor.score}
                       </Text>
                     </View>
@@ -292,7 +286,9 @@ const Weather = () => {
                   style={styles.learnMoreButton}
                   onPress={() => setShowExplainer(true)}
                 >
-                  <Text style={styles.learnMoreText}>How is this calculated?</Text>
+                  <Text style={[styles.learnMoreText, { color: theme.colors.primary, fontWeight: theme.fonts.medium }]}>
+                    How is this calculated?
+                  </Text>
                   <Icon name="arrowRight" size={14} color={theme.colors.primary} />
                 </Pressable>
               </View>
@@ -300,14 +296,20 @@ const Weather = () => {
 
             {/* Best Times */}
             <View style={styles.bestTimesSection}>
-              <Text style={styles.subTitle}>Best Times Today</Text>
+              <Text style={[styles.subTitle, { fontWeight: theme.fonts.semibold, color: theme.colors.textLight }]}>
+                Best Times Today
+              </Text>
               <View style={styles.bestTimesList}>
                 {bestTimes.map((time, index) => (
-                  <View key={index} style={styles.bestTimeItem}>
+                  <View key={index} style={[styles.bestTimeItem, { backgroundColor: theme.colors.gray + '20', borderRadius: theme.radius.lg }]}>
                     <Text style={styles.bestTimeIcon}>{time.icon}</Text>
                     <View style={styles.bestTimeInfo}>
-                      <Text style={styles.bestTimeLabel}>{time.label}</Text>
-                      <Text style={styles.bestTimeValue}>{time.start} - {time.end}</Text>
+                      <Text style={[styles.bestTimeLabel, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                        {time.label}
+                      </Text>
+                      <Text style={[styles.bestTimeValue, { color: theme.colors.textLight }]}>
+                        {time.start} - {time.end}
+                      </Text>
                     </View>
                     <View style={[
                       styles.qualityBadge,
@@ -324,74 +326,41 @@ const Weather = () => {
           </View>
 
           {/* Moon Phase Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>🌙 Moon Phase</Text>
+          <View style={[styles.card, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
+            <Text style={[styles.cardTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              🌙 Moon Phase
+            </Text>
             
             <View style={styles.moonMain}>
               <Text style={styles.moonEmoji}>{moonPhase.emoji}</Text>
               <View style={styles.moonInfo}>
-                <Text style={styles.moonPhase}>{moonPhase.phase}</Text>
-                <Text style={styles.moonIllumination}>{moonPhase.illumination}% illuminated</Text>
+                <Text style={[styles.moonPhase, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                  {moonPhase.phase}
+                </Text>
+                <Text style={[styles.moonIllumination, { color: theme.colors.textLight }]}>
+                  {moonPhase.illumination}% illuminated
+                </Text>
                 <View style={styles.moonImpact}>
-                  <Text style={styles.moonImpactLabel}>Fishing Impact:</Text>
+                  <Text style={[styles.moonImpactLabel, { color: theme.colors.textLight }]}>Fishing Impact:</Text>
                   <Text style={[
                     styles.moonImpactValue,
-                    { color: moonPhase.fishingImpact >= 80 ? '#27AE60' : moonPhase.fishingImpact >= 60 ? '#F39C12' : '#E74C3C' }
+                    { 
+                      color: moonPhase.fishingImpact >= 80 ? '#27AE60' : moonPhase.fishingImpact >= 60 ? '#F39C12' : '#E74C3C',
+                      fontWeight: theme.fonts.semibold 
+                    }
                   ]}>
-                    {moonPhase.fishingImpact >= 80 ? 'Excellent' : moonPhase.fishingImpact >= 60 ? 'Good' : 'Moderate'}
+                    {moonPhase.fishingImpact >= 80 ? 'Excellent' : moonPhase.fishingImpact >= 60 ? 'Good' : 'Fair'}
                   </Text>
                 </View>
               </View>
             </View>
-
-            {/* Moon phases for the week */}
-            <View style={styles.moonWeek}>
-              <Text style={styles.subTitle}>This Week</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.moonWeekList}>
-                  {getMoonPhasesForWeek().map((day, index) => (
-                    <View key={index} style={styles.moonDayItem}>
-                      <Text style={styles.moonDayName}>
-                        {index === 0 ? 'Today' : day.date.toLocaleDateString('en-US', { weekday: 'short' })}
-                      </Text>
-                      <Text style={styles.moonDayEmoji}>{day.emoji}</Text>
-                      <Text style={styles.moonDayIllum}>{day.illumination}%</Text>
-                    </View>
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
           </View>
 
-          {/* Tides Card (only for coastal locations) */}
-          {isCoastal && marine && (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>🌊 Tides</Text>
-              
-              <View style={styles.tideStrength}>
-                <Text style={styles.tideStrengthLabel}>{marine.tides.strength}</Text>
-              </View>
-
-              <View style={styles.tidesList}>
-                {marine.tides.times.map((tide, index) => (
-                  <View key={index} style={styles.tideItem}>
-                    <Text style={styles.tideIcon}>{tide.icon}</Text>
-                    <View style={styles.tideInfo}>
-                      <Text style={styles.tideType}>{tide.type} Tide</Text>
-                      <Text style={styles.tideTime}>{tide.time}</Text>
-                    </View>
-                    <Text style={styles.tideHeight}>{tide.height}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <Text style={styles.tideNote}>{marine.tides.note}</Text>
-            </View>
-          )}
-
           {/* 7-Day Forecast */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>📅 7-Day Fishing Forecast</Text>
+          <View style={[styles.card, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
+            <Text style={[styles.cardTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              📅 7-Day Forecast
+            </Text>
             
             <View style={styles.forecastList}>
               {forecast.map((day, index) => (
@@ -399,35 +368,39 @@ const Weather = () => {
                   key={index} 
                   style={[
                     styles.forecastItem,
-                    index === 0 && styles.forecastItemToday
+                    { borderBottomColor: theme.colors.gray + '30' },
+                    index === 0 && [styles.forecastItemToday, { backgroundColor: theme.colors.primary + '10', borderRadius: theme.radius.lg }]
                   ]}
                 >
                   <View style={styles.forecastDay}>
-                    <Text style={styles.forecastDayName}>{day.dayName}</Text>
+                    <Text style={[styles.forecastDayName, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                      {day.dayName}
+                    </Text>
                     <Text style={styles.forecastMoon}>{day.moonPhase.emoji}</Text>
                   </View>
                   
                   <View style={styles.forecastWeather}>
                     <Text style={styles.forecastIcon}>{day.icon}</Text>
                     <View style={styles.forecastTemps}>
-                      <Text style={styles.forecastTempMax}>{day.tempMax}°</Text>
-                      <Text style={styles.forecastTempMin}>{day.tempMin}°</Text>
+                      <Text style={[styles.forecastTempMax, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+                        {day.tempMax}°
+                      </Text>
+                      <Text style={[styles.forecastTempMin, { color: theme.colors.textLight }]}>
+                        {day.tempMin}°
+                      </Text>
                     </View>
                   </View>
 
                   <View style={styles.forecastActivity}>
-                    <View style={styles.forecastScoreBar}>
+                    <View style={[styles.forecastScoreBar, { backgroundColor: theme.colors.gray + '40' }]}>
                       <View 
                         style={[
                           styles.forecastScoreFill,
-                          { 
-                            width: `${day.fishingScore}%`,
-                            backgroundColor: day.fishingColor,
-                          }
+                          { width: `${day.fishingScore}%`, backgroundColor: day.fishingColor }
                         ]} 
                       />
                     </View>
-                    <Text style={[styles.forecastScoreText, { color: day.fishingColor }]}>
+                    <Text style={[styles.forecastScoreText, { color: day.fishingColor, fontWeight: theme.fonts.semibold }]}>
                       {day.fishingScore}%
                     </Text>
                   </View>
@@ -437,14 +410,16 @@ const Weather = () => {
           </View>
 
           {/* Sun Times */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>☀️ Sun Times</Text>
+          <View style={[styles.card, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
+            <Text style={[styles.cardTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              ☀️ Sun Times
+            </Text>
             
             <View style={styles.sunTimes}>
               <View style={styles.sunTimeItem}>
                 <Text style={styles.sunIcon}>🌅</Text>
-                <Text style={styles.sunLabel}>Sunrise</Text>
-                <Text style={styles.sunValue}>
+                <Text style={[styles.sunLabel, { color: theme.colors.textLight }]}>Sunrise</Text>
+                <Text style={[styles.sunValue, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
                   {new Date(today.sunrise).toLocaleTimeString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit',
@@ -452,11 +427,11 @@ const Weather = () => {
                   })}
                 </Text>
               </View>
-              <View style={styles.sunDivider} />
+              <View style={[styles.sunDivider, { backgroundColor: theme.colors.gray }]} />
               <View style={styles.sunTimeItem}>
                 <Text style={styles.sunIcon}>🌇</Text>
-                <Text style={styles.sunLabel}>Sunset</Text>
-                <Text style={styles.sunValue}>
+                <Text style={[styles.sunLabel, { color: theme.colors.textLight }]}>Sunset</Text>
+                <Text style={[styles.sunValue, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
                   {new Date(today.sunset).toLocaleTimeString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit',
@@ -468,14 +443,16 @@ const Weather = () => {
           </View>
 
           {/* Fishing Tips */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>💡 Tips for Today</Text>
+          <View style={[styles.card, { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl }]}>
+            <Text style={[styles.cardTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              💡 Tips for Today
+            </Text>
             
             <View style={styles.tipsList}>
               {generateTips(current, moonPhase, fishingActivity).map((tip, index) => (
-                <View key={index} style={styles.tipItem}>
+                <View key={index} style={[styles.tipItem, { backgroundColor: theme.colors.gray + '15', borderRadius: theme.radius.lg }]}>
                   <Text style={styles.tipIcon}>{tip.icon}</Text>
-                  <Text style={styles.tipText}>{tip.text}</Text>
+                  <Text style={[styles.tipText, { color: theme.colors.text }]}>{tip.text}</Text>
                 </View>
               ))}
             </View>
@@ -499,38 +476,32 @@ const Weather = () => {
 const generateTips = (weather, moon, activity) => {
   const tips = [];
 
-  // Temperature tips
   if (weather.temperature < 10) {
     tips.push({ icon: '🥶', text: 'Cold water - fish will be slower. Try slower presentations and deeper spots.' });
   } else if (weather.temperature > 25) {
     tips.push({ icon: '☀️', text: 'Hot day - fish early morning or late evening when water is cooler.' });
   }
 
-  // Wind tips
   if (weather.windSpeed > 20) {
     tips.push({ icon: '💨', text: 'Strong wind - fish the windward bank where food accumulates.' });
   } else if (weather.windSpeed < 5) {
     tips.push({ icon: '🍃', text: 'Light wind - great surface fishing conditions!' });
   }
 
-  // Moon tips
   if (moon.phase === 'Full Moon' || moon.phase === 'New Moon') {
     tips.push({ icon: moon.emoji, text: `${moon.phase} - fish are typically more active. Great time for night sessions!` });
   }
 
-  // Pressure tips
   if (weather.pressure > 1020) {
     tips.push({ icon: '📈', text: 'High pressure - fish may be deeper. Try bottom baits.' });
   } else if (weather.pressure < 1005) {
     tips.push({ icon: '📉', text: 'Low pressure - fish often feed aggressively before storms.' });
   }
 
-  // Cloud cover
   if (weather.cloudCover > 70) {
     tips.push({ icon: '☁️', text: 'Overcast skies - excellent conditions! Fish will be more confident.' });
   }
 
-  // Activity score
   if (activity.score >= 80) {
     tips.push({ icon: '🎣', text: 'Perfect conditions! Don\'t miss this opportunity.' });
   }
@@ -550,14 +521,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
-    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   title: {
     fontSize: hp(2.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   refreshButton: {
     padding: 8,
@@ -570,7 +537,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: hp(1.7),
-    color: theme.colors.textLight,
   },
   errorContainer: {
     flex: 1,
@@ -584,19 +550,15 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: hp(1.8),
-    color: theme.colors.textLight,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: theme.colors.primary,
     paddingVertical: hp(1.5),
     paddingHorizontal: wp(8),
-    borderRadius: theme.radius.lg,
   },
   retryText: {
     color: 'white',
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semibold,
   },
   scrollContent: {
     padding: wp(4),
@@ -605,8 +567,6 @@ const styles = StyleSheet.create({
   
   // Current Weather Card
   currentCard: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.xl,
     padding: wp(5),
     marginBottom: hp(2),
   },
@@ -621,7 +581,6 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semibold,
     color: 'white',
   },
   currentMain: {
@@ -636,7 +595,6 @@ const styles = StyleSheet.create({
   currentTemp: {},
   temperature: {
     fontSize: hp(5),
-    fontWeight: theme.fonts.bold,
     color: 'white',
   },
   feelsLike: {
@@ -644,110 +602,57 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
   },
   condition: {
-    fontSize: hp(2),
+    fontSize: hp(1.8),
     color: 'white',
     marginBottom: hp(2),
   },
-  currentDetails: {
+  weatherDetails: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: theme.radius.lg,
-    padding: wp(3),
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.2)',
+    paddingTop: hp(1.5),
   },
-  detailItem: {
+  weatherDetail: {
     alignItems: 'center',
     gap: 4,
   },
-  detailIcon: {
+  weatherDetailIcon: {
     fontSize: hp(2),
   },
-  detailLabel: {
-    fontSize: hp(1.3),
-    color: 'rgba(255,255,255,0.7)',
-  },
-  detailValue: {
-    fontSize: hp(1.5),
-    fontWeight: theme.fonts.semibold,
-    color: 'white',
+  weatherDetailText: {
+    fontSize: hp(1.4),
+    color: 'rgba(255,255,255,0.9)',
   },
 
-  // Water Temperature Card
-  waterTempCard: {
-    backgroundColor: 'white',
-    borderRadius: theme.radius.xl,
-    padding: wp(5),
-    marginBottom: hp(2),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
+  // Water Temperature
   waterTempMain: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 16,
+    alignItems: 'center',
+    gap: wp(4),
     marginBottom: hp(2),
   },
-  waterTempIcon: {
+  waterTempValue: {
     fontSize: hp(4),
   },
-  waterTempContent: {
+  waterTempInfo: {
     flex: 1,
   },
-  waterTempLabel: {
-    fontSize: hp(1.5),
-    color: theme.colors.textLight,
-    marginBottom: 4,
-  },
-  waterTempRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 4,
-  },
-  waterTempValue: {
-    fontSize: hp(3),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
-  },
-  waterTempBadge: {
-    backgroundColor: '#3498DB20',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  waterTempBadgeText: {
-    fontSize: hp(1.2),
-    fontWeight: theme.fonts.semibold,
-    color: '#3498DB',
-  },
-  waterTempBadgeEstimated: {
-    backgroundColor: '#F39C1220',
-  },
-  waterTempBadgeTextEstimated: {
-    color: '#F39C12',
-  },
-  waterTempNote: {
-    fontSize: hp(1.3),
-    color: theme.colors.textLight,
-    fontStyle: 'italic',
+  waterTempSource: {
+    fontSize: hp(1.4),
   },
   waterTempRange: {
     marginTop: hp(1),
   },
   waterTempRangeBar: {
     height: 8,
-    backgroundColor: theme.colors.gray + '30',
     borderRadius: 4,
     position: 'relative',
-    overflow: 'visible',
   },
   waterTempRangeOptimal: {
     position: 'absolute',
-    left: '33.3%', // (15-5)/(35-5) = 33.3%
-    width: '33.3%', // (25-15)/(35-5) = 33.3%
+    left: '33.3%',
+    width: '33.3%',
     height: '100%',
     backgroundColor: '#27AE6040',
     borderRadius: 4,
@@ -758,7 +663,6 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: theme.colors.primary,
     marginLeft: -8,
     borderWidth: 2,
     borderColor: 'white',
@@ -775,18 +679,14 @@ const styles = StyleSheet.create({
   },
   waterTempRangeText: {
     fontSize: hp(1.2),
-    color: theme.colors.textLight,
   },
   waterTempRangeTextOptimal: {
     fontSize: hp(1.2),
     color: '#27AE60',
-    fontWeight: theme.fonts.medium,
   },
 
   // Generic Card
   card: {
-    backgroundColor: 'white',
-    borderRadius: theme.radius.xl,
     padding: wp(5),
     marginBottom: hp(2),
     shadowColor: '#000',
@@ -803,21 +703,16 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   infoButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: theme.colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },
   subTitle: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.textLight,
     marginBottom: hp(1),
     marginTop: hp(2),
   },
@@ -833,12 +728,10 @@ const styles = StyleSheet.create({
   },
   activityScore: {
     fontSize: hp(5),
-    fontWeight: theme.fonts.bold,
   },
   activityBarLarge: {
     width: '100%',
     height: 12,
-    backgroundColor: theme.colors.gray + '40',
     borderRadius: 6,
     marginVertical: hp(1),
     overflow: 'hidden',
@@ -849,18 +742,14 @@ const styles = StyleSheet.create({
   },
   activityLabel: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.semibold,
   },
   factorsBreakdown: {
     marginTop: hp(2),
     paddingTop: hp(2),
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray + '30',
   },
   factorsTitle: {
     fontSize: hp(1.4),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.textLight,
     marginBottom: hp(1),
   },
   factorsGrid: {
@@ -879,7 +768,6 @@ const styles = StyleSheet.create({
   factorMiniBar: {
     flex: 1,
     height: 6,
-    backgroundColor: theme.colors.gray + '30',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -889,7 +777,6 @@ const styles = StyleSheet.create({
   },
   factorMiniScore: {
     fontSize: hp(1.3),
-    fontWeight: theme.fonts.semibold,
     width: 28,
     textAlign: 'right',
   },
@@ -902,8 +789,6 @@ const styles = StyleSheet.create({
   },
   learnMoreText: {
     fontSize: hp(1.4),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.medium,
   },
   bestTimesSection: {},
   bestTimesList: {
@@ -912,9 +797,7 @@ const styles = StyleSheet.create({
   bestTimeItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.gray + '20',
     padding: wp(3),
-    borderRadius: theme.radius.lg,
     gap: 12,
   },
   bestTimeIcon: {
@@ -925,12 +808,9 @@ const styles = StyleSheet.create({
   },
   bestTimeLabel: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
   },
   bestTimeValue: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   qualityBadge: {
     paddingHorizontal: 10,
@@ -949,119 +829,44 @@ const styles = StyleSheet.create({
     gap: wp(5),
   },
   moonEmoji: {
-    fontSize: hp(8),
+    fontSize: hp(6),
   },
   moonInfo: {
     flex: 1,
   },
   moonPhase: {
-    fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
+    fontSize: hp(2),
   },
   moonIllumination: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
-    marginBottom: hp(1),
+    marginTop: 2,
   },
   moonImpact: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    marginTop: hp(1),
   },
   moonImpactLabel: {
-    fontSize: hp(1.5),
-    color: theme.colors.textLight,
+    fontSize: hp(1.4),
   },
   moonImpactValue: {
-    fontSize: hp(1.5),
-    fontWeight: theme.fonts.semibold,
-  },
-  moonWeek: {},
-  moonWeekList: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  moonDayItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  moonDayName: {
-    fontSize: hp(1.3),
-    color: theme.colors.textLight,
-  },
-  moonDayEmoji: {
-    fontSize: hp(3),
-  },
-  moonDayIllum: {
-    fontSize: hp(1.2),
-    color: theme.colors.textLight,
+    fontSize: hp(1.4),
   },
 
-  // Tides Section
-  tideStrength: {
-    backgroundColor: theme.colors.primary + '15',
-    padding: wp(2),
-    borderRadius: theme.radius.md,
-    alignSelf: 'flex-start',
-    marginBottom: hp(1.5),
-  },
-  tideStrengthLabel: {
-    fontSize: hp(1.4),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semibold,
-  },
-  tidesList: {
-    gap: 12,
-  },
-  tideItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  tideIcon: {
-    fontSize: hp(2),
-  },
-  tideInfo: {
-    flex: 1,
-  },
-  tideType: {
-    fontSize: hp(1.6),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
-  },
-  tideTime: {
-    fontSize: hp(1.4),
-    color: theme.colors.textLight,
-  },
-  tideHeight: {
-    fontSize: hp(1.6),
-    fontWeight: theme.fonts.medium,
-    color: theme.colors.primary,
-  },
-  tideNote: {
-    fontSize: hp(1.3),
-    color: theme.colors.textLight,
-    fontStyle: 'italic',
-    marginTop: hp(1.5),
-  },
-
-  // Forecast Section
+  // Forecast
   forecastList: {
-    gap: 8,
+    gap: 0,
   },
   forecastItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: hp(1.5),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray + '30',
   },
   forecastItemToday: {
-    backgroundColor: theme.colors.primary + '10',
     marginHorizontal: -wp(5),
     paddingHorizontal: wp(5),
-    borderRadius: theme.radius.lg,
     borderBottomWidth: 0,
   },
   forecastDay: {
@@ -1069,8 +874,6 @@ const styles = StyleSheet.create({
   },
   forecastDayName: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
   },
   forecastMoon: {
     fontSize: hp(1.4),
@@ -1090,12 +893,9 @@ const styles = StyleSheet.create({
   },
   forecastTempMax: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
   },
   forecastTempMin: {
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
   },
   forecastActivity: {
     width: wp(25),
@@ -1104,7 +904,6 @@ const styles = StyleSheet.create({
   forecastScoreBar: {
     width: '100%',
     height: 6,
-    backgroundColor: theme.colors.gray + '40',
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 4,
@@ -1115,7 +914,6 @@ const styles = StyleSheet.create({
   },
   forecastScoreText: {
     fontSize: hp(1.3),
-    fontWeight: theme.fonts.semibold,
   },
 
   // Sun Times
@@ -1134,17 +932,13 @@ const styles = StyleSheet.create({
   },
   sunLabel: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   sunValue: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   sunDivider: {
     width: 1,
     height: '80%',
-    backgroundColor: theme.colors.gray,
     marginHorizontal: wp(5),
   },
 
@@ -1156,9 +950,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: theme.colors.gray + '15',
     padding: wp(3),
-    borderRadius: theme.radius.lg,
   },
   tipIcon: {
     fontSize: hp(2),
@@ -1166,7 +958,6 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: hp(1.5),
-    color: theme.colors.text,
     lineHeight: hp(2.2),
   },
-}); 
+});

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Animated, Easing, Pressable } from 'react-native';
-import { theme } from '../../constants/theme';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Animated, Easing, Pressable } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import Icon from '../../assets/icons';
 
 /**
@@ -11,9 +11,12 @@ const HeartExplosion = ({
   liked,
   onPress,
   size = 28,
-  color = theme.colors.rose,
+  color,
   showParticles = true,
 }) => {
+  const { theme } = useTheme();
+  const heartColor = color || theme.colors.rose;
+
   const scale = useRef(new Animated.Value(1)).current;
   const particleAnims = useRef(
     Array.from({ length: 6 }, () => ({
@@ -30,10 +33,8 @@ const HeartExplosion = ({
 
   const handlePress = () => {
     if (!liked) {
-      // Trigger explosion animation
       animateExplosion();
     } else {
-      // Simple scale down for unlike
       Animated.sequence([
         Animated.timing(scale, {
           toValue: 0.8,
@@ -53,7 +54,6 @@ const HeartExplosion = ({
   const animateExplosion = () => {
     setShowParticleViews(true);
 
-    // Heart bounce
     const heartBounce = Animated.sequence([
       Animated.timing(scale, {
         toValue: 0.6,
@@ -73,7 +73,6 @@ const HeartExplosion = ({
       }),
     ]);
 
-    // Ring expansion
     const ringAnimation = Animated.parallel([
       Animated.timing(ringScale, {
         toValue: 1,
@@ -95,8 +94,7 @@ const HeartExplosion = ({
       ]),
     ]);
 
-    // Particles explosion
-    const angles = [0, 60, 120, 180, 240, 300]; // 6 particles
+    const angles = [0, 60, 120, 180, 240, 300];
     const particleAnimations = particleAnims.map((anim, index) => {
       const angle = (angles[index] * Math.PI) / 180;
       const distance = size * 1.5;
@@ -142,7 +140,6 @@ const HeartExplosion = ({
       heartBounce,
       ...(showParticles ? [ringAnimation, ...particleAnimations] : []),
     ]).start(() => {
-      // Reset particles
       particleAnims.forEach((anim) => {
         anim.scale.setValue(0);
         anim.translateX.setValue(0);
@@ -156,17 +153,16 @@ const HeartExplosion = ({
   };
 
   const particleColors = [
-    color,
+    heartColor,
     theme.colors.roseLight,
     '#FF9999',
-    color,
+    heartColor,
     theme.colors.roseLight,
     '#FFB366',
   ];
 
   return (
     <Pressable onPress={handlePress} style={styles.container}>
-      {/* Expanding ring */}
       {showParticles && showParticleViews && (
         <Animated.View
           style={[
@@ -175,7 +171,7 @@ const HeartExplosion = ({
               width: size * 3,
               height: size * 3,
               borderRadius: size * 1.5,
-              borderColor: color,
+              borderColor: heartColor,
               opacity: ringOpacity,
               transform: [{ scale: ringScale }],
             },
@@ -183,7 +179,6 @@ const HeartExplosion = ({
         />
       )}
 
-      {/* Particles */}
       {showParticles && showParticleViews && particleAnims.map((anim, index) => (
         <Animated.View
           key={index}
@@ -205,13 +200,12 @@ const HeartExplosion = ({
         />
       ))}
 
-      {/* Heart icon */}
       <Animated.View style={{ transform: [{ scale }] }}>
         <Icon
           name="heart"
           size={size}
-          fill={liked ? color : 'transparent'}
-          color={liked ? color : theme.colors.text}
+          fill={liked ? heartColor : 'transparent'}
+          color={liked ? heartColor : theme.colors.text}
         />
       </Animated.View>
     </Pressable>

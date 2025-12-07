@@ -1,6 +1,6 @@
 import { View, StyleSheet, Modal, FlatList, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { getPostComments, createComment, deleteComment } from '../../services/commentService'
 import CommentItem from './CommentItem'
@@ -9,6 +9,7 @@ import ModalHeader from '../ModalHeader'
 import EmptyState from '../EmptyState'
 
 const CommentsModal = ({ visible, onClose, postId, currentUserId, onCommentChange }) => {
+  const { theme } = useTheme();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -30,19 +31,19 @@ const CommentsModal = ({ visible, onClose, postId, currentUserId, onCommentChang
     setLoading(false);
   };
 
-const handleAddComment = async (text) => {
-  setSubmitting(true);
-  const result = await createComment(postId, currentUserId, text);
-  
-  if (result.success) {
-    const newComments = [result.data, ...comments];
-    setComments(newComments);
-    if (onCommentChange) onCommentChange(newComments.length);
-  }
-  
-  setSubmitting(false);
-  return result.success;
-};
+  const handleAddComment = async (text) => {
+    setSubmitting(true);
+    const result = await createComment(postId, currentUserId, text);
+    
+    if (result.success) {
+      const newComments = [result.data, ...comments];
+      setComments(newComments);
+      if (onCommentChange) onCommentChange(newComments.length);
+    }
+    
+    setSubmitting(false);
+    return result.success;
+  };
 
   const handleDeleteComment = async (commentId, commentUserId) => {
     if (commentUserId !== currentUserId) return;
@@ -69,7 +70,7 @@ const handleAddComment = async (text) => {
       transparent={false}
       onRequestClose={onClose}
     >
-      <View style={commonStyles.absoluteFill}>
+      <View style={[commonStyles.absoluteFill, { backgroundColor: theme.colors.card }]}>
         <ModalHeader
           title={`Comments (${comments.length})`}
           onClose={onClose}

@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Modal, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
@@ -10,6 +10,7 @@ import ModalHeader from '../ModalHeader'
 import EmptyState from '../EmptyState'
 
 const LikesModal = ({ visible, onClose, postId }) => {
+  const { theme } = useTheme();
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -71,7 +72,7 @@ const LikesModal = ({ visible, onClose, postId }) => {
       transparent={false}
       onRequestClose={onClose}
     >
-      <View style={commonStyles.absoluteFill}>
+      <View style={[commonStyles.absoluteFill, { backgroundColor: theme.colors.card }]}>
         <ModalHeader 
           title={`Likes (${likes.length})`}
           onClose={onClose}

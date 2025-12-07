@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import React, { useState } from 'react'; 
 import { useRouter } from 'expo-router';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import Avatar from '../Avatar';
@@ -20,6 +20,7 @@ const EventCard = ({
     onPress,
     onUpdate,
 }) => {
+    const { theme } = useTheme();
     const router = useRouter(); 
     const [showMenu, setShowMenu] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -36,9 +37,9 @@ const EventCard = ({
 
     const handlePress = () => {
         if (onPress) {
-            onPress(); // Si onPress est fourni, l'utiliser
+            onPress();
         } else if (compact) {
-            router.push(`/event/${event.id}`); // Navigation par défaut vers le détail
+            router.push(`/event/${event.id}`);
         }
     };
 
@@ -66,20 +67,28 @@ const EventCard = ({
     return (
         <>
             <Pressable
-                style={styles.container}
+                style={[
+                    styles.container, 
+                    { 
+                        backgroundColor: theme.colors.aquaLight,
+                        borderRadius: theme.radius.md,
+                        borderColor: theme.colors.primary + '20',
+                    }
+                ]}
                 onPress={handlePress}
                 disabled={!onPress}
             >
-                {/* Header avec icône event + menu pour créateur */}
+                {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
-                        <View style={styles.iconContainer}>
+                        <View style={[styles.iconContainer, { borderRadius: theme.radius.sm, backgroundColor: theme.colors.primary + '15' }]}>
                             <Icon name="calendar" size={20} color={theme.colors.primary} />
                         </View>
-                        <Text style={styles.eventLabel}>Event</Text>
+                        <Text style={[styles.eventLabel, { fontWeight: theme.fonts.semibold, color: theme.colors.primary }]}>
+                            Event
+                        </Text>
                     </View>
 
-                    {/* Menu 3 points si créateur - AJOUTE */}
                     {isCreator && !isPastEvent && (
                         <Pressable
                             onPress={(e) => {
@@ -93,26 +102,26 @@ const EventCard = ({
                     )}
                 </View>
 
-                {/* Titre */}
-                <Text style={styles.title} numberOfLines={2}>
+                {/* Title */}
+                <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]} numberOfLines={2}>
                     {event.title}
                 </Text>
 
                 {/* Description */}
                 {event.description && (
-                    <Text style={styles.description} numberOfLines={2}>
+                    <Text style={[styles.description, { color: theme.colors.textLight }]} numberOfLines={2}>
                         {event.description}
                     </Text>
                 )}
 
-                {/* Date et heure */}
+                {/* Date & Time */}
                 <View style={styles.dateTimeRow}>
                     <Icon name="calendar" size={16} color={theme.colors.textLight} />
-                    <Text style={styles.dateText}>
+                    <Text style={[styles.dateText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
                         {formattedDate}
                     </Text>
                     <Icon name="clock" size={16} color={theme.colors.textLight} style={styles.clockIcon} />
-                    <Text style={styles.timeText}>
+                    <Text style={[styles.timeText, { color: theme.colors.text, fontWeight: theme.fonts.medium }]}>
                         {formattedTime}
                     </Text>
                 </View>
@@ -121,37 +130,37 @@ const EventCard = ({
                 {event.location && (
                     <View style={styles.locationRow}>
                         <Icon name="location" size={16} color={theme.colors.textLight} />
-                        <Text style={styles.locationText} numberOfLines={1}>
+                        <Text style={[styles.locationText, { color: theme.colors.text }]} numberOfLines={1}>
                             {event.location}
                         </Text>
                     </View>
                 )}
 
-                {/* Créateur */}
-                <View style={styles.creatorRow}>
+                {/* Creator */}
+                <View style={[styles.creatorRow, { borderTopColor: theme.colors.gray + '30' }]}>
                     <Avatar profile={event.creator} size={24} />
-                    <Text style={styles.creatorText}>
+                    <Text style={[styles.creatorText, { color: theme.colors.textLight }]}>
                         Organisé par {displayName}
                     </Text>
                 </View>
 
-                {/* Participants count */}
+                {/* Footer */}
                 <View style={styles.footer}>
                     <View style={styles.participantsInfo}>
                         <Icon name="user" size={16} color={theme.colors.textLight} />
-                        <Text style={styles.participantsText}>
+                        <Text style={[styles.participantsText, { color: theme.colors.textLight }]}>
                             {event.participants_count || 0}
                             {event.max_participants ? ` / ${event.max_participants}` : ''} participant{event.participants_count !== 1 ? 's' : ''}
                         </Text>
                     </View>
 
-                    {/* Bouton Join/Leave - seulement si pas créateur et pas event passé */}
                     {!isCreator && !isPastEvent && currentUserId && (
                         <Pressable
                             style={[
                                 styles.joinButton,
-                                isParticipant && styles.joinButtonActive,
-                                isFull && !isParticipant && styles.joinButtonDisabled
+                                { backgroundColor: theme.colors.primary, borderRadius: theme.radius.sm },
+                                isParticipant && { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.primary },
+                                isFull && !isParticipant && { backgroundColor: theme.colors.gray, opacity: 0.5 }
                             ]}
                             onPress={handleJoinPress}
                             disabled={isFull && !isParticipant}
@@ -159,34 +168,37 @@ const EventCard = ({
                             <Icon
                                 name={isParticipant ? "check" : "addUser"}
                                 size={16}
-                                color={isParticipant ? theme.colors.primary : "white"}
+                                color={isParticipant ? theme.colors.primary : theme.colors.card}
                             />
                             <Text style={[
                                 styles.joinButtonText,
-                                isParticipant && styles.joinButtonTextActive
+                                { fontWeight: theme.fonts.semibold, color: theme.colors.card },
+                                isParticipant && { color: theme.colors.primary }
                             ]}>
-                                {isParticipant ? 'Inscrit' : isFull ? 'Complet' : 'Participer'}
+                                {isParticipant ? 'Inscrit' : isFull ? 'Complet' : 'Rejoindre'}
                             </Text>
                         </Pressable>
                     )}
 
-                    {/* Badge pour le créateur */}
                     {isCreator && (
-                        <View style={styles.creatorBadge}>
-                            <Text style={styles.creatorBadgeText}>Organisateur</Text>
+                        <View style={[styles.creatorBadge, { backgroundColor: theme.colors.primary + '15', borderRadius: theme.radius.sm }]}>
+                            <Text style={[styles.creatorBadgeText, { fontWeight: theme.fonts.medium, color: theme.colors.primary }]}>
+                                Organisateur
+                            </Text>
                         </View>
                     )}
 
-                    {/* Badge event passé */}
                     {isPastEvent && (
-                        <View style={styles.pastBadge}>
-                            <Text style={styles.pastBadgeText}>Terminé</Text>
+                        <View style={[styles.pastBadge, { backgroundColor: theme.colors.gray + '30', borderRadius: theme.radius.sm }]}>
+                            <Text style={[styles.pastBadgeText, { fontWeight: theme.fonts.medium, color: theme.colors.textLight }]}>
+                                Terminé
+                            </Text>
                         </View>
                     )}
                 </View>
             </Pressable>
 
-            {/* Modals */}
+            {/* Menu */}
             <EventMenu
                 visible={showMenu}
                 onClose={() => setShowMenu(false)}
@@ -194,11 +206,11 @@ const EventCard = ({
                 onAction={handleMenuAction}
             />
 
+            {/* Edit Modal */}
             <EditEventModal
                 visible={showEditModal}
                 onClose={() => setShowEditModal(false)}
                 event={event}
-                currentUserId={currentUserId}
                 onUpdate={() => {
                     onUpdate?.();
                     setShowEditModal(false);
@@ -210,11 +222,8 @@ const EventCard = ({
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: theme.colors.aquaLight,
-        borderRadius: theme.radius.md,
         padding: wp(4),
         borderWidth: 1,
-        borderColor: theme.colors.primary + '20',
     },
     header: {
         flexDirection: 'row',
@@ -229,28 +238,21 @@ const styles = StyleSheet.create({
     iconContainer: {
         width: 32,
         height: 32,
-        borderRadius: theme.radius.sm,
-        backgroundColor: theme.colors.primary + '15',
         alignItems: 'center',
         justifyContent: 'center',
     },
     eventLabel: {
         fontSize: hp(1.6),
-        fontWeight: theme.fonts.semibold,
-        color: theme.colors.primary,
         marginLeft: wp(2),
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
     title: {
         fontSize: hp(2),
-        fontWeight: theme.fonts.bold,
-        color: theme.colors.text,
         marginBottom: hp(0.5),
     },
     description: {
         fontSize: hp(1.7),
-        color: theme.colors.textLight,
         marginBottom: hp(1),
         lineHeight: hp(2.3),
     },
@@ -261,9 +263,7 @@ const styles = StyleSheet.create({
     },
     dateText: {
         fontSize: hp(1.6),
-        color: theme.colors.text,
         marginLeft: wp(1.5),
-        fontWeight: theme.fonts.medium,
         textTransform: 'capitalize',
     },
     clockIcon: {
@@ -271,9 +271,7 @@ const styles = StyleSheet.create({
     },
     timeText: {
         fontSize: hp(1.6),
-        color: theme.colors.text,
         marginLeft: wp(1.5),
-        fontWeight: theme.fonts.medium,
     },
     locationRow: {
         flexDirection: 'row',
@@ -282,7 +280,6 @@ const styles = StyleSheet.create({
     },
     locationText: {
         fontSize: hp(1.6),
-        color: theme.colors.text,
         marginLeft: wp(1.5),
         flex: 1,
     },
@@ -292,11 +289,9 @@ const styles = StyleSheet.create({
         marginBottom: hp(1.5),
         paddingTop: hp(1),
         borderTopWidth: 1,
-        borderTopColor: theme.colors.gray + '30',
     },
     creatorText: {
         fontSize: hp(1.6),
-        color: theme.colors.textLight,
         marginLeft: wp(2),
     },
     footer: {
@@ -310,56 +305,31 @@ const styles = StyleSheet.create({
     },
     participantsText: {
         fontSize: hp(1.6),
-        color: theme.colors.textLight,
         marginLeft: wp(1.5),
     },
     joinButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: theme.colors.primary,
         paddingHorizontal: wp(4),
         paddingVertical: hp(0.8),
-        borderRadius: theme.radius.sm,
         gap: wp(1.5),
-    },
-    joinButtonActive: {
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: theme.colors.primary,
-    },
-    joinButtonDisabled: {
-        backgroundColor: theme.colors.gray,
-        opacity: 0.5,
     },
     joinButtonText: {
         fontSize: hp(1.6),
-        fontWeight: theme.fonts.semibold,
-        color: 'white',
-    },
-    joinButtonTextActive: {
-        color: theme.colors.primary,
     },
     creatorBadge: {
-        backgroundColor: theme.colors.primary + '15',
         paddingHorizontal: wp(3),
         paddingVertical: hp(0.6),
-        borderRadius: theme.radius.sm,
     },
     creatorBadgeText: {
         fontSize: hp(1.5),
-        fontWeight: theme.fonts.medium,
-        color: theme.colors.primary,
     },
     pastBadge: {
-        backgroundColor: theme.colors.gray + '30',
         paddingHorizontal: wp(3),
         paddingVertical: hp(0.6),
-        borderRadius: theme.radius.sm,
     },
     pastBadgeText: {
         fontSize: hp(1.5),
-        fontWeight: theme.fonts.medium,
-        color: theme.colors.textLight,
     },
 });
 

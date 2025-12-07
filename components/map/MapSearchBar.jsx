@@ -1,15 +1,20 @@
 import { View, TextInput, Pressable, StyleSheet } from 'react-native';
 import React from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 
 const MapSearchBar = ({ value, onChangeText, placeholder = 'Search spots or stores...' }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container, 
+      { backgroundColor: theme.colors.backgroundLight, borderRadius: theme.radius.xxl }
+    ]}>
       <Icon name="search" size={20} color={theme.colors.textLight} />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.colors.text }]}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
@@ -30,17 +35,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.backgroundLight,
     marginHorizontal: wp(5),
     marginVertical: hp(1),
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.2),
-    borderRadius: theme.radius.xxl,
   },
   input: {
     flex: 1,
     marginLeft: wp(2),
     fontSize: hp(1.8),
-    color: theme.colors.text,
   },
 });

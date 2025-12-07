@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import React from 'react' // ← ENLEVE useState et useEffect inutiles
+import React from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { hp, wp } from '../../helpers/common'
 import { useRouter } from 'expo-router'
 import Button from '../../components/Button'
@@ -13,6 +13,7 @@ import SmartInput from '../../components/SmartInput'
 import { useAuth } from '../../contexts/AuthContext' 
 
 const NewPost = () => {
+  const { theme } = useTheme();
   const router = useRouter()
   const { user } = useAuth() 
 
@@ -43,7 +44,7 @@ const NewPost = () => {
   }
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -51,8 +52,12 @@ const NewPost = () => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Share Your Catch 🎣</Text>
-          <Text style={styles.subtitle}>Show off your fishing success!</Text>
+          <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            Share Your Catch 🎣
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textLight }]}>
+            Show off your fishing success!
+          </Text>
         </View>
 
         {/* Image Picker */}
@@ -63,7 +68,9 @@ const NewPost = () => {
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description *</Text>
+          <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+            Description *
+          </Text>
           <SmartInput
             placeholder="Tell your fishing story... 🐟"
             value={description}
@@ -72,7 +79,15 @@ const NewPost = () => {
             multiline
             numberOfLines={4}
             maxLength={1000}
-            style={styles.descriptionTextInput}
+            style={[
+              styles.descriptionTextInput, 
+              { 
+                borderColor: theme.colors.text,
+                borderRadius: theme.radius.xxl,
+                color: theme.colors.text,
+                backgroundColor: theme.colors.card,
+              }
+            ]}
           />
         </View>
 
@@ -124,37 +139,22 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: hp(3),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   subtitle: {
     fontSize: hp(1.7),
-    color: theme.colors.textLight,
   },
   section: {
     gap: 10,
   },
   sectionTitle: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
-  },
-  descriptionInput: {
-    height: hp(12),
-    alignItems: 'flex-start',
-    paddingTop: 15,
-    backgroundColor: 'white',
   },
   descriptionTextInput: {
     height: hp(12),
     borderWidth: 0.4,
-    borderColor: theme.colors.text,
-    borderRadius: theme.radius.xxl,
     paddingHorizontal: 18,
     paddingTop: 15,
     fontSize: hp(1.7),
-    color: theme.colors.text,
-    backgroundColor: 'white',
   },
   submitButton: {
     marginTop: 10,

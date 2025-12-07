@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
 import React from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
@@ -16,6 +16,7 @@ const CommentItem = ({
   currentUserId,
   onDelete 
 }) => {
+  const { theme } = useTheme();
   const isOwnComment = user_id === currentUserId;
   
   const displayName = profiles?.show_full_name && profiles?.first_name
@@ -58,7 +59,7 @@ const CommentItem = ({
             {formatTimeAgo(created_at)}
           </Text>
         </View>
-        <RichText text={text} style={styles.text} />
+        <RichText text={text} style={[styles.text, { color: theme.colors.text }]} />
       </View>
 
       {isOwnComment && (
@@ -93,7 +94,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: hp(1.7),
-    color: theme.colors.text,
     lineHeight: hp(2.2),
   },
   deleteButton: {

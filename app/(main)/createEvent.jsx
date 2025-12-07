@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Alert, KeyboardAvoidingView } from 'react-native';
 import React, { useState } from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
@@ -14,22 +14,20 @@ import { createEvent } from '../../services/eventService';
 import LocationPicker from '../../components/map/LocationPicker';
 
 const CreateEvent = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000)); // +1h par défaut
+  const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000));
   const [maxParticipants, setMaxParticipants] = useState('');
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [coordinates, setCoordinates] = useState(null);
-  // coordinates = { latitude, longitude, name }
 
-  // Date pickers
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -46,7 +44,6 @@ const CreateEvent = () => {
   };
 
   const handleCreate = async () => {
-    // Validation
     if (!title.trim()) {
       Alert.alert('Error', 'Please enter an event title');
       return;
@@ -81,7 +78,7 @@ const CreateEvent = () => {
       maxPart,
       coordinates?.latitude || null,
       coordinates?.longitude || null,
-      nul
+      null
     );
 
     setLoading(false);
@@ -97,42 +94,31 @@ const CreateEvent = () => {
 
   const onStartDateChange = (event, selectedDate) => {
     setShowStartDatePicker(false);
-    if (selectedDate) {
-      setStartDate(selectedDate);
-    }
+    if (selectedDate) setStartDate(selectedDate);
   };
 
   const onStartTimeChange = (event, selectedDate) => {
     setShowStartTimePicker(false);
-    if (selectedDate) {
-      setStartDate(selectedDate);
-    }
+    if (selectedDate) setStartDate(selectedDate);
   };
 
   const onEndDateChange = (event, selectedDate) => {
     setShowEndDatePicker(false);
-    if (selectedDate) {
-      setEndDate(selectedDate);
-    }
+    if (selectedDate) setEndDate(selectedDate);
   };
 
   const onEndTimeChange = (event, selectedDate) => {
     setShowEndTimePicker(false);
-    if (selectedDate) {
-      setEndDate(selectedDate);
-    }
+    if (selectedDate) setEndDate(selectedDate);
   };
 
   const handleLocationSelect = (locationData) => {
     setCoordinates(locationData);
-    // Mettre à jour le champ location texte si un nom est fourni
-    if (locationData.name) {
-      setLocation(locationData.name);
-    }
+    if (locationData.name) setLocation(locationData.name);
   };
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -143,11 +129,13 @@ const CreateEvent = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
             <Pressable onPress={() => router.back()} style={styles.backButton}>
               <Icon name="arrowLeft" size={26} color={theme.colors.text} />
             </Pressable>
-            <Text style={styles.title}>Create Event</Text>
+            <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              Create Event
+            </Text>
             <View style={{ width: 40 }} />
           </View>
 
@@ -155,89 +143,87 @@ const CreateEvent = () => {
           <View style={styles.form}>
             {/* Title */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Event Title *</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                Event Title *
+              </Text>
               <Input
-                placeholder="e.g. Weekend Carp Fishing"
+                placeholder="e.g., Weekend Fishing Trip"
                 value={title}
                 onChangeText={setTitle}
-                icon={<Icon name="calendar" size={24} strokeWidth={1.6} />}
               />
             </View>
 
             {/* Description */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                Description
+              </Text>
               <SmartInput
-                placeholder="Tell us about your event..."
+                placeholder="Describe your event..."
                 value={description}
                 onChangeText={setDescription}
                 currentUserId={user?.id}
                 multiline
                 numberOfLines={4}
-                containerStyle={styles.textArea}
+                style={styles.textArea}
               />
             </View>
 
             {/* Location */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Location *</Text>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Location *</Text>
-
-                {/* Champ texte pour l'adresse */}
-                <Input
-                  placeholder="e.g., Lake Geneva, France"
-                  value={location}
-                  onChangeText={setLocation}
-                  icon={<Icon name="location" size={24} strokeWidth={1.6} />}
-                />
-
-                {/* Bouton pour ouvrir la map */}
-                <Pressable
-                  style={styles.mapButton}
-                  onPress={() => setShowLocationPicker(true)}
-                >
-                  <Icon name="maps" size={20} color={theme.colors.primary} />
-                  <Text style={styles.mapButtonText}>
-                    {coordinates ? 'Change location on map' : 'Select on map'}
-                  </Text>
-                  {coordinates && (
-                    <Icon name="check" size={18} color={theme.colors.primary} />
-                  )}
-                </Pressable>
-
-                {/* Afficher les coordonnées si sélectionnées */}
-                {coordinates && (
-                  <Text style={styles.coordsInfo}>
-                    📍 {coordinates.latitude.toFixed(5)}, {coordinates.longitude.toFixed(5)}
-                  </Text>
-                )}
-              </View>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                Location *
+              </Text>
+              <Input
+                placeholder="e.g., Lake Geneva, France"
+                value={location}
+                onChangeText={setLocation}
+                icon={<Icon name="location" size={24} strokeWidth={1.6} color={theme.colors.textLight} />}
+              />
+              <Pressable
+                style={[styles.mapButton, { borderColor: theme.colors.primary, borderRadius: theme.radius.xl }]}
+                onPress={() => setShowLocationPicker(true)}
+              >
+                <Icon name="maps" size={20} color={theme.colors.primary} />
+                <Text style={[styles.mapButtonText, { color: theme.colors.primary, fontWeight: theme.fonts.medium }]}>
+                  {coordinates ? 'Change location on map' : 'Select on map'}
+                </Text>
+                {coordinates && <Icon name="check" size={18} color={theme.colors.primary} />}
+              </Pressable>
+              {coordinates && (
+                <Text style={[styles.coordsInfo, { color: theme.colors.textLight }]}>
+                  📍 {coordinates.latitude.toFixed(4)}, {coordinates.longitude.toFixed(4)}
+                </Text>
+              )}
             </View>
 
-            {/* Start Date & Time */}
+            {/* Start Date/Time */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Start Date & Time *</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                Start *
+              </Text>
               <Pressable
-                style={styles.dateButton}
+                style={[styles.dateButton, { borderColor: theme.colors.text, borderRadius: theme.radius.xxl, backgroundColor: theme.colors.card }]}
                 onPress={() => setShowStartDatePicker(true)}
               >
-                <Icon name="calendar" size={20} color={theme.colors.text} />
-                <Text style={styles.dateButtonText}>
+                <Icon name="calendar" size={22} color={theme.colors.primary} />
+                <Text style={[styles.dateButtonText, { color: theme.colors.text }]}>
                   {formatDateTime(startDate)}
                 </Text>
               </Pressable>
             </View>
 
-            {/* End Date & Time */}
+            {/* End Date/Time */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>End Date & Time *</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                End *
+              </Text>
               <Pressable
-                style={styles.dateButton}
+                style={[styles.dateButton, { borderColor: theme.colors.text, borderRadius: theme.radius.xxl, backgroundColor: theme.colors.card }]}
                 onPress={() => setShowEndDatePicker(true)}
               >
-                <Icon name="calendar" size={20} color={theme.colors.text} />
-                <Text style={styles.dateButtonText}>
+                <Icon name="calendar" size={22} color={theme.colors.primary} />
+                <Text style={[styles.dateButtonText, { color: theme.colors.text }]}>
                   {formatDateTime(endDate)}
                 </Text>
               </Pressable>
@@ -245,28 +231,28 @@ const CreateEvent = () => {
 
             {/* Max Participants */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Max Participants (optional)</Text>
+              <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                Max Participants (optional)
+              </Text>
               <Input
                 placeholder="Leave empty for unlimited"
                 value={maxParticipants}
                 onChangeText={setMaxParticipants}
-                keyboardType="number-pad"
-                icon={<Icon name="user" size={24} strokeWidth={1.6} />}
+                keyboardType="numeric"
               />
             </View>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <Button
               title="Create Event"
-              loading={loading}
               onPress={handleCreate}
+              loading={loading}
               buttonStyle={styles.submitButton}
             />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Date/Time Pickers */}
       {showStartDatePicker && (
         <DateTimePicker
           value={startDate}
@@ -329,15 +315,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   backButton: {
     padding: 8,
   },
   title: {
     fontSize: hp(2.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   form: {
     padding: wp(5),
@@ -348,8 +331,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   textArea: {
     height: hp(12),
@@ -360,19 +341,15 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 15,
     paddingHorizontal: 18,
-    backgroundColor: 'white',
     borderWidth: 0.4,
-    borderColor: theme.colors.text,
-    borderRadius: theme.radius.xxl,
   },
   dateButtonText: {
     fontSize: hp(1.8),
-    color: theme.colors.text,
   },
   submitButton: {
     marginTop: 10,
   },
-    mapButton: {
+  mapButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -380,18 +357,13 @@ const styles = StyleSheet.create({
     marginTop: hp(1),
     paddingVertical: hp(1.2),
     borderWidth: 1,
-    borderColor: theme.colors.primary,
-    borderRadius: theme.radius.xl,
     borderStyle: 'dashed',
   },
   mapButtonText: {
     fontSize: hp(1.6),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.medium,
   },
   coordsInfo: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
     textAlign: 'center',
     marginTop: hp(0.8),
   },

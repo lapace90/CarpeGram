@@ -3,24 +3,33 @@ import { Image } from 'expo-image'
 import React from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { wp, hp } from '../helpers/common'
-import {theme} from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import Button from '../components/Button'
 import { useRouter } from 'expo-router'
 
 const Welcome = () => {
+  const { theme } = useTheme();
   const router = useRouter();
+
   return (
-    <ScreenWrapper bg = "white">
+    <ScreenWrapper bg={theme.colors.card}>
       <StatusBar style="dark" />    
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.card }]}>
         {/* welcome image */}
-        <Image style={styles.welcomeImage} resizeMode='contain' source={require('../assets/images/7.png')} />
+        <Image 
+          style={styles.welcomeImage} 
+          resizeMode='contain' 
+          source={require('../assets/images/7.png')} 
+        />
 
         {/* title */}
         <View style={{ gap: 20 }}>
-          <Text style={ styles.title }>Welcome to Carpegram</Text>
-          {/* <Text style={ styles.punchline }>Hook memories, reel in moments!</Text> */}
-          <Text style={ styles.punchline }>Catch the moment, connect with anglers!</Text>
+          <Text style={[styles.title, { color: theme.colors.text, fontWeight: theme.fonts.extraBold }]}>
+            Welcome to Carpegram
+          </Text>
+          <Text style={[styles.punchline, { color: theme.colors.text }]}>
+            Catch the moment, connect with anglers!
+          </Text>
         </View>
 
         {/* footer */}
@@ -32,17 +41,15 @@ const Welcome = () => {
           />
 
           <View style={styles.bottomTextContainer}>
-            <Text style={styles.loginText}>
+            <Text style={[styles.loginText, { color: theme.colors.text }]}>
               Already have an account!
             </Text>
             <Pressable onPress={()=>router.push('login')}>
-            <Text style={[styles.loginText, {color: theme.colors.primaryDark, fontWeight: theme.fonts.semiBold}]}>
-              Login
-            </Text>
+              <Text style={[styles.loginText, { color: theme.colors.primaryDark, fontWeight: theme.fonts.semiBold }]}>
+                Login
+              </Text>
             </Pressable>
           </View>
-
-
         </View>
       </View>
     </ScreenWrapper>
@@ -56,7 +63,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: 'white',
     paddingHorizontal: wp(4)
   },
   welcomeImage: {
@@ -64,13 +70,10 @@ const styles = StyleSheet.create({
     height: wp(100)
   },
   title: {
-    color: theme.colors.text,
     fontSize: hp(4),
-    fontWeight: theme.fonts.extraBold,
     textAlign: 'center'
   },
   punchline: {
-    color: theme.colors.text,
     paddingHorizontal: wp(10),
     fontSize: hp(1.7),
     textAlign: 'center'
@@ -87,7 +90,6 @@ const styles = StyleSheet.create({
   },
   loginText:{
     textAlign: 'center',
-    color: theme.colors.text,
     fontSize: hp(1.6)
   }
 })

@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { getFishingWeather } from '../../services/weatherService';
 
 const WeatherWidget = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,7 +23,6 @@ const WeatherWidget = () => {
       setLoading(true);
       setError(null);
 
-      // Get user location
       const { status } = await Location.requestForegroundPermissionsAsync();
       
       let latitude, longitude;
@@ -34,7 +34,6 @@ const WeatherWidget = () => {
         latitude = location.coords.latitude;
         longitude = location.coords.longitude;
 
-        // Get location name
         const [place] = await Location.reverseGeocodeAsync({
           latitude,
           longitude,
@@ -43,13 +42,11 @@ const WeatherWidget = () => {
           setLocationName(place.city || place.subregion || place.region || '');
         }
       } else {
-        // Default to Marseille
         latitude = 43.2965;
         longitude = 5.3698;
         setLocationName('Marseille');
       }
 
-      // Fetch weather data
       const result = await getFishingWeather(latitude, longitude);
       
       if (result.success) {
@@ -71,10 +68,22 @@ const WeatherWidget = () => {
 
   if (loading) {
     return (
-      <Pressable style={styles.container} onPress={handlePress}>
+      <Pressable 
+        style={[
+          styles.container, 
+          { 
+            backgroundColor: theme.colors.card, 
+            borderRadius: theme.radius.xl,
+            borderColor: theme.colors.gray + '40',
+          }
+        ]} 
+        onPress={handlePress}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading weather...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textLight }]}>
+            Loading weather...
+          </Text>
         </View>
       </Pressable>
     );
@@ -82,10 +91,22 @@ const WeatherWidget = () => {
 
   if (error || !weatherData) {
     return (
-      <Pressable style={styles.container} onPress={loadWeather}>
+      <Pressable 
+        style={[
+          styles.container, 
+          { 
+            backgroundColor: theme.colors.card, 
+            borderRadius: theme.radius.xl,
+            borderColor: theme.colors.gray + '40',
+          }
+        ]} 
+        onPress={loadWeather}
+      >
         <View style={styles.errorContainer}>
           <Text style={styles.errorIcon}>🌡️</Text>
-          <Text style={styles.errorText}>{error || 'Tap to retry'}</Text>
+          <Text style={[styles.errorText, { color: theme.colors.textLight }]}>
+            {error || 'Tap to retry'}
+          </Text>
         </View>
       </Pressable>
     );
@@ -94,41 +115,56 @@ const WeatherWidget = () => {
   const { current, fishingActivity, moonPhase, bestTimes } = weatherData;
 
   return (
-    <Pressable style={styles.container} onPress={handlePress}>
-      {/* Header */}
+    <Pressable 
+      style={[
+        styles.container, 
+        { 
+          backgroundColor: theme.colors.card, 
+          borderRadius: theme.radius.xl,
+          borderColor: theme.colors.gray + '40',
+        }
+      ]} 
+      onPress={handlePress}
+    >
       <View style={styles.header}>
         <View style={styles.locationRow}>
           <Text style={styles.locationIcon}>📍</Text>
-          <Text style={styles.locationText}>{locationName || 'My Location'}</Text>
+          <Text style={[styles.locationText, { fontWeight: theme.fonts.semibold, color: theme.colors.text }]}>
+            {locationName || 'My Location'}
+          </Text>
         </View>
-        <Text style={styles.tapHint}>Tap for details →</Text>
+        <Text style={[styles.tapHint, { color: theme.colors.textLight }]}>
+          Tap for details →
+        </Text>
       </View>
 
-      {/* Main content */}
       <View style={styles.content}>
-        {/* Weather info */}
         <View style={styles.weatherSection}>
           <Text style={styles.weatherIcon}>{current.icon}</Text>
           <View style={styles.tempContainer}>
-            <Text style={styles.temperature}>{current.temperature}°</Text>
-            <Text style={styles.condition}>{current.condition}</Text>
+            <Text style={[styles.temperature, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              {current.temperature}°
+            </Text>
+            <Text style={[styles.condition, { color: theme.colors.textLight }]}>
+              {current.condition}
+            </Text>
           </View>
         </View>
 
-        {/* Divider */}
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: theme.colors.gray }]} />
 
-        {/* Fishing activity */}
         <View style={styles.activitySection}>
           <Text style={styles.fishIcon}>🐟</Text>
           <View style={styles.activityInfo}>
             <View style={styles.activityRow}>
-              <Text style={styles.activityLabel}>Activity</Text>
-              <Text style={[styles.activityValue, { color: fishingActivity.color }]}>
+              <Text style={[styles.activityLabel, { color: theme.colors.textLight }]}>
+                Activity
+              </Text>
+              <Text style={[styles.activityValue, { fontWeight: theme.fonts.bold, color: fishingActivity.color }]}>
                 {fishingActivity.score}%
               </Text>
             </View>
-            <View style={styles.activityBar}>
+            <View style={[styles.activityBar, { backgroundColor: theme.colors.gray + '40' }]}>
               <View 
                 style={[
                   styles.activityFill, 
@@ -139,29 +175,33 @@ const WeatherWidget = () => {
                 ]} 
               />
             </View>
-            <Text style={[styles.activityStatus, { color: fishingActivity.color }]}>
+            <Text style={[styles.activityStatus, { fontWeight: theme.fonts.semibold, color: fishingActivity.color }]}>
               {fishingActivity.label}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Footer with extra info */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: theme.colors.gray + '40' }]}>
         <View style={styles.footerItem}>
           <Text style={styles.footerIcon}>💨</Text>
-          <Text style={styles.footerText}>{current.windSpeed} km/h</Text>
+          <Text style={[styles.footerText, { color: theme.colors.textLight }]}>
+            {current.windSpeed} km/h
+          </Text>
         </View>
         <View style={styles.footerItem}>
           <Text style={styles.footerIcon}>{moonPhase.emoji}</Text>
-          <Text style={styles.footerText}>{moonPhase.phase.split(' ')[0]}</Text>
+          <Text style={[styles.footerText, { color: theme.colors.textLight }]}>
+            {moonPhase.phase.split(' ')[0]}
+          </Text>
         </View>
         <View style={styles.footerItem}>
           <Text style={styles.footerIcon}>🌅</Text>
-          <Text style={styles.footerText}>{bestTimes[0]?.start || '--'}</Text>
+          <Text style={[styles.footerText, { color: theme.colors.textLight }]}>
+            {bestTimes[0]?.start || '--'}
+          </Text>
         </View>
       </View>
-
     </Pressable>
   );
 };
@@ -170,8 +210,6 @@ export default WeatherWidget;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
-    borderRadius: theme.radius.xl,
     marginHorizontal: wp(0),
     marginTop: hp(1),
     padding: wp(4),
@@ -181,7 +219,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: theme.colors.gray + '40',
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -192,7 +229,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
   },
   errorContainer: {
     flexDirection: 'row',
@@ -206,7 +242,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
   },
   header: {
     flexDirection: 'row',
@@ -224,12 +259,9 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text,
   },
   tapHint: {
     fontSize: hp(1.3),
-    color: theme.colors.textLight,
   },
   content: {
     flexDirection: 'row',
@@ -249,17 +281,13 @@ const styles = StyleSheet.create({
   },
   temperature: {
     fontSize: hp(3),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   condition: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   divider: {
     width: 1,
     height: '100%',
-    backgroundColor: theme.colors.gray,
     marginHorizontal: wp(4),
   },
   activitySection: {
@@ -281,15 +309,12 @@ const styles = StyleSheet.create({
   },
   activityLabel: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
   },
   activityValue: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.bold,
   },
   activityBar: {
     height: 6,
-    backgroundColor: theme.colors.gray + '40',
     borderRadius: 3,
     marginVertical: 4,
     overflow: 'hidden',
@@ -300,7 +325,6 @@ const styles = StyleSheet.create({
   },
   activityStatus: {
     fontSize: hp(1.3),
-    fontWeight: theme.fonts.semibold,
   },
   footer: {
     flexDirection: 'row',
@@ -308,7 +332,6 @@ const styles = StyleSheet.create({
     marginTop: hp(1.5),
     paddingTop: hp(1.5),
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray + '40',
   },
   footerItem: {
     flexDirection: 'row',
@@ -320,13 +343,5 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: hp(1.4),
-    color: theme.colors.textLight,
-  },
-  estimationNote: {
-    fontSize: hp(1.2),
-    color: theme.colors.textLight,
-    textAlign: 'center',
-    marginTop: hp(1),
-    fontStyle: 'italic',
   },
 });

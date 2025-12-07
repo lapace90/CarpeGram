@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
 import { Image } from 'expo-image'
 import React from 'react'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import EmptyState from '../EmptyState'
 
 const PostsGrid = ({ posts, loading, onPostPress, onCreatePress }) => {
+  const { theme } = useTheme();
+
   if (loading) {
     return (
       <View style={[commonStyles.center, styles.loadingContainer]}>
@@ -34,33 +36,39 @@ const PostsGrid = ({ posts, loading, onPostPress, onCreatePress }) => {
   }
 
   const renderPost = (item) => {
-    if (!item) return <View key={`empty-${Math.random()}`} style={styles.gridItem} />;
+    if (!item) return <View key={`empty-${Math.random()}`} style={[styles.gridItem, { backgroundColor: theme.colors.gray }]} />;
     
     const { image_url, fish_species, likes_count, comments_count } = item;
 
     return (
       <Pressable 
         key={item.id} 
-        style={styles.gridItem} 
+        style={[styles.gridItem, { backgroundColor: theme.colors.gray }]} 
         onPress={() => onPostPress(item)}
       >
         <Image source={{ uri: image_url }} style={styles.gridImage} />
         
         <View style={styles.overlay}>
           {fish_species && (
-            <View style={styles.speciesContainer}>
-              <Text style={styles.speciesText}>{fish_species}</Text>
+            <View style={[styles.speciesContainer, { borderRadius: theme.radius.sm }]}>
+              <Text style={[styles.speciesText, { fontWeight: theme.fonts.medium }]}>
+                {fish_species}
+              </Text>
             </View>
           )}
           
           <View style={[commonStyles.flexRow, styles.statsContainer]}>
-            <View style={[commonStyles.flexRowCenter, styles.statItem]}>
+            <View style={[commonStyles.flexRowCenter, styles.statItem, { borderRadius: theme.radius.sm }]}>
               <Icon name="heart" size={16} color="white" fill="white" />
-              <Text style={styles.statText}>{likes_count || 0}</Text>
+              <Text style={[styles.statText, { fontWeight: theme.fonts.semiBold }]}>
+                {likes_count || 0}
+              </Text>
             </View>
-            <View style={[commonStyles.flexRowCenter, styles.statItem]}>
+            <View style={[commonStyles.flexRowCenter, styles.statItem, { borderRadius: theme.radius.sm }]}>
               <Icon name="comment" size={16} color="white" />
-              <Text style={styles.statText}>{comments_count || 0}</Text>
+              <Text style={[styles.statText, { fontWeight: theme.fonts.semiBold }]}>
+                {comments_count || 0}
+              </Text>
             </View>
           </View>
         </View>
@@ -74,7 +82,7 @@ const PostsGrid = ({ posts, loading, onPostPress, onCreatePress }) => {
         <View key={rowIndex} style={styles.row}>
           {row.map(post => renderPost(post))}
           {row.length < 3 && Array(3 - row.length).fill(null).map((_, i) => (
-            <View key={`empty-${rowIndex}-${i}`} style={styles.gridItem} />
+            <View key={`empty-${rowIndex}-${i}`} style={[styles.gridItem, { backgroundColor: theme.colors.gray }]} />
           ))}
         </View>
       ))}
@@ -94,7 +102,6 @@ const styles = StyleSheet.create({
     flex: 1,
     aspectRatio: 1,
     position: 'relative',
-    backgroundColor: theme.colors.gray,
   },
   gridImage: {
     width: '100%',
@@ -111,12 +118,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: theme.radius.sm,
   },
   speciesText: {
     color: 'white',
     fontSize: hp(1.3),
-    fontWeight: theme.fonts.medium,
   },
   statsContainer: {
     gap: 8,
@@ -127,12 +132,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: theme.radius.sm,
   },
   statText: {
     color: 'white',
     fontSize: hp(1.4),
-    fontWeight: theme.fonts.semiBold,
   },
   loadingContainer: {
     paddingVertical: hp(10),

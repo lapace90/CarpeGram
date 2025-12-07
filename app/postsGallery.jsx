@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
-import { theme } from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import { hp, wp } from '../helpers/common'
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'expo-router'
@@ -11,6 +11,7 @@ import PostsGrid from '../components/post/PostsGrid'
 import PostDetail from '../components/post/PostDetail'
 
 const postsGallery = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -19,9 +20,8 @@ const postsGallery = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [showPostDetail, setShowPostDetail] = useState(false);
   
-  // Filters
-  const [activeFilter, setActiveFilter] = useState('all'); // all, public, followers, close_friends
-  const [sortBy, setSortBy] = useState('recent'); // recent, oldest, most_liked
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('recent');
 
   useEffect(() => {
     if (user) {
@@ -49,12 +49,10 @@ const postsGallery = () => {
   const applyFilters = () => {
     let filtered = [...posts];
 
-    // Filter by privacy
     if (activeFilter !== 'all') {
       filtered = filtered.filter(post => post.privacy === activeFilter);
     }
 
-    // Sort
     if (sortBy === 'recent') {
       filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (sortBy === 'oldest') {
@@ -79,14 +77,22 @@ const postsGallery = () => {
     <Pressable
       style={[
         styles.filterButton,
-        activeFilter === value && styles.filterButtonActive
+        { borderColor: theme.colors.gray, backgroundColor: theme.colors.card, borderRadius: theme.radius.lg },
+        activeFilter === value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
       ]}
       onPress={() => setActiveFilter(value)}
     >
-      {icon && <Icon name={icon} size={16} color={activeFilter === value ? 'white' : theme.colors.text} />}
+      {icon && (
+        <Icon 
+          name={icon} 
+          size={16} 
+          color={activeFilter === value ? theme.colors.card : theme.colors.text} 
+        />
+      )}
       <Text style={[
         styles.filterButtonText,
-        activeFilter === value && styles.filterButtonTextActive
+        { color: theme.colors.text, fontWeight: theme.fonts.medium },
+        activeFilter === value && { color: theme.colors.card }
       ]}>
         {label}
       </Text>
@@ -97,13 +103,15 @@ const postsGallery = () => {
     <Pressable
       style={[
         styles.sortButton,
-        sortBy === value && styles.sortButtonActive
+        { borderColor: theme.colors.gray, backgroundColor: theme.colors.card, borderRadius: theme.radius.md },
+        sortBy === value && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
       ]}
       onPress={() => setSortBy(value)}
     >
       <Text style={[
         styles.sortButtonText,
-        sortBy === value && styles.sortButtonTextActive
+        { color: theme.colors.text, fontWeight: theme.fonts.medium },
+        sortBy === value && { color: theme.colors.card }
       ]}>
         {label}
       </Text>
@@ -111,14 +119,14 @@ const postsGallery = () => {
   );
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <Icon name="arrowLeft" size={24} color={theme.colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
             All Catches ({filteredPosts.length})
           </Text>
           <View style={styles.backButton} />
@@ -126,8 +134,10 @@ const postsGallery = () => {
 
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Privacy Filters */}
-          <View style={styles.filtersSection}>
-            <Text style={styles.filterLabel}>Privacy</Text>
+          <View style={[styles.filtersSection, { borderBottomColor: theme.colors.gray }]}>
+            <Text style={[styles.filterLabel, { fontWeight: theme.fonts.semiBold, color: theme.colors.textLight }]}>
+              Privacy
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.filtersRow}>
                 <FilterButton value="all" label="All" icon="image" />
@@ -139,8 +149,10 @@ const postsGallery = () => {
           </View>
 
           {/* Sort Options */}
-          <View style={styles.sortSection}>
-            <Text style={styles.filterLabel}>Sort by</Text>
+          <View style={[styles.sortSection, { borderBottomColor: theme.colors.gray }]}>
+            <Text style={[styles.filterLabel, { fontWeight: theme.fonts.semiBold, color: theme.colors.textLight }]}>
+              Sort by
+            </Text>
             <View style={styles.sortRow}>
               <SortButton value="recent" label="Most Recent" />
               <SortButton value="oldest" label="Oldest" />
@@ -193,7 +205,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   backButton: {
     padding: 8,
@@ -201,18 +212,13 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: hp(2.4),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   filtersSection: {
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   filterLabel: {
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.textLight,
     paddingHorizontal: wp(5),
     marginBottom: 10,
   },
@@ -227,27 +233,14 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: theme.radius.lg,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
-    backgroundColor: 'white',
-  },
-  filterButtonActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
   filterButtonText: {
     fontSize: hp(1.6),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
-  },
-  filterButtonTextActive: {
-    color: 'white',
   },
   sortSection: {
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   sortRow: {
     flexDirection: 'row',
@@ -258,23 +251,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
-    backgroundColor: 'white',
     alignItems: 'center',
-  },
-  sortButtonActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
   sortButtonText: {
     fontSize: hp(1.5),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
-  },
-  sortButtonTextActive: {
-    color: 'white',
   },
   gridSection: {
     paddingTop: 15,

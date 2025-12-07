@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TextInput, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { hp, wp } from '../../helpers/common'
 import { useAuth } from '../../contexts/AuthContext'
 import Icon from '../../assets/icons'
@@ -9,6 +9,7 @@ import UserCard from '../../components/UserCard'
 import { searchUsers, getSuggestedUsers } from '../../services/userService'
 
 const Search = () => {
+  const { theme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -37,17 +38,13 @@ const Search = () => {
   const handleSearch = async () => {
     if (!user || searchQuery.trim().length === 0) return;
 
-    console.log('Starting search with query:', searchQuery);
     setLoading(true);
     setHasSearched(true);
     const result = await searchUsers(searchQuery, user.id);
-    console.log('Search result:', result);
     
     if (result.success) {
       setSearchResults(result.data || []);
-      console.log('Search results count:', result.data?.length);
     } else {
-      console.log('Search failed:', result.msg);
       setSearchResults([]);
     }
     
@@ -67,8 +64,10 @@ const Search = () => {
   const renderSearchEmpty = () => (
     <View style={styles.emptyContainer}>
       <Icon name="search" size={60} strokeWidth={1.5} color={theme.colors.textLight} />
-      <Text style={styles.emptyTitle}>No users found</Text>
-      <Text style={styles.emptyText}>
+      <Text style={[styles.emptyTitle, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+        No users found
+      </Text>
+      <Text style={[styles.emptyText, { color: theme.colors.textLight }]}>
         Try searching for a different username
       </Text>
     </View>
@@ -77,22 +76,25 @@ const Search = () => {
   const renderSuggestionsEmpty = () => (
     <View style={styles.emptyContainer}>
       <Icon name="user" size={60} strokeWidth={1.5} color={theme.colors.textLight} />
-      <Text style={styles.emptyTitle}>No suggestions</Text>
+      <Text style={[styles.emptyTitle, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+        No suggestions
+      </Text>
     </View>
   );
 
   const showingResults = hasSearched && searchQuery.trim().length > 0;
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <View style={styles.container}>
         {/* Search Bar */}
-        <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
+        <View style={[styles.searchSection, { borderBottomColor: theme.colors.gray }]}>
+          <View style={[styles.searchBar, { backgroundColor: theme.colors.gray, borderRadius: theme.radius.xl }]}>
             <Icon name="search" size={24} strokeWidth={2} color={theme.colors.textLight} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: theme.colors.text }]}
               placeholder="Search users..."
+              placeholderTextColor={theme.colors.textLight}
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}
@@ -106,19 +108,22 @@ const Search = () => {
           </View>
 
           {searchQuery.length > 0 && (
-            <Pressable style={styles.searchButton} onPress={handleSearch}>
-              <Text style={styles.searchButtonText}>Search</Text>
+            <Pressable 
+              style={[styles.searchButton, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.xl }]} 
+              onPress={handleSearch}
+            >
+              <Text style={[styles.searchButtonText, { fontWeight: theme.fonts.semiBold }]}>Search</Text>
             </Pressable>
           )}
         </View>
 
         {/* Title */}
-        <View style={styles.titleSection}>
-          <Text style={styles.sectionTitle}>
+        <View style={[styles.titleSection, { borderBottomColor: theme.colors.gray }]}>
+          <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
             {showingResults ? 'Search Results' : 'Suggested Users'}
           </Text>
           {showingResults && searchResults.length > 0 && (
-            <Text style={styles.resultCount}>
+            <Text style={[styles.resultCount, { color: theme.colors.textLight }]}>
               {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'}
             </Text>
           )}
@@ -157,7 +162,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   searchBar: {
     flex: 1,
@@ -166,39 +170,29 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.xl,
   },
   searchInput: {
     flex: 1,
     fontSize: hp(1.8),
-    color: theme.colors.text,
   },
   searchButton: {
     paddingVertical: 12,
     paddingHorizontal: 20,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.xl,
   },
   searchButtonText: {
     color: 'white',
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semiBold,
   },
   titleSection: {
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   sectionTitle: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   resultCount: {
     fontSize: hp(1.5),
-    color: theme.colors.textLight,
     marginTop: 4,
   },
   listContent: {
@@ -218,12 +212,9 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   emptyText: {
     fontSize: hp(1.7),
-    color: theme.colors.textLight,
     textAlign: 'center',
     paddingHorizontal: wp(10),
   },

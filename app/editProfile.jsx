@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-nati
 import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
-import { theme } from '../constants/theme'
+import { useTheme } from '../contexts/ThemeContext'
 import { hp, wp } from '../helpers/common'
 import { useRouter } from 'expo-router'
 import Icon from '../assets/icons'
@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 
 const EditProfile = () => {
+    const { theme } = useTheme();
     const router = useRouter();
     const { user } = useAuth();
     const { profile, loading: profileLoading, updateProfile, refresh } = useProfile(user?.id);
@@ -77,97 +78,143 @@ const EditProfile = () => {
 
     if (profileLoading) {
         return (
-            <ScreenWrapper bg="white">
+            <ScreenWrapper bg={theme.colors.card}>
                 <View style={styles.loading}>
-                    <Text>Loading...</Text>
+                    <Text style={{ color: theme.colors.text }}>Loading...</Text>
                 </View>
             </ScreenWrapper>
         );
     }
 
     return (
-        <ScreenWrapper bg="white">
+        <ScreenWrapper bg={theme.colors.card}>
             <View style={styles.container}>
-                <ScrollView style={styles.form}>
+                <ScrollView 
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.formContent}
+                    showsVerticalScrollIndicator={false}
+                >
                     <BackButton router={router} />
 
                     {/* Header */}
                     <View style={styles.header}>
-                        <Text style={styles.title}>Edit Profile</Text>
+                        <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                            Edit Profile
+                        </Text>
                     </View>
 
                     {/* Avatar */}
                     <View style={styles.avatarContainer}>
                         <Image
                             source={{ uri: profile?.avatar_url || 'https://via.placeholder.com/150' }}
-                            style={styles.avatar}
+                            style={[
+                                styles.avatar, 
+                                { 
+                                    borderRadius: theme.radius.xxl * 1.8,
+                                    borderColor: theme.colors.darkLight,
+                                }
+                            ]}
                         />
-                        <Pressable style={styles.cameraIcon} onPress={pickImage}>
-                            <Icon name="camera" size={20} strokeWidth={2.5} color="white" />
+                        <Pressable 
+                            style={[styles.cameraIcon, { backgroundColor: theme.colors.primary }]} 
+                            onPress={pickImage}
+                        >
+                            <Icon name="camera" size={20} strokeWidth={2.5} color={theme.colors.card} />
                         </Pressable>
                     </View>
 
-                    {/* Form */}
-                    <Input
-                        icon={<Icon name="user" size={26} strokeWidth={1.6} />}
-                        placeholder='Username'
-                        value={username}
-                        onChangeText={setUsername}
-                    />
+                    {/* Form Fields with proper spacing */}
+                    <View style={styles.inputWrapper}>
+                        <Input
+                            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
+                            placeholder='Username'
+                            value={username}
+                            onChangeText={setUsername}
+                        />
+                    </View>
 
-                    <Input
-                        icon={<Icon name="user" size={26} strokeWidth={1.6} />}
-                        placeholder='First Name'
-                        value={firstName}
-                        onChangeText={setFirstName}
-                    />
+                    <View style={styles.inputWrapper}>
+                        <Input
+                            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
+                            placeholder='First Name'
+                            value={firstName}
+                            onChangeText={setFirstName}
+                        />
+                    </View>
 
-                    <Input
-                        icon={<Icon name="user" size={26} strokeWidth={1.6} />}
-                        placeholder='Last Name'
-                        value={lastName}
-                        onChangeText={setLastName}
-                    />
+                    <View style={styles.inputWrapper}>
+                        <Input
+                            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
+                            placeholder='Last Name'
+                            value={lastName}
+                            onChangeText={setLastName}
+                        />
+                    </View>
 
                     {/* Show Full Name Toggle */}
                     <Pressable
-                        style={styles.toggleRow}
+                        style={[
+                            styles.toggleRow, 
+                            { 
+                                backgroundColor: theme.colors.card,
+                                borderColor: theme.colors.text,
+                                borderRadius: theme.radius.xxl,
+                            }
+                        ]}
                         onPress={() => setShowFullName(!showFullName)}
                     >
-                        <Text style={styles.toggleLabel}>Show full name on profile</Text>
-                        <View style={[styles.toggle, showFullName && styles.toggleActive]}>
-                            <View style={[styles.toggleThumb, showFullName && styles.toggleThumbActive]} />
+                        <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
+                            Show full name on profile
+                        </Text>
+                        <View style={[
+                            styles.toggle, 
+                            { backgroundColor: theme.colors.gray },
+                            showFullName && { backgroundColor: theme.colors.primary }
+                        ]}>
+                            <View style={[
+                                styles.toggleThumb, 
+                                { backgroundColor: theme.colors.card },
+                                showFullName && styles.toggleThumbActive
+                            ]} />
                         </View>
                     </Pressable>
 
-                    <Input
-                        placeholder='Bio'
-                        value={bio}
-                        onChangeText={setBio}
-                        multiline
-                        containerStyles={styles.bio}
-                    />
+                    <View style={styles.inputWrapper}>
+                        <Input
+                            placeholder='Bio'
+                            value={bio}
+                            onChangeText={setBio}
+                            multiline
+                            containerStyles={styles.bio}
+                        />
+                    </View>
 
-                    <Input
-                        icon={<Icon name="location" size={26} strokeWidth={1.6} />}
-                        placeholder='Location'
-                        value={location}
-                        onChangeText={setLocation}
-                    />
+                    <View style={styles.inputWrapper}>
+                        <Input
+                            icon={<Icon name="location" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
+                            placeholder='Location'
+                            value={location}
+                            onChangeText={setLocation}
+                        />
+                    </View>
 
-                    <Input
-                        icon={<Icon name="call" size={26} strokeWidth={1.6} />}
-                        placeholder='Angler since (year)'
-                        value={anglerSince}
-                        onChangeText={setAnglerSince}
-                        keyboardType="number-pad"
-                    />
+                    <View style={styles.inputWrapper}>
+                        <Input
+                            icon={<Icon name="calendar" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
+                            placeholder='Angler since (year)'
+                            value={anglerSince}
+                            onChangeText={setAnglerSince}
+                            keyboardType="number-pad"
+                        />
+                    </View>
 
-                    <Button
-                        title='Save Changes'
-                        loading={saving}
-                        onPress={onSubmit}
-                    />
+                    <View style={styles.buttonWrapper}>
+                        <Button
+                            title='Save Changes'
+                            loading={saving}
+                            onPress={onSubmit}
+                        />
+                    </View>
                 </ScrollView>
             </View>
         </ScreenWrapper>
@@ -186,28 +233,27 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    form: {
-        gap: 25,
+    scrollView: {
+        flex: 1,
+    },
+    formContent: {
+        paddingBottom: hp(5),
     },
     header: {
-        marginTop: 20,
-        marginBottom: 10,
+        marginTop: hp(2),
+        marginBottom: hp(2),
     },
     title: {
         fontSize: hp(3),
-        fontWeight: theme.fonts.bold,
-        color: theme.colors.text,
     },
     avatarContainer: {
         alignSelf: 'center',
-        marginBottom: 30,
+        marginBottom: hp(4),
     },
     avatar: {
         height: hp(14),
         width: hp(14),
-        borderRadius: theme.radius.xxl * 1.8,
         borderWidth: 1,
-        borderColor: theme.colors.darkLight,
     },
     cameraIcon: {
         position: 'absolute',
@@ -215,7 +261,9 @@ const styles = StyleSheet.create({
         right: -10,
         padding: 8,
         borderRadius: 50,
-        backgroundColor: theme.colors.primary,
+    },
+    inputWrapper: {
+        marginBottom: hp(2),
     },
     toggleRow: {
         flexDirection: 'row',
@@ -223,32 +271,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 15,
         paddingHorizontal: 18,
-        backgroundColor: 'white',
         borderWidth: 0.4,
-        borderColor: theme.colors.text,
-        borderRadius: theme.radius.xxl,
-        marginBottom: 25,
+        marginBottom: hp(2),
     },
     toggleLabel: {
         fontSize: hp(1.8),
-        color: theme.colors.text,
     },
     toggle: {
         width: 50,
         height: 28,
         borderRadius: 14,
-        backgroundColor: theme.colors.gray,
         padding: 2,
         justifyContent: 'center',
-    },
-    toggleActive: {
-        backgroundColor: theme.colors.primary,
     },
     toggleThumb: {
         width: 24,
         height: 24,
         borderRadius: 12,
-        backgroundColor: 'white',
     },
     toggleThumbActive: {
         alignSelf: 'flex-end',
@@ -257,5 +296,9 @@ const styles = StyleSheet.create({
         height: hp(10),
         alignItems: 'flex-start',
         paddingTop: 15,
+    },
+    buttonWrapper: {
+        marginTop: hp(2),
+        marginBottom: hp(3),
     },
 })

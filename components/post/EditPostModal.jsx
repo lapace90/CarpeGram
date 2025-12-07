@@ -11,12 +11,13 @@ import {
   Alert,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 import { updatePost } from '../../services/postService';
 
 const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
+  const { theme } = useTheme();
   const [description, setDescription] = useState('');
   const [fishSpecies, setFishSpecies] = useState('');
   const [fishWeight, setFishWeight] = useState('');
@@ -25,7 +26,6 @@ const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
   const [privacy, setPrivacy] = useState('public');
   const [loading, setLoading] = useState(false);
 
-  // Charger les données du post quand le modal s'ouvre
   useEffect(() => {
     if (visible && post) {
       setDescription(post.description || '');
@@ -84,15 +84,17 @@ const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.card }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
             <Pressable onPress={onClose} disabled={loading}>
-              <Text style={styles.cancelButton}>Cancel</Text>
+              <Text style={[styles.cancelButton, { color: theme.colors.text }]}>Cancel</Text>
             </Pressable>
-            <Text style={styles.title}>Edit Post</Text>
+            <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+              Edit Post
+            </Text>
             <Pressable onPress={handleSave} disabled={loading}>
-              <Text style={[styles.saveButton, loading && styles.saveButtonDisabled]}>
+              <Text style={[styles.saveButton, { fontWeight: theme.fonts.bold, color: theme.colors.primary }, loading && styles.saveButtonDisabled]}>
                 {loading ? 'Saving...' : 'Save'}
               </Text>
             </Pressable>
@@ -101,30 +103,36 @@ const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Description */}
             <View style={styles.section}>
-              <Text style={styles.label}>Description *</Text>
+              <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                📝 Description
+              </Text>
               <TextInput
-                style={styles.textArea}
-                placeholder="Tell us about this catch..."
+                style={[styles.textArea, { backgroundColor: theme.colors.gray + '20', borderRadius: theme.radius.lg, color: theme.colors.text }]}
+                placeholder="Share your fishing story..."
                 placeholderTextColor={theme.colors.textLight}
                 value={description}
                 onChangeText={setDescription}
                 multiline
-                numberOfLines={4}
                 maxLength={500}
-                textAlignVertical="top"
               />
-              <Text style={styles.charCount}>{description.length}/500</Text>
+              <Text style={[styles.charCount, { color: theme.colors.textLight }]}>
+                {description.length}/500
+              </Text>
             </View>
 
             {/* Fish Details */}
-            <View style={styles.detailsSection}>
-              <Text style={styles.sectionTitle}>🎣 Catch Details (Optional)</Text>
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                🎣 Catch Details
+              </Text>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Species</Text>
+                <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                  Fish Species
+                </Text>
                 <TextInput
-                  style={styles.input}
-                  placeholder="e.g., European Carp"
+                  style={[styles.input, { backgroundColor: theme.colors.gray + '20', borderRadius: theme.radius.lg, color: theme.colors.text }]}
+                  placeholder="e.g., Common Carp"
                   placeholderTextColor={theme.colors.textLight}
                   value={fishSpecies}
                   onChangeText={setFishSpecies}
@@ -133,9 +141,11 @@ const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Weight (kg)</Text>
+                <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                  Weight (kg)
+                </Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: theme.colors.gray + '20', borderRadius: theme.radius.lg, color: theme.colors.text }]}
                   placeholder="e.g., 12.5"
                   placeholderTextColor={theme.colors.textLight}
                   value={fishWeight}
@@ -146,9 +156,11 @@ const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Bait Used</Text>
+                <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                  Bait Used
+                </Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: theme.colors.gray + '20', borderRadius: theme.radius.lg, color: theme.colors.text }]}
                   placeholder="e.g., Boilies, Corn"
                   placeholderTextColor={theme.colors.textLight}
                   value={bait}
@@ -158,9 +170,11 @@ const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Location</Text>
+                <Text style={[styles.label, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+                  Location
+                </Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: theme.colors.gray + '20', borderRadius: theme.radius.lg, color: theme.colors.text }]}
                   placeholder="e.g., Lake Geneva"
                   placeholderTextColor={theme.colors.textLight}
                   value={spot}
@@ -171,52 +185,50 @@ const EditPostModal = ({ visible, onClose, post, onUpdate }) => {
             </View>
 
             {/* Privacy */}
-            <View style={styles.privacySection}>
-              <Text style={styles.sectionTitle}>👥 Who can see this?</Text>
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+                👥 Who can see this?
+              </Text>
               <View style={styles.privacyOptions}>
                 {privacyOptions.map((option) => (
                   <Pressable
                     key={option.value}
                     style={[
                       styles.privacyButton,
-                      privacy === option.value && styles.privacyButtonActive,
+                      { backgroundColor: theme.colors.gray + '20', borderRadius: theme.radius.lg },
+                      privacy === option.value && { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary },
                     ]}
                     onPress={() => setPrivacy(option.value)}
                   >
                     <View
                       style={[
                         styles.privacyIcon,
-                        privacy === option.value && styles.privacyIconActive,
+                        { backgroundColor: theme.colors.primary + '15' },
+                        privacy === option.value && { backgroundColor: theme.colors.primary },
                       ]}
                     >
                       <Icon
                         name={option.icon}
                         size={20}
-                        color={privacy === option.value ? 'white' : theme.colors.primary}
+                        color={privacy === option.value ? theme.colors.card : theme.colors.primary}
                       />
                     </View>
-                    <Text
-                      style={[
-                        styles.privacyLabel,
-                        privacy === option.value && styles.privacyLabelActive,
-                      ]}
-                    >
+                    <Text style={[
+                      styles.privacyLabel,
+                      { fontWeight: theme.fonts.semiBold, color: theme.colors.text },
+                      privacy === option.value && { color: theme.colors.primary },
+                    ]}>
                       {option.label}
                     </Text>
                     {privacy === option.value && (
-                      <Icon
-                        name="heart"
-                        size={16}
-                        color={theme.colors.primary}
-                        fill={theme.colors.primary}
-                      />
+                      <Icon name="check" size={20} color={theme.colors.primary} />
                     )}
                   </Pressable>
                 ))}
               </View>
             </View>
 
-            <View style={{ height: 50 }} />
+            <View style={{ height: hp(4) }} />
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -229,7 +241,6 @@ export default EditPostModal;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
   header: {
     flexDirection: 'row',
@@ -238,73 +249,50 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   cancelButton: {
     fontSize: hp(1.8),
-    color: theme.colors.text,
   },
   title: {
     fontSize: hp(2.2),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   saveButton: {
     fontSize: hp(1.8),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.primary,
   },
   saveButtonDisabled: {
     opacity: 0.5,
   },
   section: {
-    padding: wp(5),
-  },
-  label: {
-    fontSize: hp(1.6),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
-    marginBottom: hp(1),
-  },
-  textArea: {
-    backgroundColor: theme.colors.gray + '20',
-    borderRadius: theme.radius.lg,
-    padding: hp(1.5),
-    fontSize: hp(1.7),
-    color: theme.colors.text,
-    minHeight: hp(12),
-    maxHeight: hp(20),
-  },
-  charCount: {
-    fontSize: hp(1.3),
-    color: theme.colors.textLight,
-    textAlign: 'right',
-    marginTop: 4,
-  },
-  detailsSection: {
     paddingHorizontal: wp(5),
-    paddingBottom: hp(2),
+    paddingVertical: hp(2),
   },
   sectionTitle: {
     fontSize: hp(1.9),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
     marginBottom: hp(1.5),
+  },
+  textArea: {
+    padding: hp(1.5),
+    fontSize: hp(1.7),
+    minHeight: hp(12),
+    maxHeight: hp(20),
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontSize: hp(1.3),
+    textAlign: 'right',
+    marginTop: 4,
   },
   inputGroup: {
     marginBottom: hp(1.5),
   },
+  label: {
+    fontSize: hp(1.6),
+    marginBottom: hp(0.8),
+  },
   input: {
-    backgroundColor: theme.colors.gray + '20',
-    borderRadius: theme.radius.lg,
     paddingHorizontal: hp(1.5),
     paddingVertical: hp(1.2),
     fontSize: hp(1.7),
-    color: theme.colors.text,
-  },
-  privacySection: {
-    paddingHorizontal: wp(5),
-    paddingBottom: hp(2),
   },
   privacyOptions: {
     gap: hp(1),
@@ -313,34 +301,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: hp(1.5),
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.gray + '20',
     gap: wp(3),
     borderWidth: 2,
     borderColor: 'transparent',
-  },
-  privacyButtonActive: {
-    backgroundColor: theme.colors.primary + '10',
-    borderColor: theme.colors.primary,
   },
   privacyIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.colors.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  privacyIconActive: {
-    backgroundColor: theme.colors.primary,
   },
   privacyLabel: {
     flex: 1,
     fontSize: hp(1.7),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
-  },
-  privacyLabelActive: {
-    color: theme.colors.primary,
   },
 });

@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const RippleEffect = ({ color = theme.colors.rose, size = 100, onComplete }) => {
+const RippleEffect = ({ color, size = 100, onComplete }) => {
+  const { theme } = useTheme();
+  const rippleColor = color || theme.colors.rose;
+  
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -31,7 +34,7 @@ const RippleEffect = ({ color = theme.colors.rose, size = 100, onComplete }) => 
           width: size,
           height: size,
           borderRadius: size / 2,
-          borderColor: color,
+          borderColor: rippleColor,
           opacity: opacity,
           transform: [{ scale: scale }],
         },

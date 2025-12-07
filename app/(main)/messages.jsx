@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import React from 'react';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useConversations } from '../../hooks/useConversations';
@@ -11,6 +11,7 @@ import Icon from '../../assets/icons';
 import { useRouter } from 'expo-router';
 
 const Messages = () => {
+  const { theme } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -21,14 +22,16 @@ const Messages = () => {
   );
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.card}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Icon name="arrowLeft" size={24} color={theme.colors.text} />
           </Pressable>
-          <Text style={styles.title}>Messages</Text>
+          <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
+            Messages
+          </Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -66,14 +69,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray,
   },
   backButton: {
     padding: 8,
   },
   title: {
     fontSize: hp(2.5),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
 });

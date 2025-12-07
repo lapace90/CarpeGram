@@ -2,11 +2,12 @@ import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
 import { Image } from 'expo-image'
 import React from 'react'
 import * as ImagePicker from 'expo-image-picker'
-import { theme } from '../../constants/theme'
+import { useTheme } from '../../contexts/ThemeContext'
 import { hp, wp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 
 const ImagePickerButton = ({ imageUri, onImageSelected }) => {
+  const { theme } = useTheme();
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -62,20 +63,39 @@ const ImagePickerButton = ({ imageUri, onImageSelected }) => {
   if (imageUri) {
     return (
       <View style={styles.previewContainer}>
-        <Image source={{ uri: imageUri }} style={styles.preview} />
-        <Pressable style={styles.changeButton} onPress={showOptions}>
-          <Icon name="camera" size={20} color="white" />
-          <Text style={styles.changeButtonText}>Change Photo</Text>
+        <Image source={{ uri: imageUri }} style={[styles.preview, { borderRadius: theme.radius.xl }]} />
+        <Pressable 
+          style={[styles.changeButton, { backgroundColor: theme.colors.primary, borderRadius: theme.radius.lg }]} 
+          onPress={showOptions}
+        >
+          <Icon name="camera" size={20} color={theme.colors.card} />
+          <Text style={[styles.changeButtonText, { fontWeight: theme.fonts.semiBold }]}>
+            Change Photo
+          </Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <Pressable style={styles.pickerButton} onPress={showOptions}>
+    <Pressable 
+      style={[
+        styles.pickerButton, 
+        { 
+          backgroundColor: theme.colors.gray,
+          borderRadius: theme.radius.xl,
+          borderColor: theme.colors.darkLight,
+        }
+      ]} 
+      onPress={showOptions}
+    >
       <Icon name="camera" size={50} color={theme.colors.primary} />
-      <Text style={styles.pickerText}>Add a photo of your catch</Text>
-      <Text style={styles.pickerSubtext}>Tap to take or select</Text>
+      <Text style={[styles.pickerText, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+        Add a photo of your catch
+      </Text>
+      <Text style={[styles.pickerSubtext, { color: theme.colors.textLight }]}>
+        Tap to take or select
+      </Text>
     </Pressable>
   );
 };
@@ -85,10 +105,7 @@ export default ImagePickerButton;
 const styles = StyleSheet.create({
   pickerButton: {
     height: hp(30),
-    backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.xl,
     borderWidth: 2,
-    borderColor: theme.colors.darkLight,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -96,12 +113,9 @@ const styles = StyleSheet.create({
   },
   pickerText: {
     fontSize: hp(2),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
   },
   pickerSubtext: {
     fontSize: hp(1.6),
-    color: theme.colors.textLight,
   },
   previewContainer: {
     position: 'relative',
@@ -109,7 +123,6 @@ const styles = StyleSheet.create({
   preview: {
     width: '100%',
     height: hp(30),
-    borderRadius: theme.radius.xl,
   },
   changeButton: {
     position: 'absolute',
@@ -118,14 +131,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: theme.colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 15,
-    borderRadius: theme.radius.lg,
   },
   changeButtonText: {
     color: 'white',
     fontSize: hp(1.6),
-    fontWeight: theme.fonts.semiBold,
   },
 });
