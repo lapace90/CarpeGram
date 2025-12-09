@@ -1,6 +1,8 @@
+// app/editProfile.jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native'
 import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
+import * as ImagePicker from 'expo-image-picker'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { useTheme } from '../contexts/ThemeContext'
 import { hp, wp } from '../helpers/common'
@@ -9,7 +11,8 @@ import Icon from '../assets/icons'
 import Input from '../components/Input'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
-import { pickAndUploadAvatar } from '../services/imageService'
+import ImageCropper from '../components/common/ImageCropper'
+import { uploadAvatarImage } from '../services/imageService'
 import { useAuth } from '../contexts/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 
@@ -28,6 +31,10 @@ const EditProfile = () => {
     const [anglerSince, setAnglerSince] = useState('');
     const [showFullName, setShowFullName] = useState(false);
 
+    // Cropper state
+    const [showCropper, setShowCropper] = useState(false);
+    const [tempImageUri, setTempImageUri] = useState(null);
+
     useEffect(() => {
         if (profile) {
             setUsername(profile.username || '');
@@ -41,10 +48,45 @@ const EditProfile = () => {
     }, [profile]);
 
     const pickImage = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        
+        if (status !== 'granted') {
+            Alert.alert('Permission needed', 'Please allow access to your photos');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: false,
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setTempImageUri(result.assets[0].uri);
+            setShowCropper(true);
+        }
+    };
+
+    const handleCrop = async (croppedUri) => {
+        setShowCropper(false);
+        setTempImageUri(null);
+        
         setSaving(true);
-        await pickAndUploadAvatar(user.id, refresh);
+        const { url, error } = await uploadAvatarImage(user.id, croppedUri);
         setSaving(false);
-    }
+        
+        if (!error && url) {
+            Alert.alert('Success', 'Profile picture updated!');
+            refresh();
+        } else {
+            Alert.alert('Error', 'Failed to upload image');
+        }
+    };
+
+    const handleCancelCrop = () => {
+        setShowCropper(false);
+        setTempImageUri(null);
+    };
 
     const onSubmit = async () => {
         if (!username.trim()) {
@@ -74,7 +116,7 @@ const EditProfile = () => {
         } else {
             Alert.alert('Error', result.error || 'Failed to update profile');
         }
-    }
+    };
 
     if (profileLoading) {
         return (
@@ -118,115 +160,136 @@ const EditProfile = () => {
                         <Pressable 
                             style={[styles.cameraIcon, { backgroundColor: theme.colors.primary }]} 
                             onPress={pickImage}
+                            disabled={saving}
                         >
-                            <Icon name="camera" size={20} strokeWidth={2.5} color={theme.colors.card} />
+                            <Icon name="camera" size={20} strokeWidth={2.5} color="white" />
                         </Pressable>
                     </View>
 
-                    {/* Form Fields with proper spacing */}
-                    <View style={styles.inputWrapper}>
-                        <Input
-                            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
-                            placeholder='Username'
+                    {/* Username */}
+                    <View style={styles.inputContainer}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>Username *</Text>
+                        <Input 
+                            placeholder="Your username"
                             value={username}
                             onChangeText={setUsername}
+                            autoCapitalize="none"
                         />
                     </View>
 
-                    <View style={styles.inputWrapper}>
-                        <Input
-                            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
-                            placeholder='First Name'
+                    {/* First Name */}
+                    <View style={styles.inputContainer}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>First Name</Text>
+                        <Input 
+                            placeholder="Your first name"
                             value={firstName}
                             onChangeText={setFirstName}
                         />
                     </View>
 
-                    <View style={styles.inputWrapper}>
-                        <Input
-                            icon={<Icon name="user" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
-                            placeholder='Last Name'
+                    {/* Last Name */}
+                    <View style={styles.inputContainer}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>Last Name</Text>
+                        <Input 
+                            placeholder="Your last name"
                             value={lastName}
                             onChangeText={setLastName}
                         />
                     </View>
 
                     {/* Show Full Name Toggle */}
-                    <Pressable
-                        style={[
-                            styles.toggleRow, 
-                            { 
-                                backgroundColor: theme.colors.card,
-                                borderColor: theme.colors.text,
-                                borderRadius: theme.radius.xxl,
-                            }
-                        ]}
+                    <Pressable 
+                        style={styles.toggleContainer}
                         onPress={() => setShowFullName(!showFullName)}
                     >
-                        <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
-                            Show full name on profile
-                        </Text>
+                        <View style={styles.toggleInfo}>
+                            <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
+                                Show full name on profile
+                            </Text>
+                            <Text style={[styles.toggleHint, { color: theme.colors.textLight }]}>
+                                When enabled, your full name will be visible to other users
+                            </Text>
+                        </View>
                         <View style={[
-                            styles.toggle, 
-                            { backgroundColor: theme.colors.gray },
-                            showFullName && { backgroundColor: theme.colors.primary }
+                            styles.toggle,
+                            { backgroundColor: showFullName ? theme.colors.primary : theme.colors.gray }
                         ]}>
                             <View style={[
-                                styles.toggleThumb, 
-                                { backgroundColor: theme.colors.card },
-                                showFullName && styles.toggleThumbActive
+                                styles.toggleCircle,
+                                showFullName && styles.toggleCircleActive
                             ]} />
                         </View>
                     </Pressable>
 
-                    <View style={styles.inputWrapper}>
-                        <Input
-                            placeholder='Bio'
+                    {/* Bio */}
+                    <View style={styles.inputContainer}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>Bio</Text>
+                        <Input 
+                            placeholder="Tell us about yourself..."
                             value={bio}
                             onChangeText={setBio}
                             multiline
-                            containerStyles={styles.bio}
+                            numberOfLines={3}
+                            containerStyle={{ height: 100, alignItems: 'flex-start' }}
                         />
                     </View>
 
-                    <View style={styles.inputWrapper}>
-                        <Input
-                            icon={<Icon name="location" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
-                            placeholder='Location'
+                    {/* Location */}
+                    <View style={styles.inputContainer}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>Location</Text>
+                        <Input 
+                            placeholder="Your city or region"
                             value={location}
                             onChangeText={setLocation}
+                            icon={<Icon name="mapPin" size={20} color={theme.colors.textLight} />}
                         />
                     </View>
 
-                    <View style={styles.inputWrapper}>
-                        <Input
-                            icon={<Icon name="calendar" size={26} strokeWidth={1.6} color={theme.colors.textLight} />}
-                            placeholder='Angler since (year)'
+                    {/* Angler Since */}
+                    <View style={styles.inputContainer}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>Fishing since (year)</Text>
+                        <Input 
+                            placeholder="e.g., 2010"
                             value={anglerSince}
                             onChangeText={setAnglerSince}
-                            keyboardType="number-pad"
+                            keyboardType="numeric"
+                            maxLength={4}
+                            icon={<Icon name="calendar" size={20} color={theme.colors.textLight} />}
                         />
                     </View>
 
-                    <View style={styles.buttonWrapper}>
-                        <Button
-                            title='Save Changes'
-                            loading={saving}
-                            onPress={onSubmit}
-                        />
-                    </View>
+                    {/* Save Button */}
+                    <Button 
+                        title="Save Changes"
+                        onPress={onSubmit}
+                        loading={saving}
+                        buttonStyle={{ marginTop: hp(2) }}
+                    />
+
                 </ScrollView>
             </View>
-        </ScreenWrapper>
-    )
-}
 
-export default EditProfile
+            {/* Image Cropper Modal */}
+            <ImageCropper
+                visible={showCropper}
+                imageUri={tempImageUri}
+                onCrop={handleCrop}
+                onCancel={handleCancelCrop}
+                cropShape="circle"
+                initialAspectRatio="1:1"
+                showAspectRatioSelector={false}
+                outputSize={400}
+            />
+        </ScreenWrapper>
+    );
+};
+
+export default EditProfile;
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: wp(5),
+        paddingHorizontal: wp(4),
     },
     loading: {
         flex: 1,
@@ -237,68 +300,76 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     formContent: {
-        paddingBottom: hp(5),
+        paddingBottom: hp(4),
     },
     header: {
-        marginTop: hp(2),
-        marginBottom: hp(2),
+        marginVertical: hp(2),
     },
     title: {
         fontSize: hp(3),
+        textAlign: 'center',
     },
     avatarContainer: {
         alignSelf: 'center',
-        marginBottom: hp(4),
+        marginBottom: hp(3),
     },
     avatar: {
-        height: hp(14),
         width: hp(14),
-        borderWidth: 1,
+        height: hp(14),
+        borderWidth: 3,
     },
     cameraIcon: {
         position: 'absolute',
         bottom: 0,
-        right: -10,
-        padding: 8,
-        borderRadius: 50,
-    },
-    inputWrapper: {
-        marginBottom: hp(2),
-    },
-    toggleRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        right: -5,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 15,
-        paddingHorizontal: 18,
-        borderWidth: 0.4,
+        borderWidth: 2,
+        borderColor: 'white',
+    },
+    inputContainer: {
         marginBottom: hp(2),
+    },
+    label: {
+        fontSize: hp(1.6),
+        marginBottom: hp(0.5),
+        fontWeight: '500',
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: hp(1.5),
+        marginBottom: hp(2),
+    },
+    toggleInfo: {
+        flex: 1,
+        marginRight: wp(3),
     },
     toggleLabel: {
-        fontSize: hp(1.8),
+        fontSize: hp(1.7),
+        fontWeight: '500',
+    },
+    toggleHint: {
+        fontSize: hp(1.4),
+        marginTop: 2,
     },
     toggle: {
         width: 50,
         height: 28,
         borderRadius: 14,
         padding: 2,
-        justifyContent: 'center',
     },
-    toggleThumb: {
+    toggleCircle: {
         width: 24,
         height: 24,
         borderRadius: 12,
+        backgroundColor: 'white',
     },
-    toggleThumbActive: {
-        alignSelf: 'flex-end',
+    toggleCircleActive: {
+        transform: [{ translateX: 22 }],
     },
-    bio: {
-        height: hp(10),
-        alignItems: 'flex-start',
-        paddingTop: 15,
-    },
-    buttonWrapper: {
-        marginTop: hp(2),
-        marginBottom: hp(3),
-    },
-})
+});

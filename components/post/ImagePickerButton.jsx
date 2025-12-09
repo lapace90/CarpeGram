@@ -1,13 +1,17 @@
+// components/post/ImagePickerButton.jsx
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
 import { Image } from 'expo-image'
-import React from 'react'
+import React, { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { useTheme } from '../../contexts/ThemeContext'
 import { hp, wp } from '../../helpers/common'
 import Icon from '../../assets/icons'
+import ImageCropper from '../common/ImageCropper'
 
 const ImagePickerButton = ({ imageUri, onImageSelected }) => {
   const { theme } = useTheme();
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempUri, setTempUri] = useState(null);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -19,13 +23,13 @@ const ImagePickerButton = ({ imageUri, onImageSelected }) => {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.7,
+      allowsEditing: false,
+      quality: 1,
     });
 
     if (!result.canceled) {
-      onImageSelected(result.assets[0].uri);
+      setTempUri(result.assets[0].uri);
+      setShowCropper(true);
     }
   };
 
@@ -38,14 +42,20 @@ const ImagePickerButton = ({ imageUri, onImageSelected }) => {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.7,
+      allowsEditing: false,
+      quality: 1,
     });
 
     if (!result.canceled) {
-      onImageSelected(result.assets[0].uri);
+      setTempUri(result.assets[0].uri);
+      setShowCropper(true);
     }
+  };
+
+  const handleCrop = (croppedUri) => {
+    onImageSelected(croppedUri);
+    setShowCropper(false);
+    setTempUri(null);
   };
 
   const showOptions = () => {
@@ -73,30 +83,54 @@ const ImagePickerButton = ({ imageUri, onImageSelected }) => {
             Change Photo
           </Text>
         </Pressable>
+
+        <ImageCropper
+          visible={showCropper}
+          imageUri={tempUri}
+          onCrop={handleCrop}
+          onCancel={() => { setShowCropper(false); setTempUri(null); }}
+          cropShape="square"
+          initialAspectRatio="1:1"
+          showAspectRatioSelector={true}
+          outputSize={1080}
+        />
       </View>
     );
   }
 
   return (
-    <Pressable 
-      style={[
-        styles.pickerButton, 
-        { 
-          backgroundColor: theme.colors.gray,
-          borderRadius: theme.radius.xl,
-          borderColor: theme.colors.darkLight,
-        }
-      ]} 
-      onPress={showOptions}
-    >
-      <Icon name="camera" size={50} color={theme.colors.primary} />
-      <Text style={[styles.pickerText, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
-        Add a photo of your catch
-      </Text>
-      <Text style={[styles.pickerSubtext, { color: theme.colors.textLight }]}>
-        Tap to take or select
-      </Text>
-    </Pressable>
+    <>
+      <Pressable 
+        style={[
+          styles.pickerButton, 
+          { 
+            backgroundColor: theme.colors.gray,
+            borderRadius: theme.radius.xl,
+            borderColor: theme.colors.darkLight,
+          }
+        ]} 
+        onPress={showOptions}
+      >
+        <Icon name="camera" size={50} color={theme.colors.primary} />
+        <Text style={[styles.pickerText, { fontWeight: theme.fonts.semiBold, color: theme.colors.text }]}>
+          Add a photo of your catch
+        </Text>
+        <Text style={[styles.pickerSubtext, { color: theme.colors.textLight }]}>
+          Tap to take or select
+        </Text>
+      </Pressable>
+
+      <ImageCropper
+        visible={showCropper}
+        imageUri={tempUri}
+        onCrop={handleCrop}
+        onCancel={() => { setShowCropper(false); setTempUri(null); }}
+        cropShape="square"
+        initialAspectRatio="1:1"
+        showAspectRatioSelector={true}
+        outputSize={1080}
+      />
+    </>
   );
 };
 

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useRef, useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { theme } from '../../../constants/theme';
 import { hp, wp } from '../../../helpers/common';
 import { useMessages } from '../../../hooks/useMessages';
@@ -9,7 +9,7 @@ import { useConversation } from '../../../hooks/useConversation';
 import { useAuth } from '../../../contexts/AuthContext';
 import MessageBubble from '../../../components/MessageBubble';
 import ChatInput from '../../../components/ChatInput';
-import Avatar from '../../../components/Avatar';
+import Avatar from '../../../components/common/Avatar';
 import Icon from '../../../assets/icons';
 
 const Chat = () => {

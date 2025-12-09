@@ -2,34 +2,36 @@ import * as ImagePicker from 'expo-image-picker'
 import { supabase } from '../lib/supabase'
 import { Alert } from 'react-native'
 
-export const pickAndUploadAvatar = async (userId, onSuccess) => {
+// Nuova funzione che restituisce l'URI per il cropper
+export const pickAvatarImage = async () => {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+  if (status !== 'granted') {
+    Alert.alert('Permission needed', 'Please allow access to your photos');
+    return null;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: false,
+    quality: 1,
+  });
+
+  if (result.canceled) return null;
+  return result.assets[0].uri;
+};
+
+// Upload avatar già croppato
+export const uploadCroppedAvatar = async (userId, croppedUri, onSuccess) => {
   try {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photos');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (result.canceled) return;
-
-    // ✅ CORRECTION: Upload avec nom unique (timestamp) pour éviter le cache
-    const uri = result.assets[0].uri;
-    const fileExt = uri.split('.').pop().toLowerCase();
+    const fileExt = croppedUri.split('.').pop().toLowerCase();
     const fileName = `${userId}/avatar_${Date.now()}.${fileExt}`;
 
-    const response = await fetch(uri);
+    const response = await fetch(croppedUri);
     const blob = await response.blob();
     const arrayBuffer = await new Response(blob).arrayBuffer();
 
-    // ✅ Supprimer l'ancien avatar d'abord pour économiser du storage
+    // Elimina vecchio avatar
     const { data: oldProfile } = await supabase
       .from('profiles')
       .select('avatar_url')
@@ -47,11 +49,10 @@ export const pickAndUploadAvatar = async (userId, onSuccess) => {
       }
     }
 
-    // ✅ Upload le nouvel avatar avec nom unique
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(fileName, arrayBuffer, {
-        contentType: `image/${fileExt}`,
+        contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
         upsert: false
       });
 
@@ -77,4 +78,4 @@ export const pickAndUploadAvatar = async (userId, onSuccess) => {
     Alert.alert('Error', error.message);
     return null;
   }
-}
+};

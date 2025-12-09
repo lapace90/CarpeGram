@@ -1,13 +1,13 @@
 import { Alert, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native'
 import React, { useRef, useState } from 'react'
-import ScreenWrapper from '../components/ScreenWrapper'
+import ScreenWrapper from '../components/common/ScreenWrapper'
 import { useRouter } from 'expo-router'
 import { useTheme } from '../contexts/ThemeContext'
 import Icon from '../assets/icons/index'
-import BackButton from '../components/BackButton'
+import BackButton from '../components/common/BackButton'
 import { hp, wp } from '../helpers/common'
-import Input from '../components/Input'
-import Button from '../components/Button'
+import Input from '../components/common/Input'
+import Button from '../components/common/Button'
 import { supabase } from '../lib/supabase'
 
 const SignUp = () => {

@@ -10,10 +10,10 @@ import {
   Alert,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import { hp, wp } from '../helpers/common';
-import Icon from '../assets/icons';
-import { updateRepost } from '../services/repostService';
+import { useTheme } from '../../contexts/ThemeContext';
+import { hp, wp } from '../../helpers/common';
+import Icon from '../../assets/icons';
+import { updateRepost } from '../../services/repostService';
 
 const EditRepostModal = ({ visible, onClose, repost, onUpdate }) => {
   const { theme } = useTheme();

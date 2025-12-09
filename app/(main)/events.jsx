@@ -1,14 +1,14 @@
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import React from 'react';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { useEvents } from '../../hooks/useEvents';
 import EventCard from '../../components/event/EventCard';
-import BackButton from '../../components/BackButton';
-import EmptyState from '../../components/EmptyState';
+import BackButton from '../../components/common/BackButton';
+import EmptyState from '../../components/common/EmptyState';
 
 const Events = () => {
   const { theme } = useTheme();

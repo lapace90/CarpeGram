@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TextInput, FlatList, Pressable } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import { hp } from '../helpers/common';
-import { searchUsers } from '../services/userService';
-import { searchHashtags } from '../services/hashtagService';
+import { useTheme } from '../../contexts/ThemeContext';
+import { hp } from '../../helpers/common';
+import { searchUsers } from '../../services/userService';
+import { searchHashtags } from '../../services/hashtagService';
 import Avatar from './Avatar';
 
 const MentionInput = ({ 

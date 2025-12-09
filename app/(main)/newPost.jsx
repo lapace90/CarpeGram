@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import React from 'react'
-import ScreenWrapper from '../../components/ScreenWrapper'
+import ScreenWrapper from '../../components/common/ScreenWrapper'
 import { useTheme } from '../../contexts/ThemeContext'
 import { hp, wp } from '../../helpers/common'
 import { useRouter } from 'expo-router'
@@ -9,7 +9,7 @@ import ImagePickerButton from '../../components/post/ImagePickerButton'
 import PrivacySelector from '../../components/post/PrivacySelector'
 import FishInfoForm from '../../components/post/FishInfoForm'
 import { useCreatePost } from '../../hooks/useCreatePost'
-import SmartInput from '../../components/SmartInput'
+import SmartInput from '../../components/common/SmartInput'
 import { useAuth } from '../../contexts/AuthContext' 
 
 const NewPost = () => {

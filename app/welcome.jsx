@@ -1,10 +1,10 @@
 import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native'
 import { Image } from 'expo-image'
 import React from 'react'
-import ScreenWrapper from '../components/ScreenWrapper'
+import ScreenWrapper from '../components/common/ScreenWrapper'
 import { wp, hp } from '../helpers/common'
 import { useTheme } from '../contexts/ThemeContext'
-import Button from '../components/Button'
+import Button from '../components/common/Button'
 import { useRouter } from 'expo-router'
 
 const Welcome = () => {

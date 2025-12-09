@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../../contexts/AuthContext';
 import { usePost } from '../../../hooks/usePost';
 import PostDetail from '../../../components/post/PostDetail';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import ScreenWrapper from '../../../components/common/ScreenWrapper';
 
 const PostDetailPage = () => {
   const { id } = useLocalSearchParams();

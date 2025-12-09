@@ -1,13 +1,13 @@
 import { View, Text, StyleSheet, FlatList, Pressable, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import { theme } from '../../../constants/theme';
 import { hp, wp } from '../../../helpers/common';
 import { useRouter } from 'expo-router';
 import Icon from '../../../assets/icons';
-import BackButton from '../../../components/BackButton';
-import Avatar from '../../../components/Avatar';
-import EmptyState from '../../../components/EmptyState';
+import BackButton from '../../../components/common/BackButton';
+import Avatar from '../../../components/common/Avatar';
+import EmptyState from '../../../components/common/EmptyState';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getBlockedUsers, unblockUser } from '../../../services/relationshipService';
 

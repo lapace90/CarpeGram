@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, FlatList, TextInput, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import ScreenWrapper from '../../components/ScreenWrapper'
+import ScreenWrapper from '../../components/common/ScreenWrapper'
 import { useTheme } from '../../contexts/ThemeContext'
 import { hp, wp } from '../../helpers/common'
 import { useAuth } from '../../contexts/AuthContext'

@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import React from 'react';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useRouter } from 'expo-router';
 import Icon from '../../assets/icons';
-import BackButton from '../../components/BackButton';
+import BackButton from '../../components/common/BackButton';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Settings = () => {

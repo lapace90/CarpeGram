@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
-import ScreenWrapper from '../../../components/ScreenWrapper'
+import ScreenWrapper from '../../../components/common/ScreenWrapper'
 import { theme } from '../../../constants/theme'
 import { hp, wp } from '../../../helpers/common'
 import { useAuth } from '../../../contexts/AuthContext'

@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import React from 'react';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useConversations } from '../../hooks/useConversations';
 import ConversationItem from '../../components/ConversationItem';
-import EmptyState from '../../components/EmptyState';
+import EmptyState from '../../components/common/EmptyState';
 import Icon from '../../assets/icons';
 import { useRouter } from 'expo-router';
 

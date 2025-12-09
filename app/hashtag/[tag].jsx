@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
@@ -9,7 +9,7 @@ import { searchPostsByHashtag } from '../../services/hashtagService';
 import PostCard from '../../components/post/PostCard';
 import { supabase } from '../../lib/supabase';
 import BubblesLoader from '../../components/animations/BubblesLoader';
-import EmptyState from '../../components/EmptyState';
+import EmptyState from '../../components/common/EmptyState';
 
 const HashtagScreen = () => {
   const { theme } = useTheme();

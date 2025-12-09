@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
-import SmartInput from '../SmartInput'
+import SmartInput from '../common/SmartInput'
 
 const CommentInput = ({ onSubmit, loading, currentUserId }) => {
   const { theme } = useTheme();

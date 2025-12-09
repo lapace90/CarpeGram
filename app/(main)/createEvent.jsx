@@ -6,7 +6,7 @@ import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import Input from '../../components/Input';
-import SmartInput from '../../components/SmartInput';
+import SmartInput from '../../components/common/SmartInput';
 import Button from '../../components/Button';
 import Icon from '../../assets/icons';
 import DateTimePicker from '@react-native-community/datetimepicker';

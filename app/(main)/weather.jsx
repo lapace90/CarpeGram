@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useRouter } from 'expo-router';
 import Icon from '../../assets/icons';
-import BackButton from '../../components/BackButton';
+import BackButton from '../../components/common/BackButton';
 import BubblesLoader from '../../components/animations/BubblesLoader';
 import * as Location from 'expo-location';
 import { getFishingWeather, getMoonPhasesForWeek } from '../../services/weatherService';

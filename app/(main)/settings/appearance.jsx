@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import BackButton from '../../../components/BackButton';
+import ScreenWrapper from '../../../components/common/ScreenWrapper';
+import BackButton from '../../../components/common/BackButton';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { hp, wp } from '../../../helpers/common';
 import Icon from '../../../assets/icons';
