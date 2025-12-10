@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, Modal, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import { hp, wp } from '../helpers/common';
-import Icon from '../assets/icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import { hp, wp } from '../../helpers/common';
+import Icon from '../../assets/icons';
 
 const RepostModal = ({ visible, onClose, onRepost }) => {
   const { theme } = useTheme();

@@ -5,8 +5,8 @@ import { commonStyles } from '../../constants/commonStyles'
 import { getPostComments, createComment, deleteComment } from '../../services/commentService'
 import CommentItem from './CommentItem'
 import CommentInput from './CommentInput'
-import ModalHeader from '../ModalHeader'
-import EmptyState from '../EmptyState'
+import ModalHeader from '../common/ModalHeader'
+import EmptyState from '../common/EmptyState'
 
 const CommentsModal = ({ visible, onClose, postId, currentUserId, onCommentChange }) => {
   const { theme } = useTheme();

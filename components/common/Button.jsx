@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { useTheme } from '../contexts/ThemeContext'
-import { hp } from '../helpers/common'
+import { useTheme } from '../../contexts/ThemeContext'
+import { hp } from '../../helpers/common'
 import Loading from './Loading'
 
 const Button = ({

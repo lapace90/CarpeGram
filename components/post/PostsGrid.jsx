@@ -5,7 +5,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
-import EmptyState from '../EmptyState'
+import EmptyState from '../common/EmptyState'
 
 const PostsGrid = ({ posts, loading, onPostPress, onCreatePress }) => {
   const { theme } = useTheme();

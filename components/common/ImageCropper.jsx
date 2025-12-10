@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
-import Icon from '../../assets/icons/Icon';
+import Icon from '../../assets/icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -33,6 +33,7 @@ const ImageCropper = ({
   showAspectRatioSelector = false,
   outputSize = 1080,
 }) => {
+  const { theme } = useTheme();
   const [aspectRatio, setAspectRatio] = useState(initialAspectRatio);
   const [imageLayout, setImageLayout] = useState({ width: 0, height: 0 });
   const [originalSize, setOriginalSize] = useState({ width: 0, height: 0 });
@@ -245,11 +246,11 @@ const ImageCropper = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={onCancel} style={styles.headerButton}>
-            <Icon name="x" size={24} color="white" />
+            <Icon name="close" size={24} color="white" />
           </Pressable>
-          <Text style={styles.headerTitle}>Ritaglia</Text>
+          <Text style={styles.headerTitle}>Crop</Text>
           <Pressable onPress={animatedReset} style={styles.headerButton}>
-            <Icon name="refresh" size={20} color="white" />
+            <Icon name="repeat" size={20} color="white" />
           </Pressable>
         </View>
 
@@ -333,20 +334,20 @@ const ImageCropper = ({
           </View>
         </View>
 
-        <Text style={styles.hint}>Trascina e pizzica per regolare</Text>
+        <Text style={styles.hint}>Drag and pinch to adjust</Text>
 
         <View style={styles.actions}>
-          <Pressable style={styles.cancelBtn} onPress={onCancel}>
-            <Text style={styles.cancelText}>Annulla</Text>
+          <Pressable style={[styles.cancelBtn, { borderRadius: theme.radius.lg }]} onPress={onCancel}>
+            <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
           <Pressable 
-            style={[styles.confirmBtn, loading && styles.btnDisabled]} 
+            style={[styles.confirmBtn, { borderRadius: theme.radius.lg, backgroundColor: theme.colors.primary }, loading && styles.btnDisabled]} 
             onPress={handleCrop}
             disabled={loading}
           >
             <Icon name="check" size={20} color="white" />
             <Text style={styles.confirmText}>
-              {loading ? 'Attendi...' : 'Avanti'}
+              {loading ? 'Wait...' : 'Next'}
             </Text>
           </Pressable>
         </View>
@@ -471,7 +472,6 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     paddingVertical: hp(1.8),
-    borderRadius: theme.radius.lg,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
     alignItems: 'center',
@@ -485,8 +485,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     paddingVertical: hp(1.8),
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(2),

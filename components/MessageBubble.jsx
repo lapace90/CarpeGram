@@ -4,7 +4,7 @@ import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
 import { useRouter } from 'expo-router';
-import RichText from './RichText';
+import RichText from './common/RichText';
 
 const MessageBubble = ({ message, isOwn }) => {
   const { theme } = useTheme();

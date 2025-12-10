@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
-import Avatar from '../Avatar';
+import Avatar from '../common/Avatar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import EventMenu from './EventMenu';

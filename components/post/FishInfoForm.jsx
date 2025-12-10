@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import React from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { hp } from '../../helpers/common'
-import Input from '../Input'
+import Input from '../common/Input'
 import Icon from '../../assets/icons'
 
 const FishInfoForm = ({

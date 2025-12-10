@@ -9,15 +9,15 @@ import { useLike } from '../../hooks/useLike'
 import { useRepost } from '../../hooks/useRepost'
 import { useSavedPost } from '../../hooks/useSavedPost'
 import CommentsModal from './CommentsModal'
-import RepostModal from '../RepostModal'
+import RepostModal from './RepostModal'
 import RepostHeader from './RepostHeader'
 import PostMenu from './PostMenu'
 import EditPostModal from './EditPostModal'
 import RepostMenu from './RepostMenu'
-import EditRepostModal from '../EditRepostModal'
+import EditRepostModal from './EditRepostModal'
 import EventCard from '../event/EventCard';
-import Avatar from '../Avatar'
-import RichText from '../RichText';
+import Avatar from '../common/Avatar'
+import RichText from '../common/RichText';
 
 const PostCard = ({ post, currentUserId, onPress, onUpdate, isOwnProfile = false }) => {
   const { theme } = useTheme();

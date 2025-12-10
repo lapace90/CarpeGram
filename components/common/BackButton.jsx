@@ -1,7 +1,7 @@
 import { StyleSheet, Pressable } from 'react-native'
 import React from 'react'
-import { useTheme } from '../contexts/ThemeContext'
-import Icon from '../assets/icons/index'
+import { useTheme } from '../../contexts/ThemeContext'
+import Icon from '../../assets/icons/index'
 
 const BackButton = ({ size = 26, router, to }) => {
   const { theme } = useTheme();

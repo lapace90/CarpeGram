@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import React from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import { hp } from '../helpers/common';
-import Icon from '../assets/icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import { hp } from '../../helpers/common';
+import Icon from '../../assets/icons';
 
 const ModalHeader = ({ title, onClose, rightElement }) => {
   const { theme } = useTheme();

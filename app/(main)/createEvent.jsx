@@ -1,13 +1,13 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Alert, KeyboardAvoidingView } from 'react-native';
 import React, { useState } from 'react';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
-import Input from '../../components/Input';
+import Input from '../../components/common/Input';
 import SmartInput from '../../components/common/SmartInput';
-import Button from '../../components/Button';
+import Button from '../../components/common/Button';
 import Icon from '../../assets/icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { createEvent } from '../../services/eventService';

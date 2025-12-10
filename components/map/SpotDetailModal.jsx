@@ -13,7 +13,7 @@ import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
-import Avatar from '../Avatar';
+import Avatar from '../common/Avatar';
 import { useRouter } from 'expo-router';
 
 const WATER_TYPE_ICONS = {

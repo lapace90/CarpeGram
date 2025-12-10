@@ -3,7 +3,7 @@ import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp } from '../../helpers/common';
 import Icon from '../../assets/icons';
-import Avatar from '../Avatar';
+import Avatar from '../common/Avatar';
 import { commonStyles } from '../../constants/commonStyles';
 
 const RepostHeader = ({ 

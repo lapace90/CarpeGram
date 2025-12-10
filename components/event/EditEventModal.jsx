@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
-import Input from '../Input';
-import SmartInput from '../SmartInput';
+import Input from '../common/Input';
+import SmartInput from '../common/SmartInput';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { updateEvent } from '../../services/eventService';
 

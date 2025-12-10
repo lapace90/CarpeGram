@@ -5,9 +5,9 @@ import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import { getPostLikes } from '../../services/likeService'
-import Avatar from '../Avatar'
-import ModalHeader from '../ModalHeader'
-import EmptyState from '../EmptyState'
+import Avatar from '../common/Avatar'
+import ModalHeader from '../common/ModalHeader'
+import EmptyState from '../common/EmptyState'
 
 const LikesModal = ({ visible, onClose, postId }) => {
   const { theme } = useTheme();

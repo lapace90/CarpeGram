@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { hp } from '../helpers/common';
-import Avatar from './Avatar';
+import Avatar from './common/Avatar';
 import { useRouter } from 'expo-router';
 
 const ConversationItem = ({ conversation }) => {

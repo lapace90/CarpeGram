@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image'
 import React from 'react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Avatar = ({ profile, size = 40, style }) => {
   const { theme } = useTheme();

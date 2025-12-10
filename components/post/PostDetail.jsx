@@ -8,13 +8,13 @@ import Icon from '../../assets/icons'
 import { useLike } from '../../hooks/useLike'
 import { useRepost } from '../../hooks/useRepost'
 import { useSavedPost } from '../../hooks/useSavedPost'
-import Avatar from '../Avatar'
+import Avatar from '../common/Avatar'
 import CommentsModal from './CommentsModal'
 import LikesModal from './LikesModal'
-import RepostModal from '../RepostModal'
+import RepostModal from './RepostModal'
 import PostMenu from './PostMenu'
 import EditPostModal from './EditPostModal'
-import RichText from '../RichText';
+import RichText from '../common/RichText';
 
 const PostDetail = ({ visible, onClose, post, currentUserId, onDelete }) => {
   const { theme } = useTheme();

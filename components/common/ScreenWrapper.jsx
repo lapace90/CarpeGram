@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * ScreenWrapper - Safe area wrapper with theme support

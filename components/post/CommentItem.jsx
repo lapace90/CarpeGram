@@ -4,8 +4,8 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { commonStyles } from '../../constants/commonStyles'
 import { hp } from '../../helpers/common'
 import Icon from '../../assets/icons'
-import RichText from '../RichText';
-import Avatar from '../Avatar'
+import RichText from '../common/RichText';
+import Avatar from '../common/Avatar'
 
 const CommentItem = ({ 
   id, 

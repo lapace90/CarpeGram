@@ -1,9 +1,9 @@
 import { Text, StyleSheet, Alert } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../contexts/ThemeContext';
-import { checkUsernameExists } from '../services/mentionService';
-import { segmentText } from '../helpers/textParser';
+import { useTheme } from '../../contexts/ThemeContext';
+import { checkUsernameExists } from '../../services/mentionService';
+import { segmentText } from '../../helpers/textParser';
 
 const RichText = ({ text, style, numberOfLines }) => {
   const { theme } = useTheme();
