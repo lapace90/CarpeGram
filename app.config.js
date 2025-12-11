@@ -11,6 +11,7 @@ export default {
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     ios: {
+      bundleIdentifier: "com.anonymous.Carpegram",
       supportsTablet: true,
     },
     android: {

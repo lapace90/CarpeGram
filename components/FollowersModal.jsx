@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Modal, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { hp, wp } from '../helpers/common'
 import Icon from '../assets/icons'
 import { getFollowers } from '../services/followService'
@@ -10,6 +11,7 @@ const FollowersModal = ({ visible, onClose, userId, currentUserId }) => {
   const { theme } = useTheme();
   const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible && userId) {
@@ -60,7 +62,7 @@ const FollowersModal = ({ visible, onClose, userId, currentUserId }) => {
       transparent={false}
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={[styles.header, { borderBottomColor: theme.colors.gray }]}>
           <Text style={[styles.title, { fontWeight: theme.fonts.bold, color: theme.colors.text }]}>
             Followers

@@ -11,7 +11,7 @@ import Input from '../components/common/Input'
 import Button from '../components/common/Button'
 import BackButton from '../components/common/BackButton'
 import ImageCropper from '../components/common/ImageCropper'
-import { uploadAvatarImage } from '../services/imageService'
+import { uploadCroppedAvatar } from '../services/imageService'
 import { useAuth } from '../contexts/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 
@@ -71,7 +71,7 @@ const EditProfile = () => {
         setTempImageUri(null);
         
         setSaving(true);
-        const { url, error } = await uploadAvatarImage(user.id, croppedUri);
+        const { url, error } = await uploadCroppedAvatar(user.id, croppedUri);
         setSaving(false);
         
         if (!error && url) {
@@ -240,7 +240,7 @@ const EditProfile = () => {
                             placeholder="Your city or region"
                             value={location}
                             onChangeText={setLocation}
-                            icon={<Icon name="mapPin" size={20} color={theme.colors.textLight} />}
+                            icon={<Icon name="location" size={20} color={theme.colors.textLight} />}
                         />
                     </View>
 
