@@ -129,7 +129,7 @@ const Weather = () => {
   const { current, today, fishingActivity, moonPhase, bestTimes, forecast, hourly, marine, isCoastal, waterTemperature } = weatherData;
 
   return (
-    <ScreenWrapper bg={theme.colors.gray + '10'}>
+    <ScreenWrapper bg={theme.colors.background}>
       <View style={styles.container}>
         {/* Header */}
         <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.gray }]}>

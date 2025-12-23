@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import React, { memo, useContext } from 'react';
+import React, { memo } from 'react';
 import { Marker } from 'react-native-maps';
-import { useTheme, ThemeContext } from '../../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons';
 
@@ -153,10 +153,10 @@ const StoreMarker = memo(({ store, onPress }) => {
 });
 
 // ============================================
-// MARKER SPOT (needs theme context)
+// MARKER SPOT (uses useTheme hook)
 // ============================================
 const SpotMarker = memo(({ spot, onPress }) => {
-  const { theme } = useContext(ThemeContext);
+  const { theme } = useTheme(); // ✅ Utilise useTheme() au lieu de useContext(ThemeContext)
   const isPrivate = spot.privacy !== 'public';
   
   const config = isPrivate

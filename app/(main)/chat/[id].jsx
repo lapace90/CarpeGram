@@ -38,7 +38,7 @@ const Chat = () => {
 
   if (conversationLoading) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.loading}>
           <Text>Loading...</Text>
         </View>
@@ -51,7 +51,7 @@ const Chat = () => {
     : `@${otherUser?.username || 'unknown'}`;
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.background}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

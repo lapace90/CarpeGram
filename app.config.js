@@ -42,7 +42,7 @@ export default {
         {
           image: "./assets/images/splash-icon.png",
           imageWidth: 200,
-          resizeMode: "contain",
+          contentFit: "contain",
           backgroundColor: "#ffffff"
         }
       ]

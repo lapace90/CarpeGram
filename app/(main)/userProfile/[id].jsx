@@ -77,7 +77,7 @@ const UserProfile = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.center}>
           <Text>Loading...</Text>
         </View>
@@ -87,7 +87,7 @@ const UserProfile = () => {
 
   if (!profile) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.center}>
           <Icon name="user" size={60} color={theme.colors.textLight} />
           <Text style={styles.errorText}>User not found</Text>
@@ -100,7 +100,7 @@ const UserProfile = () => {
   }
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.background}>
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header avec username et back button */}

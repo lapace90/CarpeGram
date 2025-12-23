@@ -94,7 +94,7 @@ const BlockedUsers = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.container}>
           <View style={styles.header}>
             <BackButton router={router} to="/settings" />
@@ -110,7 +110,7 @@ const BlockedUsers = () => {
   }
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.background}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>

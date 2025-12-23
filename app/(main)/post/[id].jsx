@@ -14,7 +14,7 @@ const PostDetailPage = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
@@ -24,7 +24,7 @@ const PostDetailPage = () => {
 
   if (!post) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.loading}>
           <Text>Post not found</Text>
         </View>

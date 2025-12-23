@@ -36,7 +36,7 @@ const EventDetail = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
@@ -46,7 +46,7 @@ const EventDetail = () => {
 
   if (!event) {
     return (
-      <ScreenWrapper bg="white">
+      <ScreenWrapper bg={theme.colors.background}>
         <View style={styles.errorContainer}>
           <Icon name="alertCircle" size={60} color={theme.colors.textLight} />
           <Text style={styles.errorText}>Event not found</Text>
@@ -109,7 +109,7 @@ const EventDetail = () => {
   };
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.background}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>

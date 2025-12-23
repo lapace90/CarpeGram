@@ -1,6 +1,6 @@
 /**
  * Carpegram Themes
- * 4 fishing-inspired color palettes
+ * 6 fishing-inspired color palettes (4 light + 2 dark)
  * 
  * Chaque thème garde la même structure que constants/theme.js
  * pour garantir la compatibilité
@@ -171,6 +171,88 @@ export const goldenHour = {
 };
 
 // ============================================
+// 🌙 MIDNIGHT WATERS (Dark Mode Élégant)
+// ============================================
+export const midnightWaters = {
+  ...baseConfig,
+  id: 'midnightWaters',
+  name: 'Midnight Waters',
+  emoji: '🌙',
+  description: 'Elegant night fishing',
+  colors: {
+    // Primary - Bleu lumineux aquatique
+    primary: '#4A9FD8',
+    primaryDark: '#3182CE',
+    primaryLight: '#63B3ED',
+
+    // Dark tones
+    dark: '#E5E7EB',
+    darkLight: '#374151',
+    gray: '#4B5563',
+
+    // Text - Clairs pour contraste sur fond sombre
+    text: '#E5E7EB',
+    textLight: '#9CA3AF',
+    textDark: '#F3F4F6',
+
+    // Status
+    rose: '#EF4444',
+    roseLight: '#F87171',
+
+    // Accent - Cyan/Turquoise aquatique
+    accent: '#2DD4BF',
+    accentLight: '#5EEAD4',
+
+    // Backgrounds - Sombres
+    background: '#0F172A',
+    backgroundDark: '#0A0E17',
+    card: '#1E293B',
+    border: '#334155',
+  },
+};
+
+// ============================================
+// 🎣 NIGHT FISHING (Dark Mode Contrasté)
+// ============================================
+export const nightFishing = {
+  ...baseConfig,
+  id: 'nightFishing',
+  name: 'Night Fishing',
+  emoji: '🎣',
+  description: 'High contrast night mode',
+  colors: {
+    // Primary - Bleu vif
+    primary: '#3B82F6',
+    primaryDark: '#2563EB',
+    primaryLight: '#60A5FA',
+
+    // Dark tones
+    dark: '#F3F4F6',
+    darkLight: '#374151',
+    gray: '#4B5563',
+
+    // Text - Très clairs pour maximum contraste
+    text: '#F3F4F6',
+    textLight: '#9CA3AF',
+    textDark: '#FFFFFF',
+
+    // Status
+    rose: '#F43F5E',
+    roseLight: '#FB7185',
+
+    // Accent - Doré/Orange (lampe frontale)
+    accent: '#F59E0B',
+    accentLight: '#FCD34D',
+
+    // Backgrounds - Très sombres
+    background: '#0D1117',
+    backgroundDark: '#010409',
+    card: '#161B22',
+    border: '#30363D',
+  },
+};
+
+// ============================================
 // EXPORTS
 // ============================================
 
@@ -179,6 +261,8 @@ export const themes = {
   deepLake,
   morningMist,
   goldenHour,
+  midnightWaters,
+  nightFishing,
 };
 
 export const themeList = [
@@ -186,6 +270,8 @@ export const themeList = [
   deepLake,
   morningMist,
   goldenHour,
+  midnightWaters,
+  nightFishing,
 ];
 
 export const defaultThemeId = 'freshCatch';

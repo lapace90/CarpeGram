@@ -79,7 +79,7 @@ const About = () => {
   );
 
   return (
-    <ScreenWrapper bg="white">
+    <ScreenWrapper bg={theme.colors.background}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>

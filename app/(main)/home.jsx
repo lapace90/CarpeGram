@@ -142,7 +142,7 @@ const Home = () => {
 
   if (loading) {
     return (
-      <ScreenWrapper bg={theme.colors.gray + '10'}>
+      <ScreenWrapper bg={theme.colors.background}>
         {renderHeader()}
         <View style={styles.loadingContainer}>
           <BubblesLoader size={80} color={theme.colors.primary} />
@@ -155,7 +155,7 @@ const Home = () => {
   }
 
   return (
-    <ScreenWrapper bg={theme.colors.gray + '10'}>
+    <ScreenWrapper bg={theme.colors.background}>
       <FlatList
         data={posts}
         renderItem={renderPost}
